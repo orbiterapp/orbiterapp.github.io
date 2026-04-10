@@ -136,10 +136,22 @@
     <button class="tb-btn" onclick="switchTab('all')" id="tb-all"><span class="tb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></span><span class="tb-label">All</span></button>
   </div></div>
 </div>
-<div class="menu-overlay" id="menu-overlay" onclick="handleMenuClick(event)"><div class="user-menu"><div class="um-header"><div class="um-name" id="m-name">—</div><div class="um-email" id="m-email">—</div></div><div class="um-item danger" onclick="signOut()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg> Sign out</div></div></div>
+<div class="menu-overlay" id="menu-overlay" onclick="handleMenuClick(event)"><div class="user-menu"><div class="um-header"><div class="um-name" id="m-name">—</div><div class="um-email" id="m-email">—</div></div><div class="um-item" onclick="enableSiri()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg> Enable Siri</div><div class="um-item danger" onclick="signOut()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg> Sign out</div></div></div>
 <div class="modal-bg" id="modal-bg" onclick="handleModalBg(event)"><div class="modal-sheet"><div class="modal-handle"></div><div class="modal-head"><div class="modal-title">New Task</div><button class="modal-cancel" onclick="closeModal()">Cancel</button></div><div class="m-field"><label>Title</label><input type="text" id="i-title" placeholder="What needs to be done?" autocomplete="off"></div><div class="m-field"><label>Notes</label><textarea id="i-notes" placeholder="Add notes…"></textarea></div><div style="display:flex;gap:10px"><div class="m-field" style="flex:1"><label>Priority</label><select id="i-priority"><option value="None">None</option><option value="Low">Low</option><option value="Medium">Medium</option><option value="High">High</option></select></div><div class="m-field" style="flex:1"><label>Due Date</label><input type="date" id="i-due"></div></div><div class="toggle-row"><span class="toggle-label"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--pink)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg> Flagged</span><button class="toggle" id="tog-flag" onclick="toggleFlag()"></button></div><button class="modal-submit" onclick="addTask()">Add Task</button></div></div>
 <div class="toast" id="toast"></div>
 <script>
+const SIRI_WORKER='https://taskapp-siri.goyalamars18.workers.dev';
+async function enableSiri(){
+  toggleMenu(false);
+  try{
+    const r=await fetch(SIRI_WORKER+'/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({access_token:session.access_token,refresh_token:localStorage.getItem('sb_refresh_token'),user_id:session.user.id})});
+    const d=await r.json();
+    if(d.code){
+      const msg='Your Siri code:\n\n'+d.code+'\n\nInstall the shortcut and enter this code when asked.';
+      alert(msg);
+    }else{alert('Failed: '+(d.error||'Unknown error'));}
+  }catch(e){alert('Error: '+e.message);}
+}
 const SB_URL='https://kmfymwtarvvmzuwwspwy.supabase.co';
 const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImttZnltd3RhcnZ2bXp1d3dzcHd5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3NTI2NzcsImV4cCI6MjA5MTMyODY3N30.9aBPLgECyFtj12sknviOhi4aR4p-tG1FBT0v9tbU5J4';
 let session=null,tasks=[],currentTab='inbox',flagged=false,syncing=false;
