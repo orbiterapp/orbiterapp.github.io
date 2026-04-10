@@ -468,17 +468,35 @@ function parseHashSession() {
   const token  = params.get('access_token');
   if (!token) return null;
   try {
-    const payload = JSON.parse(atob(token.split('.')[1]));
-    return { access_token: token, user: { id: payload.sub, email: payload.email, user_metadata: payload.user_metadata || {} } };
-  } catch { return null; }
+    // base64url → base64: replace chars and add padding
+    const base64 = token.split('.')[1]
+      .replace(/-/g, '+').replace(/_/g, '/')
+      .padEnd(Math.ceil(token.split('.')[1].length / 4) * 4, '=');
+    const payload = JSON.parse(atob(base64));
+    return {
+      access_token: token,
+      user: {
+        id:            payload.sub,
+        email:         payload.email,
+        user_metadata: payload.user_metadata || {}
+      }
+    };
+  } catch (e) {
+    console.error('Failed to parse session:', e);
+    return null;
+  }
 }
 
 async function verifyToken(token) {
-  const res = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
-    headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` }
-  });
-  if (!res.ok) return null;
-  return { access_token: token, user: await res.json() };
+  try {
+    const res = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` }
+    });
+    if (!res.ok) return null;
+    const user = await res.json();
+    if (!user?.id) return null;
+    return { access_token: token, user };
+  } catch { return null; }
 }
 
 // ── API ──
