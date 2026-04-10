@@ -15,8 +15,8 @@ self.addEventListener('activate', e =>
 
 // Network first, fall back to cache (so tasks are always fresh when online)
 self.addEventListener('fetch', e => {
-  // Only intercept same-origin requests (not Supabase API calls)
   if (!e.request.url.startsWith(self.location.origin)) return;
+  if (e.request.mode === 'navigate') return;
 
   e.respondWith(
     fetch(e.request)
