@@ -166,7 +166,7 @@
 </div></div>
 
 <!-- Delete Confirmation Modal -->
-<div class="modal-bg" id="delete-modal-bg" onclick="handleDeleteModalBg(event)"><div class="modal-sheet" style="padding-bottom:calc(var(--safe-bottom) + 24px)"><div class="modal-handle"></div>
+<div class="modal-bg" id="delete-modal-bg" onclick="handleDeleteModalBg(event)" style="z-index:150"><div class="modal-sheet" style="padding-bottom:calc(var(--safe-bottom) + 24px)"><div class="modal-handle"></div>
   <div style="text-align:center;padding:10px 0 20px">
     <div style="width:56px;height:56px;border-radius:50%;background:var(--red-dim);display:flex;align-items:center;justify-content:center;margin:0 auto 16px">
       <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
@@ -352,9 +352,11 @@ function toggleFlag(){flagged=!flagged;document.getElementById('tog-flag').class
 // Task detail modal
 let currentTaskId=null;
 function openTaskDetail(taskId){
+  console.log('openTaskDetail called with taskId:',taskId);
   var task=tasks.find(function(t){return t.id===taskId});
-  if(!task)return;
+  if(!task){console.error('Task not found for ID:',taskId);return;}
   currentTaskId=taskId;
+  console.log('currentTaskId set to:',currentTaskId);
   document.getElementById('d-title').value=task.title||'';
   document.getElementById('d-notes').value=task.notes||'';
   document.getElementById('d-priority').value=task.priority||'None';
@@ -389,13 +391,13 @@ function closeDeleteConfirm(){document.getElementById('delete-modal-bg').classLi
 function handleDeleteModalBg(e){if(e.target.id==='delete-modal-bg')closeDeleteConfirm();}
 function confirmDeleteTask(){
   closeDeleteConfirm();
-  if(!currentTaskId){closeDetailModal();return;}
-  var task=tasks.find(function(t){return t.id===currentTaskId});
-  if(!task){closeDetailModal();return;}
+  var idToDelete=currentTaskId;
+  console.log('confirmDeleteTask called, currentTaskId:',idToDelete);
   closeDetailModal();
-  tasks=tasks.filter(function(t){return t.id!==currentTaskId});
+  if(!idToDelete){console.error('No task ID - cannot delete');toast('No task selected');return;}
+  tasks=tasks.filter(function(t){return t.id!==idToDelete});
   render();
-  api('tasks?id=eq.'+currentTaskId,{method:'DELETE'}).then(function(){toast('Task deleted');}).catch(function(){toast('Failed to sync');});
+  api('tasks?id=eq.'+idToDelete,{method:'DELETE',headers:{'apikey':SB_KEY,'Authorization':'Bearer '+(session?.access_token||SB_KEY),'Prefer':'return=minimal'}}).then(function(){toast('Task deleted');}).catch(function(e){console.error('Delete error:',e);toast('Failed to sync');});
 }
 
 document.getElementById('i-title').addEventListener('keydown',function(e){if(e.key==='Enter')addTask();});
