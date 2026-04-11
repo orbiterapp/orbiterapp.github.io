@@ -31,7 +31,7 @@
       uniforms: {
         iTime: { value: 0 },
         iResolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
-        iOffset: { value: new THREE.Vector2(0.0, 0.35) }  // Centered horizontally, shifted up
+        iOffset: { value: new THREE.Vector2(0.0, 0.5) }  // Centered horizontally, shifted up more
       },
       vertexShader: `
         void main() {
