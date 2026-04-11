@@ -1,0 +1,12 @@
+{
+  "name": "task-sync-pwa",
+  "version": "1.0.0",
+  "description": "Task sync PWA with Siri support",
+  "scripts": {
+    "start": "serve .",
+    "dev": "serve ."
+  },
+  "dependencies": {
+    "serve": "^14.2.4"
+  }
+}
