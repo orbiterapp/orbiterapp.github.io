@@ -6,6 +6,9 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Tasks">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <title>Tasks</title>
   <link rel="manifest" href="manifest.json">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -68,9 +71,10 @@
     .task-area{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:4px 16px 100px}
     .empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;height:55%;color:var(--text3);gap:10px}
     .empty-icon{opacity:.18}.empty-label{font-size:17px;font-weight:700;color:var(--text2)}.empty-sub{font-size:13px}
-    .task-row{display:flex;align-items:flex-start;gap:12px;padding:13px 4px;position:relative;transition:opacity .35s,transform .35s}
+    .task-row{display:flex;align-items:flex-start;gap:12px;padding:13px 4px;position:relative;transition:opacity .35s,transform .35s,cursor .15s}
     .task-row+.task-row{border-top:1px solid var(--border)}
     .task-row.completing{opacity:0;transform:translateX(30px)}
+    .task-row.clickable{cursor:pointer}
     .chk{width:22px;height:22px;border-radius:50%;flex-shrink:0;margin-top:1px;border:2px solid var(--border2);background:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .18s}
     .chk:active{transform:scale(.8)}
     .chk.p-high{border-color:var(--high)}.chk.p-medium{border-color:var(--medium)}.chk.p-low{border-color:var(--low)}
@@ -138,6 +142,19 @@
 </div>
 <div class="menu-overlay" id="menu-overlay" onclick="handleMenuClick(event)"><div class="user-menu"><div class="um-header"><div class="um-name" id="m-name">—</div><div class="um-email" id="m-email">—</div></div><div class="um-item" onclick="enableSiri()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg> Enable Siri</div><div class="um-item danger" onclick="signOut()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg> Sign out</div></div></div>
 <div class="modal-bg" id="modal-bg" onclick="handleModalBg(event)"><div class="modal-sheet"><div class="modal-handle"></div><div class="modal-head"><div class="modal-title">New Task</div><button class="modal-cancel" onclick="closeModal()">Cancel</button></div><div class="m-field"><label>Title</label><input type="text" id="i-title" placeholder="What needs to be done?" autocomplete="off"></div><div class="m-field"><label>Notes</label><textarea id="i-notes" placeholder="Add notes…"></textarea></div><div style="display:flex;gap:10px"><div class="m-field" style="flex:1"><label>Priority</label><select id="i-priority"><option value="None">None</option><option value="Low">Low</option><option value="Medium">Medium</option><option value="High">High</option></select></div><div class="m-field" style="flex:1"><label>Due Date</label><input type="date" id="i-due"></div></div><div class="toggle-row"><span class="toggle-label"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--pink)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg> Flagged</span><button class="toggle" id="tog-flag" onclick="toggleFlag()"></button></div><button class="modal-submit" onclick="addTask()">Add Task</button></div></div>
+
+<!-- Task Detail Modal -->
+<div class="modal-bg" id="detail-modal-bg" onclick="handleDetailModalBg(event)"><div class="modal-sheet" style="padding-bottom:calc(var(--safe-bottom) + 24px);overflow-y:auto;max-height:90dvh"><div class="modal-handle"></div><div class="modal-head"><div class="modal-title">Task Details</div><button class="modal-cancel" onclick="closeDetailModal()">Done</button></div>
+  <div class="m-field"><label>Title</label><input type="text" id="d-title" placeholder="Task name" autocomplete="off"></div>
+  <div class="m-field"><label>Notes</label><textarea id="d-notes" placeholder="Add notes…"></textarea></div>
+  <div style="display:flex;gap:10px;margin-bottom:12px">
+    <div class="m-field" style="flex:1"><label>Priority</label><select id="d-priority"><option value="None">None</option><option value="Low">Low</option><option value="Medium">Medium</option><option value="High">High</option></select></div>
+    <div class="m-field" style="flex:1"><label>Due Date</label><input type="date" id="d-due"></div>
+  </div>
+  <div class="toggle-row" style="margin-bottom:12px"><span class="toggle-label"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--pink)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg> Flagged</span><button class="toggle" id="d-tog-flag" onclick="toggleDetailFlag()"></button></div>
+  <div class="toggle-row"><span class="toggle-label"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg> Delete Task</span><button class="toggle" id="d-delete-btn" onclick="deleteCurrentTask()" style="background:var(--red-dim)" on><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-left:5px"><polyline points="20 6 9 17 4 12"/></svg></button></div>
+  <button class="modal-submit" onclick="saveTaskDetails()" style="margin-top:18px">Save Changes</button>
+</div></div>
 <div class="toast" id="toast"></div>
 <script>
 const SIRI_WORKER='https://taskapp-siri.goyalamars18.workers.dev';
@@ -295,7 +312,7 @@ function render(){
     if(due)chips+='<span class="chip '+due.cls+'">'+due.text+'</span>';
     if(t.priority&&t.priority!=='None')chips+='<span class="chip chip-priority cp-'+t.priority.toLowerCase()+'">'+t.priority+'</span>';
     if(t.notes)chips+='<span class="chip chip-note">Note</span>';
-    return '<div class="task-row" id="task-'+t.id+'" style="animation-delay:'+Math.min(i*0.03,0.3)+'s"><button class="chk '+pc+'" onclick="completeTask(\''+t.id+'\')"></button><div class="task-body"><div class="task-name">'+esc(t.title)+'</div>'+(chips?'<div class="task-chips">'+chips+'</div>':'')+'</div></div>';
+    return '<div class="task-row clickable" id="task-'+t.id+'" style="animation-delay:'+Math.min(i*0.03,0.3)+'s" onclick="openTaskDetail(\''+t.id+'\')"><button class="chk '+pc+'" onclick="event.stopPropagation();completeTask(\''+t.id+'\')"></button><div class="task-body"><div class="task-name">'+esc(t.title)+'</div>'+(chips?'<div class="task-chips">'+chips+'</div>':'')+'</div></div>';
   }).join('');
 }
 async function syncTasks(){if(syncing)return;syncing=true;document.getElementById('sync-btn').classList.add('spinning');try{tasks=await fetchAll();render();}catch(e){if(e.message!=='Unauthorized')toast('Sync failed');}finally{syncing=false;document.getElementById('sync-btn').classList.remove('spinning');}}
@@ -306,6 +323,52 @@ function openModal(){flagged=false;['i-title','i-notes'].forEach(function(id){do
 function closeModal(){document.getElementById('modal-bg').classList.remove('open');}
 function handleModalBg(e){if(e.target.id==='modal-bg')closeModal();}
 function toggleFlag(){flagged=!flagged;document.getElementById('tog-flag').classList.toggle('on',flagged);}
+
+// Task detail modal
+let currentTaskId=null;
+function openTaskDetail(taskId){
+  var task=tasks.find(function(t){return t.id===taskId});
+  if(!task)return;
+  currentTaskId=taskId;
+  document.getElementById('d-title').value=task.title||'';
+  document.getElementById('d-notes').value=task.notes||'';
+  document.getElementById('d-priority').value=task.priority||'None';
+  document.getElementById('d-due').value=task.due_date?task.due_date.split('T')[0]:'';
+  flagged=task.is_flagged||false;
+  document.getElementById('d-tog-flag').classList.toggle('on',flagged);
+  document.getElementById('detail-modal-bg').classList.add('open');
+  setTimeout(function(){document.getElementById('d-title').focus()},350);
+}
+function closeDetailModal(){document.getElementById('detail-modal-bg').classList.remove('open');currentTaskId=null;}
+function handleDetailModalBg(e){if(e.target.id==='detail-modal-bg')closeDetailModal();}
+function toggleDetailFlag(){flagged=!flagged;document.getElementById('d-tog-flag').classList.toggle('on',flagged);}
+function saveTaskDetails(){
+  var task=tasks.find(function(t){return t.id===currentTaskId});
+  if(!task)return;
+  var title=document.getElementById('d-title').value.trim();
+  if(!title){toast('Title required');return;}
+  task.title=title;
+  task.notes=document.getElementById('d-notes').value.trim();
+  task.priority=document.getElementById('d-priority').value;
+  var dueVal=document.getElementById('d-due').value;
+  task.due_date=dueVal?new Date(dueVal+'T00:00:00').toISOString():null;
+  task.is_flagged=flagged;
+  task.updated_at=new Date().toISOString();
+  closeDetailModal();
+  render();
+  upsert(task).then(function(){toast('Task updated');}).catch(function(){toast('Failed to sync');});
+}
+function deleteCurrentTask(){
+  if(!currentTaskId)return;
+  var task=tasks.find(function(t){return t.id===currentTaskId});
+  if(!task)return;
+  if(!confirm('Delete this task?'))return;
+  closeDetailModal();
+  tasks=tasks.filter(function(t){return t.id!==currentTaskId});
+  render();
+  api('tasks?id=eq.'+currentTaskId,{method:'DELETE'}).then(function(){toast('Task deleted');}).catch(function(){toast('Failed to sync');});
+}
+
 document.getElementById('i-title').addEventListener('keydown',function(e){if(e.key==='Enter')addTask();});
 function toggleDlMenu(){var m=document.getElementById('dl-menu');m.style.display=m.style.display==='none'?'block':'none'}
 document.addEventListener('click',function(e){if(!e.target.closest('#dl-btn')&&!e.target.closest('#dl-menu'))document.getElementById('dl-menu').style.display='none'});
