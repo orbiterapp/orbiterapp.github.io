@@ -2807,11 +2807,10 @@
 
     // --- Calendar UI ---
     window.setCalView = function (view) { calView = view; if (view === 'today') { calSelectedDate = new Date(); calRefDate = new Date(); } render(); };
-    window.setCalSelDate = function (y, m, d) { calSelectedDate = new Date(y, m, d); if (calView !== 'week') { calRefDate = new Date(y, m, 1); } render(); };
+    window.setCalSelDate = function (y, m, d) { calSelectedDate = new Date(y, m, d); calRefDate = calView === 'month' ? new Date(y, m, 1) : new Date(y, m, d); render(); };
     window.navCalMonth = function (dir) {
       if (calView === 'week') {
         calRefDate.setDate(calRefDate.getDate() + (dir * 7));
-        calSelectedDate.setDate(calSelectedDate.getDate() + (dir * 7));
       } else {
         calRefDate.setMonth(calRefDate.getMonth() + dir);
       }
