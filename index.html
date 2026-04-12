@@ -90,7 +90,7 @@
     .menu-overlay.open .user-menu{transform:scale(1) translateY(0);opacity:1}
     .um-header{padding:14px 16px;border-bottom:1px solid var(--border)}.um-name{font-size:15px;font-weight:700}.um-email{font-size:11px;color:var(--text3);margin-top:2px}
     .um-item{display:flex;align-items:center;gap:10px;padding:13px 16px;cursor:pointer;font-size:14px;font-weight:500;transition:background .1s}.um-item:active{background:var(--surface2)}.um-item.danger{color:var(--red)}
-    .task-area{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:4px 16px 100px}
+    .task-area{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:4px 16px 118px}
     .empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;height:55%;color:var(--text3);gap:10px}
     .empty-icon{opacity:.18}.empty-label{font-size:17px;font-weight:700;color:var(--text2)}.empty-sub{font-size:13px}
     .task-row{display:flex;align-items:flex-start;gap:12px;padding:13px 4px;position:relative;transition:opacity .35s,transform .35s}
@@ -134,14 +134,20 @@
     .tag-opt.selected{border-color:currentColor}
     .tag-dot{width:7px;height:7px;border-radius:50%}
     /* Bottom bar */
-    .bottom-bar{position:fixed;bottom:0;left:0;right:0;z-index:20;padding:0 12px calc(var(--safe-bottom) + 6px);background:linear-gradient(to top,var(--bg) 60%,transparent);pointer-events:none}
-    .toolbar{pointer-events:all;display:flex;align-items:center;justify-content:space-around;background:var(--card2);border:1px solid var(--border2);border-radius:16px;padding:6px 2px;box-shadow:0 -4px 30px rgba(0,0,0,.4)}
-    .tb-btn{display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 8px 6px;background:none;border:none;cursor:pointer;border-radius:12px;transition:all .15s;position:relative;min-width:44px}
-    .tb-btn svg{width:21px;height:21px;transition:all .15s}
-    .tb-label{font-family:'Outfit',sans-serif;font-size:9.5px;font-weight:600;transition:color .15s}
+    .bottom-bar{position:fixed;bottom:0;left:0;right:0;z-index:20;padding:26px 10px calc(var(--safe-bottom) + 8px);background:linear-gradient(to top,var(--bg) 60%,transparent);pointer-events:none}
+    .toolbar{pointer-events:all;display:flex;align-items:flex-end;background:var(--card2);border:1px solid var(--border2);border-radius:22px;padding:8px 4px 6px;box-shadow:0 -2px 20px rgba(0,0,0,.4),0 8px 32px rgba(0,0,0,.2);overflow:visible}
+    .tb-btn{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 4px 4px;background:none;border:none;cursor:pointer;border-radius:12px;transition:all .18s cubic-bezier(.32,.72,0,1);position:relative;flex:1;min-width:44px}
+    .tb-btn svg{width:21px;height:21px;transition:all .18s}
+    .tb-label{font-family:'Outfit',sans-serif;font-size:9.5px;font-weight:600;transition:color .18s;letter-spacing:.1px}
     .tb-btn .tb-icon{color:var(--text3)}.tb-btn .tb-label{color:var(--text3)}
-    .tb-btn.active{background:var(--surface2)}.tb-btn:active{transform:scale(.9)}
-    .tb-badge{position:absolute;top:2px;right:2px;background:var(--red);color:#fff;font-size:9px;font-weight:800;min-width:16px;height:16px;border-radius:8px;display:flex;align-items:center;justify-content:center;padding:0 4px;box-shadow:0 2px 6px rgba(239,68,68,.4)}
+    .tb-btn.active{background:none}
+    .tb-btn:not(.tb-add):active{transform:scale(.88)}
+    .tb-badge{position:absolute;top:2px;right:4px;background:var(--red);color:#fff;font-size:9px;font-weight:800;min-width:16px;height:16px;border-radius:8px;display:flex;align-items:center;justify-content:center;padding:0 4px;box-shadow:0 2px 6px rgba(239,68,68,.4)}
+    /* FAB center */
+    .tb-add{flex:0 0 68px;padding:0 4px 4px;margin-top:-22px;border-radius:0!important;background:none!important}
+    .tb-add:active .tb-fab{transform:scale(.86)!important;box-shadow:0 2px 12px rgba(139,92,246,.35)!important}
+    .tb-fab{width:56px;height:56px;border-radius:50%;background:linear-gradient(145deg,#a78bfa 0%,var(--purple) 100%);display:flex;align-items:center;justify-content:center;box-shadow:0 6px 24px rgba(139,92,246,.55),0 2px 8px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.22);transition:transform .2s cubic-bezier(.32,.72,0,1),box-shadow .2s}
+    .tb-add-lbl{font-family:'Outfit',sans-serif;font-size:9.5px;font-weight:600;color:var(--purple);margin-top:3px;letter-spacing:.1px}
     /* Modals */
     .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);display:flex;align-items:flex-end;z-index:100;opacity:0;pointer-events:none;transition:opacity .25s}
     .modal-bg.open{opacity:1;pointer-events:all}
@@ -184,7 +190,7 @@
     .color-swatch.selected{border-color:white;transform:scale(1.15)}
     .color-swatch:active{transform:scale(.9)}
     /* Toast */
-    .toast{position:fixed;bottom:calc(var(--safe-bottom) + 90px);left:50%;transform:translateX(-50%) translateY(12px);background:var(--card2);color:var(--text);padding:10px 18px;border-radius:20px;font-size:13px;font-weight:600;opacity:0;transition:opacity .2s,transform .2s;pointer-events:none;white-space:nowrap;z-index:300;border:1px solid var(--border2);box-shadow:0 8px 30px rgba(0,0,0,.5)}
+    .toast{position:fixed;bottom:calc(var(--safe-bottom) + 108px);left:50%;transform:translateX(-50%) translateY(12px);background:var(--card2);color:var(--text);padding:10px 18px;border-radius:20px;font-size:13px;font-weight:600;opacity:0;transition:opacity .2s,transform .2s;pointer-events:none;white-space:nowrap;z-index:300;border:1px solid var(--border2);box-shadow:0 8px 30px rgba(0,0,0,.5)}
     .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
     @keyframes checkPop{0%{transform:scale(0)}50%{transform:scale(1.25)}100%{transform:scale(1)}}.check-anim svg{animation:checkPop .28s cubic-bezier(.32,.72,0,1)}
     @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}.task-row{animation:fadeUp .3s ease both}
@@ -192,7 +198,7 @@
     #ptr{position:fixed;top:calc(var(--safe-top) + 68px);left:50%;margin-left:-12px;width:24px;height:24px;opacity:0;pointer-events:none;z-index:25;color:var(--text3);transition:color .2s}
     #ptr svg{display:block}#ptr.ready{color:var(--purple)}
     /* ── Install app banner ── */
-    #install-banner{position:fixed;bottom:calc(var(--safe-bottom) + 82px);left:14px;right:14px;background:var(--card2);border:1px solid var(--border2);border-radius:16px;padding:12px 14px;display:flex;align-items:center;gap:12px;box-shadow:0 8px 40px rgba(0,0,0,.6);z-index:50;transform:translateY(24px);opacity:0;pointer-events:none;transition:transform .35s cubic-bezier(.32,.72,0,1),opacity .35s}
+    #install-banner{position:fixed;bottom:calc(var(--safe-bottom) + 100px);left:14px;right:14px;background:var(--card2);border:1px solid var(--border2);border-radius:16px;padding:12px 14px;display:flex;align-items:center;gap:12px;box-shadow:0 8px 40px rgba(0,0,0,.6);z-index:50;transform:translateY(24px);opacity:0;pointer-events:none;transition:transform .35s cubic-bezier(.32,.72,0,1),opacity .35s}
     #install-banner.show{transform:translateY(0);opacity:1;pointer-events:all}
     /* ── Quick Capture tip modal ── */
     #qc-modal{position:fixed;inset:0;z-index:400;background:rgba(0,0,0,.65);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);display:flex;align-items:flex-end;opacity:0;pointer-events:none;transition:opacity .25s}
@@ -210,7 +216,7 @@
     /* ── Light mode ── */
     body.light{--bg:#f5f5f7;--bg2:#eeeef2;--surface:rgba(0,0,0,0.04);--surface2:rgba(0,0,0,0.06);--surface3:rgba(0,0,0,0.09);--card:#ffffff;--card2:#f8f8fa;--border:rgba(0,0,0,0.07);--border2:rgba(0,0,0,0.11);--text:#1a1a1e;--text2:rgba(0,0,0,0.55);--text3:rgba(0,0,0,0.32)}
     body.light::before{opacity:0}
-    body.light .toolbar{background:rgba(255,255,255,.92);border-color:rgba(0,0,0,.06);box-shadow:0 -4px 30px rgba(0,0,0,.06)}
+    body.light .toolbar{background:rgba(255,255,255,.95);border-color:rgba(0,0,0,.08);box-shadow:0 -2px 20px rgba(0,0,0,.06),0 8px 32px rgba(0,0,0,.04)}
     body.light .modal-sheet{background:#fff;border-color:rgba(0,0,0,.05)}
     body.light .user-menu{background:#fff;border-color:rgba(0,0,0,.07);box-shadow:0 20px 60px rgba(0,0,0,.12)}
     body.light .toast{background:#fff;border-color:rgba(0,0,0,.08);box-shadow:0 8px 30px rgba(0,0,0,.08)}
@@ -267,16 +273,6 @@
       <div class="header-right">
         <button class="hdr-btn" id="filter-btn" onclick="toggleFilters()" title="Filters"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg></button>
         <button class="hdr-btn" id="search-btn" onclick="toggleSearch()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></button>
-        <button class="hdr-btn" id="sync-btn" onclick="syncTasks()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg></button>
-        <div style="position:relative">
-          <button class="hdr-btn" id="dl-btn" onclick="toggleDlMenu()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></button>
-          <div id="dl-menu" style="display:none;position:absolute;top:40px;right:0;background:var(--card2);border:1px solid var(--border2);border-radius:12px;overflow:hidden;box-shadow:0 12px 40px rgba(0,0,0,.5);z-index:50;width:220px">
-            <div style="padding:12px 14px 8px;font-size:11px;font-weight:700;color:var(--text3);letter-spacing:.5px">DOWNLOAD APP</div>
-            <a href="https://kmshah2.github.io/task-sync-pwa/TaskApp.dmg" style="display:flex;align-items:center;gap:12px;padding:12px 14px;text-decoration:none;color:var(--text)" onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background=''"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="1.5"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.81-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83"/><path d="M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11"/></svg><div><div style="font-size:14px;font-weight:600">macOS</div><div style="font-size:11px;color:var(--text3)">Download .dmg</div></div></a>
-            <div style="height:1px;background:var(--border);margin:0 14px"></div>
-            <a href="https://github.com/kmshah2/task-sync-pwa/releases/download/v1.0.1/Orbiter-Setup.exe" style="display:flex;align-items:center;gap:12px;padding:12px 14px;text-decoration:none;color:var(--text)" onmouseover="this.style.background='rgba(255,255,255,0.06)'" onmouseout="this.style.background=''"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M3 5.548l7.065-0.966v6.835H3V5.548z" fill="var(--text2)"/><path d="M11.235 4.463L21 3v8.417h-9.765V4.463z" fill="var(--text2)"/><path d="M21 12.583V21l-9.765-1.353v-7.064H21z" fill="var(--text2)"/><path d="M10.065 19.542L3 18.682v-6.099h7.065v6.959z" fill="var(--text2)"/></svg><div><div style="font-size:14px;font-weight:600">Windows</div><div style="font-size:11px;color:var(--text3)">Download .exe</div></div></a>
-          </div>
-        </div>
         <div class="avatar-btn" id="avatar-btn" onclick="toggleMenu()">?</div>
       </div>
     </div>
@@ -299,10 +295,9 @@
   <div class="bottom-bar"><div class="toolbar">
     <button class="tb-btn" onclick="switchTab('inbox')" id="tb-inbox"><span class="tb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg></span><span class="tb-label">Inbox</span><span class="tb-badge" id="badge-inbox" style="display:none"></span></button>
     <button class="tb-btn" onclick="switchTab('today')" id="tb-today"><span class="tb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span><span class="tb-label">Today</span><span class="tb-badge" id="badge-today" style="display:none"></span></button>
-    <button class="tb-btn" onclick="openModal()" id="tb-add" style="margin-top:-6px"><span class="tb-icon" style="width:38px;height:38px;background:var(--purple);border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(139,92,246,.4)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span><span class="tb-label" style="margin-top:1px">Add</span></button>
+    <button class="tb-btn tb-add" onclick="openModal()" id="tb-add" aria-label="Add task"><span class="tb-icon"><span class="tb-fab"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span></span><span class="tb-add-lbl">Add</span></button>
     <button class="tb-btn" onclick="switchTab('flagged')" id="tb-flagged"><span class="tb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg></span><span class="tb-label">Flagged</span><span class="tb-badge" id="badge-flagged" style="display:none"></span></button>
     <button class="tb-btn" onclick="switchTab('projects')" id="tb-projects"><span class="tb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg></span><span class="tb-label">Projects</span></button>
-    <button class="tb-btn" onclick="switchTab('all')" id="tb-all"><span class="tb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></span><span class="tb-label">All</span></button>
   </div></div>
 </div>
 
@@ -314,6 +309,11 @@
     <div class="um-item" onclick="toggleMenu(false);requestNotifPermission()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg> Enable Notifications</div>
     <div class="um-item" onclick="toggleMenu(false);showQCModal()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Quick Capture Setup</div>
     <div class="um-item" onclick="toggleMenu(false);openProjectsModal()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg> Manage Projects</div>
+    <div class="um-item" id="um-sync" onclick="toggleMenu(false);syncTasks()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg> Sync Tasks<span class="kbd-hint">⌘R</span></div>
+    <div style="height:1px;background:var(--border);margin:4px 0"></div>
+    <a class="um-item" href="https://kmshah2.github.io/task-sync-pwa/TaskApp.dmg" style="text-decoration:none;color:inherit"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.81-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83"/><path d="M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11"/></svg> Download for macOS</a>
+    <a class="um-item" href="https://github.com/kmshah2/task-sync-pwa/releases/download/v1.0.1/Orbiter-Setup.exe" style="text-decoration:none;color:inherit"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M3 5.548l7.065-0.966v6.835H3V5.548z" fill="currentColor" opacity=".6"/><path d="M11.235 4.463L21 3v8.417h-9.765V4.463z" fill="currentColor" opacity=".6"/><path d="M21 12.583V21l-9.765-1.353v-7.064H21z" fill="currentColor" opacity=".6"/><path d="M10.065 19.542L3 18.682v-6.099h7.065v6.959z" fill="currentColor" opacity=".6"/></svg> Download for Windows</a>
+    <div style="height:1px;background:var(--border);margin:4px 0"></div>
     <div class="um-item" onclick="toggleMenu(false);toggleTheme()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg> <span id="theme-label">Light Mode</span><span class="kbd-hint">⌘D</span></div>
     <div class="um-item" onclick="toggleMenu(false);toggleArchiveView()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg> <span id="archive-label">View Archive</span></div>
     <div class="um-item danger" onclick="signOut()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg> Sign out</div>
@@ -655,7 +655,7 @@ function render(){
 function setProjectFilter(id){currentProjectFilter=id;render();}
 
 // ─── Sync ─────────────────────────────────────────────────────────────────────
-async function syncTasks(){if(syncing)return;syncing=true;document.getElementById('sync-btn').classList.add('spinning');try{tasks=await fetchAll();render();scheduleNotifications();}catch(e){if(e.message!=='Unauthorized')toast('Sync failed');}finally{syncing=false;document.getElementById('sync-btn').classList.remove('spinning');}}
+async function syncTasks(){if(syncing)return;syncing=true;var _sb=document.getElementById('sync-btn');if(_sb)_sb.classList.add('spinning');var _us=document.getElementById('um-sync');if(_us)_us.style.opacity='.4';try{tasks=await fetchAll();render();scheduleNotifications();}catch(e){if(e.message!=='Unauthorized')toast('Sync failed');}finally{syncing=false;if(_sb)_sb.classList.remove('spinning');if(_us)_us.style.opacity='';}}
 
 // ─── Complete ─────────────────────────────────────────────────────────────────
 async function completeTask(id){
@@ -877,7 +877,7 @@ function deleteProject(id){
 // ─── Misc event handlers ──────────────────────────────────────────────────────
 document.getElementById('i-title').addEventListener('keydown',function(e){if(e.key==='Enter')addTask();});
 function toggleDlMenu(){var m=document.getElementById('dl-menu');m.style.display=m.style.display==='none'?'block':'none';}
-document.addEventListener('click',function(e){if(!e.target.closest('#dl-btn')&&!e.target.closest('#dl-menu'))document.getElementById('dl-menu').style.display='none';});
+document.addEventListener('click',function(e){var dm=document.getElementById('dl-menu');if(dm&&!e.target.closest('#dl-btn')&&!e.target.closest('#dl-menu'))dm.style.display='none';});
 
 // ─── Siri ────────────────────────────────────────────────────────────────────
 async function enableSiri(){
