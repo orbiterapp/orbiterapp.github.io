@@ -21,11 +21,18 @@
     const scene = new THREE.Scene();
     const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
 
-    const renderer = new THREE.WebGLRenderer({
-      antialias: false,
-      alpha: false,
-      powerPreference: isMobile ? 'low-power' : 'high-performance'
-    });
+    let renderer;
+    try {
+      renderer = new THREE.WebGLRenderer({
+        antialias: false,
+        alpha: false,
+        powerPreference: isMobile ? 'low-power' : 'high-performance'
+      });
+    } catch (e) {
+      console.warn('Shader background: WebGL not available', e.message);
+      container.style.display = 'none';
+      return;
+    }
 
     // Lower resolution on mobile for big perf win
     const pixelRatio = isMobile ? 1 : Math.min(window.devicePixelRatio, 2);

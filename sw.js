@@ -1,5 +1,5 @@
-const CACHE = 'tasks-v5';
-const SHELL  = ['./index.html', './quick.html', './manifest.json', './icon.svg'];
+const CACHE = 'tasks-v6';
+const SHELL  = ['./index.html', './quick.html', './manifest.json', './iconbg.png'];
 
 self.addEventListener('install', e => {
   self.skipWaiting();
