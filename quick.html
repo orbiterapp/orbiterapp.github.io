@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Quick Task">
@@ -14,7 +14,7 @@
   <style>
     :root{--bg:#08080c;--card:#1a1a22;--surface:rgba(255,255,255,0.045);--border:rgba(255,255,255,0.08);--border2:rgba(255,255,255,0.14);--text:#f0f0f5;--text2:rgba(255,255,255,0.55);--text3:rgba(255,255,255,0.32);--purple:#8b5cf6;--purple-dim:rgba(139,92,246,0.15);--cyan:#22d3ee;--cyan-dim:rgba(34,211,238,0.12);--pink:#f43f7a;--pink-dim:rgba(244,63,122,0.12);--amber:#f59e0b;--amber-dim:rgba(245,158,11,0.12);--green:#34d399;--green-dim:rgba(52,211,153,0.12);--red:#ef4444;--red-dim:rgba(239,68,68,0.12);--high:#ef4444;--medium:#f59e0b;--low:#22d3ee;--safe-top:env(safe-area-inset-top);--safe-bottom:env(safe-area-inset-bottom)}
     *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-    body{font-family:'Outfit',-apple-system,sans-serif;background:var(--bg);color:var(--text);height:100dvh;display:flex;flex-direction:column;-webkit-font-smoothing:antialiased;overflow:hidden}
+    body{font-family:'Outfit',-apple-system,sans-serif;background:var(--bg);color:var(--text);height:100dvh;display:flex;flex-direction:column;-webkit-font-smoothing:antialiased;overflow:hidden;touch-action:pan-x pan-y}
     body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0.022;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");background-size:200px}
     .container{flex:1;display:flex;flex-direction:column;padding:calc(var(--safe-top)+20px) 20px calc(var(--safe-bottom)+20px);position:relative;z-index:1;max-width:500px;width:100%;margin:0 auto}
     .header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px}
@@ -25,7 +25,7 @@
     .input-card{background:var(--card);border:1px solid var(--border2);border-radius:18px;padding:18px}
     .title-input{width:100%;background:none;border:none;outline:none;color:var(--text);font-family:inherit;font-size:19px;font-weight:600;letter-spacing:-.3px;padding:0;margin-bottom:14px}
     .title-input::placeholder{color:var(--text3)}
-    .notes-input{width:100%;background:none;border:none;outline:none;color:var(--text2);font-family:inherit;font-size:14px;font-weight:400;line-height:1.5;padding:0;margin-bottom:16px;resize:none;height:44px}
+    .notes-input{width:100%;background:none;border:none;outline:none;color:var(--text2);font-family:inherit;font-size:16px;font-weight:400;line-height:1.5;padding:0;margin-bottom:16px;resize:none;height:44px}
     .notes-input::placeholder{color:var(--text3)}
     .options{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:16px}
     .opt{display:flex;align-items:center;gap:5px;padding:7px 11px;border-radius:9px;background:var(--surface);border:1px solid var(--border);color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;position:relative}
@@ -34,7 +34,7 @@
     .opt.flag-on{border-color:var(--pink);color:var(--pink);background:var(--pink-dim)}
     .opt select{position:absolute;inset:0;opacity:0;cursor:pointer;font-size:16px}
     .pdot{width:7px;height:7px;border-radius:50%}
-    .submit{width:100%;padding:14px;border:none;background:var(--purple);color:white;font-family:inherit;font-size:15px;font-weight:700;border-radius:12px;cursor:pointer;box-shadow:0 4px 16px rgba(139,92,246,.3),inset 0 1px 0 rgba(255,255,255,.15);transition:all .15s;display:flex;align-items:center;justify-content:center;gap:8px}
+    .submit{width:100%;padding:14px;border:none;background:var(--purple);color:white;font-family:inherit;font-size:16px;font-weight:700;border-radius:12px;cursor:pointer;box-shadow:0 4px 16px rgba(139,92,246,.3),inset 0 1px 0 rgba(255,255,255,.15);transition:all .15s;display:flex;align-items:center;justify-content:center;gap:8px}
     .submit:active{transform:scale(.97);opacity:.85}
     .submit:disabled{opacity:.4;pointer-events:none}
     .success-overlay{position:fixed;inset:0;z-index:100;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;opacity:0;pointer-events:none;transition:opacity .3s}
@@ -98,6 +98,7 @@ function showOK(){const o=document.getElementById('sov');o.classList.add('show')
 function reset(){document.getElementById('q-title').value='';document.getElementById('q-notes').value='';qP='None';qF=false;qD=null;document.getElementById('plbl').textContent='None';document.getElementById('pdot').style.background='var(--text3)';document.getElementById('chip-pri').classList.remove('active');document.getElementById('chip-pri').style.borderColor='';document.getElementById('chip-due').classList.remove('active');document.getElementById('dlbl').textContent='Due date';document.getElementById('dsel').value='';document.getElementById('chip-flag').classList.remove('flag-on');const b=document.getElementById('sbtn');b.disabled=false;b.innerHTML='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add Task';setTimeout(()=>document.getElementById('q-title').focus(),100)}
 document.getElementById('q-title').addEventListener('keydown',e=>{if(e.key==='Enter')submitTask()});
 async function init(){const s=localStorage.getItem('sb_access_token');if(s){session=await verify(s);if(!session)session=await refresh()}if(!session)session=await refresh();if(session){document.getElementById('main-view').style.display='';document.getElementById('nsi').style.display='none';document.getElementById('q-title').focus()}else{document.getElementById('main-view').style.display='none';document.getElementById('nsi').style.display=''}}
+document.addEventListener('gesturestart', function(e) { e.preventDefault(); });
 init();
 </script>
 </body>

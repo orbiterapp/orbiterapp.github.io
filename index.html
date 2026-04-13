@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -73,7 +73,8 @@
       display: flex;
       flex-direction: column;
       overflow: hidden;
-      -webkit-font-smoothing: antialiased
+      -webkit-font-smoothing: antialiased;
+      touch-action: pan-x pan-y;
     }
 
     body::before {
@@ -371,7 +372,7 @@
       border: none;
       color: var(--text);
       font-family: inherit;
-      font-size: 15px;
+      font-size: 16px;
       font-weight: 500;
       outline: none
     }
@@ -823,7 +824,7 @@
       border-radius: 8px;
       color: var(--text);
       font-family: inherit;
-      font-size: 13px;
+      font-size: 16px;
       padding: 9px 11px;
       outline: none;
       transition: border-color .15s
@@ -1106,7 +1107,7 @@
       border-radius: 10px;
       color: var(--text);
       font-family: inherit;
-      font-size: 15px;
+      font-size: 16px;
       font-weight: 500;
       padding: 12px 13px;
       outline: none;
@@ -4371,6 +4372,9 @@
         removeDesktopSidebar();
       }
     };
+
+    // ─── Disable Zoom ────────────────────────────────────────────────────────────
+    document.addEventListener('gesturestart', function(e) { e.preventDefault(); });
 
     init();
   </script>
