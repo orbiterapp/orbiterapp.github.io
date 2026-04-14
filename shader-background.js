@@ -8,12 +8,6 @@
     const container = document.getElementById('login-shader-container');
     if (!container) return;
 
-    // ORB-24: respect prefers-reduced-motion — skip animation entirely
-    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      container.style.display = 'none';
-      return;
-    }
-
     // Check for Three.js
     if (typeof THREE === 'undefined') {
       console.error('Three.js not loaded');
@@ -137,23 +131,7 @@
     let frameId;
     let lastTime = 0;
     // On mobile, cap at ~30fps to save battery and reduce lag
-    let targetInterval = isMobile ? 1000 / 30 : 0;
-
-    // ORB-24: Battery API — throttle to ~20fps on battery to save power
-    if ('getBattery' in navigator) {
-      navigator.getBattery().then(function(battery) {
-        function updateThrottle() {
-          if (!battery.charging && battery.level < 0.2) {
-            targetInterval = 1000 / 20; // low battery: 20fps
-          } else if (!battery.charging) {
-            targetInterval = Math.max(targetInterval, 1000 / 30); // on battery: 30fps max
-          }
-        }
-        updateThrottle();
-        battery.addEventListener('chargingchange', updateThrottle);
-        battery.addEventListener('levelchange', updateThrottle);
-      }).catch(function() {});
-    }
+    const targetInterval = isMobile ? 1000 / 30 : 0;
 
     const animate = (timestamp) => {
       frameId = requestAnimationFrame(animate);
