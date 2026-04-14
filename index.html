@@ -3581,7 +3581,7 @@
       if (el) { var cb = el.querySelector('.chk'); if (cb) { cb.classList.add('check-anim'); cb.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'; cb.style.borderColor = 'var(--green)'; cb.style.background = 'var(--green-dim)'; } setTimeout(function () { el.classList.add('completing'); }, 180); }
       var _undone = false;
       window._lastCompleted = { task: task, undone: false };
-      toast('Done \u2713', 3500, function() { if (window._lastCompleted) { window._lastCompleted.undone = true; task.is_completed = false; task.completed_at = null; clearTimeout(window._completeDelay); render(); toast('Restored \u2713'); } });
+      toast('Archived', 3500, 'window._lastCompleted&&(window._lastCompleted.undone=true,window._lastCompleted.task.is_completed=false,window._lastCompleted.task.completed_at=null,clearTimeout(window._completeDelay),render(),toast(\'Restored ✓\'))');
       window._completeDelay = setTimeout(function () {
         if (window._lastCompleted && window._lastCompleted.undone) return;
         task.is_completed = true; task.completed_at = new Date().toISOString(); render();
@@ -3771,7 +3771,7 @@
       localStorage.removeItem('st_' + id);
       tasks = tasks.filter(function (t) { return t.id !== id; });
       render();
-      toast('Deleted', 3500, (function(b) { return function() { tasks.push(b); render(); toast('Restored \u2713'); }; })(backup));
+      toast('Deleted', 3500, 'tasks.push(' + JSON.stringify(backup).replace(/'/g, "\\'") + ');render();toast("Restored \u2713")');
       setTimeout(function () {
         api('tasks?id=eq.' + id, { method: 'DELETE', headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + (session?.access_token || SB_KEY), 'Prefer': 'return=minimal' } }).catch(function () { });
       }, 4000);
