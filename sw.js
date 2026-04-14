@@ -1,5 +1,5 @@
-const CACHE = 'orbiter-v20260414'; // ORB-22: increment this string on every deploy to bust stale caches
-const SHELL  = ['./index.html', './quick.html', './manifest.json', './iconbg.png', './shader-background.js'];
+const CACHE = 'tasks-v6';
+const SHELL  = ['./index.html', './quick.html', './manifest.json', './iconbg.png'];
 
 self.addEventListener('install', e => {
   self.skipWaiting();
