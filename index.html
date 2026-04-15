@@ -3666,16 +3666,20 @@
       // ORB-83: pill label must say "Done", not "Archived"
       var _snapshot = Object.assign({}, task);
       toast('Done', 3500, function() {
-        // ORB-84: real function closure so variables are captured correctly
         clearTimeout(window._completeDelay);
         task.is_completed = false;
         task.completed_at = null;
+        patch(task.id, { is_completed: false, completed_at: null, updated_at: new Date().toISOString() }).catch(function(){});
+        if (task._next_instance_id) {
+          deleteTask(task._next_instance_id).catch(function(){});
+          tasks = tasks.filter(function(t) { return t.id !== task._next_instance_id; });
+          task._next_instance_id = null;
+        }
         render();
         toast('Restored ✓');
       });
       window._completeDelay = setTimeout(function () {
         task.is_completed = true; task.completed_at = new Date().toISOString(); task.updated_at = new Date().toISOString();
-        // ORB-85: If recurring, create next instance anchored to today if no due date
         if (task.repeat_rule && task.repeat_rule !== 'None') {
           var anchorISO = task.due_date || new Date().toISOString();
           var nextDue = calculateNextDueDate(anchorISO, task.repeat_rule);
@@ -3688,6 +3692,7 @@
             created_at: now,
             updated_at: now
           });
+          task._next_instance_id = nextTask.id;
           tasks.push(nextTask);
           upsert(nextTask).catch(function() {});
         }
@@ -3870,10 +3875,19 @@
     }
     function deleteSubtask(id) {
       haptic('medium');
+      var backup = tasks.find(function (t) { return t.id === id; });
+      if (!backup) return;
+      backup = Object.assign({}, backup);
       tasks = tasks.filter(function (t) { return t.id !== id; });
       // ORB-55: use deleteTask() which goes through the proper merged-header api() path
       deleteTask(id).catch(function () { toast('Failed to sync'); });
       renderSubtasks(); render();
+      toast('Subtask deleted', 3500, function() {
+        tasks.push(backup);
+        upsert(backup).catch(function(){});
+        renderSubtasks(); render();
+        toast('Restored ✓');
+      });
     }
     document.getElementById('new-subtask-input').addEventListener('keydown', function (e) { if (e.key === 'Enter') confirmAddSubtask(); });
 
@@ -3886,11 +3900,7 @@
       var idToDelete = currentTaskId;
       closeDetailModal();
       if (!idToDelete) return;
-      localStorage.removeItem('st_' + idToDelete);
-      tasks = tasks.filter(function (t) { return t.id !== idToDelete; });
-      render();
-      // ORB-55: use deleteTask() helper so headers are always correctly merged
-      deleteTask(idToDelete).then(function () { toast('Task deleted'); }).catch(function () { toast('Failed to sync'); });
+      quickDeleteTask(idToDelete);
     }
     // ORB-55: quickDeleteTask also uses deleteTask() helper
     function quickDeleteTask(id) {
@@ -3902,15 +3912,13 @@
       localStorage.removeItem('st_' + id);
       tasks = tasks.filter(function (t) { return t.id !== id; });
       render();
-      // ORB-84: pass a real function (not a string) for the undo callback
+      deleteTask(id).catch(function () { });
       toast('Deleted', 3500, function() {
         tasks.push(backup);
+        upsert(backup).catch(function(){});
         render();
         toast('Restored ✓');
       });
-      setTimeout(function () {
-        deleteTask(id).catch(function () { });
-      }, 4000);
     }
 
     // ─── Projects ─────────────────────────────────────────────────────────────────
@@ -3945,13 +3953,26 @@
       toast('Project created');
     }
     function deleteProject(id) {
+      var backupProj = projects.find(function (p) { return p.id === id; });
       projects = projects.filter(function (p) { return p.id !== id; });
       api('projects?id=eq.' + id, { method: 'DELETE', headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + (session?.access_token || SB_KEY), 'Prefer': 'return=minimal' } }).catch(function () { toast('Failed to sync project'); });
       // Remove project_id from tasks that used it
-      tasks.forEach(function (t) { if (t.project_id === id) { t.project_id = null; upsert(t).catch(function () { }); } });
+      var affectedTaskIds = [];
+      tasks.forEach(function (t) { if (t.project_id === id) { affectedTaskIds.push(t.id); t.project_id = null; upsert(t).catch(function () { }); } });
+      var prevFilter = currentProjectFilter;
       if (currentProjectFilter === id) currentProjectFilter = null;
       renderProjList(); populateProjectSelects(); render();
-      toast('Project deleted');
+      toast('Project deleted', 3500, function() {
+        if(backupProj) projects.push(backupProj);
+        api('projects', { method: 'POST', headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + (session?.access_token || SB_KEY), 'Content-Type': 'application/json', 'Prefer': 'return=minimal' }, body: JSON.stringify(backupProj) }).catch(function(){});
+        affectedTaskIds.forEach(function(tid) {
+           var t = tasks.find(function(x) { return x.id === tid; });
+           if(t) { t.project_id = id; upsert(t).catch(function(){}); }
+        });
+        currentProjectFilter = prevFilter;
+        renderProjList(); populateProjectSelects(); render();
+        toast('Restored ✓');
+      });
     }
 
     // ─── Misc event handlers ──────────────────────────────────────────────────────
@@ -4271,9 +4292,18 @@
     async function unarchiveTask(id) {
       var task = tasks.find(function (t) { return t.id === id; });
       if (!task) return;
+      var backup = Object.assign({}, task);
       task.is_completed = false; task.completed_at = null; task.updated_at = new Date().toISOString();
       haptic('medium'); render();
-      try { await upsert(task); toast('Restored'); } catch (e) { toast('Failed to sync'); }
+      try { 
+        await upsert(task); 
+        toast('Restored', 3500, function() {
+          Object.assign(task, backup);
+          upsert(task).catch(function(){});
+          render();
+          toast('Archived ✓');
+        });
+      } catch (e) { toast('Failed to sync'); }
     }
 
     // ─── Keyboard Shortcuts ──────────────────────────────────────────────────
