@@ -1,5 +1,5 @@
-const CACHE = 'tasks-v6';
-const SHELL  = ['./index.html', './quick.html', './manifest.json', './iconbg.png'];
+const CACHE = 'tasks-v7'; // ORB-22: bumped to bust cache after adding auth.js + shader
+const SHELL  = ['./index.html', './quick.html', './manifest.json', './iconbg.png', './auth.js', './shader-background.js'];
 
 self.addEventListener('install', e => {
   self.skipWaiting();

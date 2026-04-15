@@ -559,7 +559,10 @@
       gap: 12px;
       padding: 13px 4px;
       position: relative;
-      transition: opacity .35s, transform .35s
+      transition: opacity .35s, transform .35s;
+      /* ORB-81: Contain each row so the browser isolates its layout/paint */
+      contain: layout style;
+      will-change: transform, opacity;
     }
 
     .task-row+.task-row {
@@ -3192,6 +3195,8 @@
     </div>
   </div>
 
+  <!-- ORB-21: Shared auth module (verify, refresh, bootstrapSession) -->
+  <script src="auth.js"></script>
   <script>
     const SIRI_WORKER = 'https://taskapp-siri.goyalamars18.workers.dev';
     const SHORTCUT_LINK = 'https://www.icloud.com/shortcuts/f0bbdc15ecc8497b954b3956b2148528';
@@ -3251,19 +3256,51 @@
     function signInWithGoogle() { const r = encodeURIComponent(window.location.href.split('#')[0]); window.location.href = SB_URL + '/auth/v1/authorize?provider=google&prompt=select_account&redirect_to=' + r; }
     async function signOut() { toggleMenu(false); await fetch(SB_URL + '/auth/v1/logout', { method: 'POST', headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + (session?.access_token || '') } }).catch(() => { }); session = null; tasks = []; localStorage.removeItem('sb_access_token'); localStorage.removeItem('sb_refresh_token'); show('screen-login'); }
     function parseHash() { const p = new URLSearchParams(window.location.hash.substring(1)); const t = p.get('access_token'), r = p.get('refresh_token'); if (!t) return null; try { const b = t.split('.')[1].replace(/-/g, '+').replace(/_/g, '/'); const pad = b + '===='.slice(b.length % 4 || 4); const d = JSON.parse(atob(pad)); if (r) localStorage.setItem('sb_refresh_token', r); return { access_token: t, user: { id: d.sub, email: d.email, user_metadata: d.user_metadata || {} } }; } catch (e) { return null; } }
-    async function verify(t) { try { const r = await fetch(SB_URL + '/auth/v1/user', { headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + t } }); if (!r.ok) return null; const u = await r.json(); return u?.id ? { access_token: t, user: u } : null; } catch { return null; } }
-    async function refresh() { const rt = localStorage.getItem('sb_refresh_token'); if (!rt) return null; try { const r = await fetch(SB_URL + '/auth/v1/token?grant_type=refresh_token', { method: 'POST', headers: { 'apikey': SB_KEY, 'Content-Type': 'application/json' }, body: JSON.stringify({ refresh_token: rt }) }); if (!r.ok) return null; const d = await r.json(); if (!d.access_token) return null; localStorage.setItem('sb_access_token', d.access_token); if (d.refresh_token) localStorage.setItem('sb_refresh_token', d.refresh_token); return { access_token: d.access_token, user: d.user }; } catch { return null; } }
+    // verify() and refresh() are now in auth.js (ORB-21 — shared auth module)
+    // They are loaded via <script src="auth.js"> before this script.
 
     // ─── API ──────────────────────────────────────────────────────────────────────
-    function hdrs() { return { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + (session?.access_token || SB_KEY), 'Content-Type': 'application/json', 'Prefer': 'resolution=merge-duplicates' }; }
-    async function api(path, opts = {}) { let r = await fetch(SB_URL + '/rest/v1/' + path, { headers: hdrs(), ...opts }); if (r.status === 401) { const s = await refresh(); if (s) { session = s; updateAvatar(); r = await fetch(SB_URL + '/rest/v1/' + path, { headers: hdrs(), ...opts }); } if (r.status === 401) { signOut(); throw new Error('Unauthorized'); } } if (!r.ok) throw new Error('API ' + r.status); return r; }
-    async function fetchAll() { return (await api('tasks?order=created_at.asc')).json(); }
-    async function upsert(t) {
-      // Build safe payload (only known columns)
-      var payload = { id: t.id, user_id: t.user_id, title: t.title, notes: t.notes || '', due_date: t.due_date || null, defer_date: t.defer_date || null, is_completed: t.is_completed || false, is_flagged: t.is_flagged || false, priority: t.priority || 'None', project_id: t.project_id || null, tag_ids: t.tag_ids || '[]', created_at: t.created_at, completed_at: t.completed_at || null, repeat_rule: t.repeat_rule || 'None', parent_id: t.parent_id || null, sort_order: t.sort_order || 0, last_reviewed: t.last_reviewed || null, next_review_date: t.next_review_date || null, review_frequency_num: t.review_frequency_num || null, review_frequency_unit: t.review_frequency_unit || null, is_in_review: t.is_in_review || false, is_today_task: t.is_today_task || false, updated_at: t.updated_at };
-      await api('tasks', { method: 'POST', body: JSON.stringify(payload) });
+    // ORB-20: SB_KEY is the Supabase anon/public key — safe to expose client-side
+    // as long as Row Level Security (RLS) is enabled on all tables (tasks, projects).
+    // Never use the service_role key here.
+
+    // ORB-82 fix: merge headers explicitly so opts.headers never wipes out auth headers
+    function hdrs(extra) {
+      return Object.assign(
+        { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + (session?.access_token || SB_KEY), 'Content-Type': 'application/json' },
+        extra || {}
+      );
     }
-    async function markDone(t) { await api('tasks', { method: 'POST', body: JSON.stringify({ ...t, is_completed: true, completed_at: new Date().toISOString(), updated_at: new Date().toISOString() }) }); }
+    async function api(path, opts) {
+      opts = opts || {};
+      // Merge caller headers with auth headers — do NOT let opts.headers overwrite auth
+      var mergedHeaders = Object.assign(hdrs(), opts.headers || {});
+      var fetchOpts = Object.assign({}, opts, { headers: mergedHeaders });
+      var r = await fetch(SB_URL + '/rest/v1/' + path, fetchOpts);
+      if (r.status === 401) {
+        var s = await refresh();
+        if (s) { session = s; updateAvatar(); mergedHeaders = Object.assign(hdrs(), opts.headers || {}); fetchOpts = Object.assign({}, opts, { headers: mergedHeaders }); r = await fetch(SB_URL + '/rest/v1/' + path, fetchOpts); }
+        if (r.status === 401) { signOut(); throw new Error('Unauthorized'); }
+      }
+      if (!r.ok) throw new Error('API ' + r.status);
+      return r;
+    }
+    async function fetchAll() { return (await api('tasks?order=created_at.asc')).json(); }
+    // ORB-82: upsert = POST with resolution=merge-duplicates for new tasks
+    async function upsert(t) {
+      var payload = { id: t.id, user_id: t.user_id, title: t.title, notes: t.notes || '', due_date: t.due_date || null, defer_date: t.defer_date || null, is_completed: t.is_completed || false, is_flagged: t.is_flagged || false, priority: t.priority || 'None', project_id: t.project_id || null, tag_ids: t.tag_ids || '[]', created_at: t.created_at, completed_at: t.completed_at || null, repeat_rule: t.repeat_rule || 'None', parent_id: t.parent_id || null, sort_order: t.sort_order || 0, last_reviewed: t.last_reviewed || null, next_review_date: t.next_review_date || null, review_frequency_num: t.review_frequency_num || null, review_frequency_unit: t.review_frequency_unit || null, is_in_review: t.is_in_review || false, is_today_task: t.is_today_task || false, updated_at: t.updated_at };
+      await api('tasks', { method: 'POST', headers: { 'Prefer': 'resolution=merge-duplicates' }, body: JSON.stringify(payload) });
+    }
+    // ORB-82: patch = PATCH for targeted field updates (editing existing tasks)
+    async function patch(id, fields) {
+      fields.updated_at = fields.updated_at || new Date().toISOString();
+      await api('tasks?id=eq.' + id, { method: 'PATCH', headers: { 'Prefer': 'return=minimal' }, body: JSON.stringify(fields) });
+    }
+    // ORB-55: deleteTask uses the correct merged-header path via api()
+    async function deleteTask(id) {
+      await api('tasks?id=eq.' + id, { method: 'DELETE', headers: { 'Prefer': 'return=minimal' } });
+    }
+    async function markDone(t) { await patch(t.id, { is_completed: true, completed_at: new Date().toISOString() }); }
 
     // ─── Avatar / Menu ────────────────────────────────────────────────────────────
     function updateAvatar() { const m = session?.user?.user_metadata || {}, e = session?.user?.email || '', n = m.full_name || m.name || e.split('@')[0] || '?', i = n.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase(), a = m.avatar_url || m.picture, b = document.getElementById('avatar-btn'); b.innerHTML = a ? '<img src="' + esc(a) + '" alt="">' : i; document.getElementById('m-name').textContent = n; document.getElementById('m-email').textContent = e; }
@@ -3295,7 +3332,29 @@
     function pClass(p) { return { High: 'p-high', Medium: 'p-medium', Low: 'p-low' }[p] || ''; }
     function fmtDue(ds) { if (!ds) return null; const d = new Date(ds), t = new Date(); t.setHours(0, 0, 0, 0); var hasTime = ds.includes('T') && !ds.endsWith('T00:00:00.000Z') && !ds.includes('T00:00:00'); var timeSuffix = hasTime ? ' ' + d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) : ''; if (d < t) return { text: 'Overdue', cls: 'chip-overdue' }; if (d < new Date(t.getTime() + 864e5)) return { text: 'Today' + timeSuffix, cls: 'chip-today' }; if (d < new Date(t.getTime() + 1728e5)) return { text: 'Tomorrow' + timeSuffix, cls: 'chip-due' }; return { text: d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + timeSuffix, cls: 'chip-due' }; }
     function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
-    function toast(msg, ms, undoFn) { ms = ms || 2200; const el = document.getElementById('toast'); el.innerHTML = msg + (undoFn ? '<button class="toast-undo" onclick="window._toastUndoFn&&window._toastUndoFn()">Undo</button>' : ''); el.classList.add('show'); clearTimeout(window._toastTimer); window._toastTimer = setTimeout(function () { el.classList.remove('show'); }, ms); if (undoFn) window._toastUndoFn = new Function(undoFn); }
+    // ORB-84: Toast with working Undo button.
+    // undoFn must be a real Function (not a string) so closure variables are captured.
+    function toast(msg, ms, undoFn) {
+      ms = ms || 2200;
+      var el = document.getElementById('toast');
+      el.innerHTML = msg + (undoFn ? '<button class="toast-undo" id="toast-undo-btn">Undo</button>' : '');
+      el.classList.add('show');
+      clearTimeout(window._toastTimer);
+      // Wire up undo button immediately after DOM update
+      if (undoFn) {
+        window._toastUndoFn = typeof undoFn === 'function' ? undoFn : null;
+        var undoBtn = document.getElementById('toast-undo-btn');
+        if (undoBtn) {
+          undoBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            clearTimeout(window._toastTimer);
+            el.classList.remove('show');
+            if (window._toastUndoFn) { window._toastUndoFn(); window._toastUndoFn = null; }
+          });
+        }
+      }
+      window._toastTimer = setTimeout(function () { el.classList.remove('show'); window._toastUndoFn = null; }, ms);
+    }
     function getTagArr(t) { try { var a = JSON.parse(t.tag_ids || '[]'); return Array.isArray(a) ? a.map(function (item) { return typeof item === 'string' ? item : (item && item.name ? item.name : String(item)); }) : []; } catch (e) { return []; } }
     let localCustomTags = JSON.parse(localStorage.getItem('pwa_custom_tags') || '[]');
     function saveCustomTags() { localStorage.setItem('pwa_custom_tags', JSON.stringify(localCustomTags)); }
@@ -3571,20 +3630,68 @@
     function setProjectFilter(id) { currentProjectFilter = id; render(); }
 
     // ─── Sync ─────────────────────────────────────────────────────────────────────
-    async function syncTasks() { if (syncing) return; syncing = true; var _sb = document.getElementById('sync-btn'); if (_sb) _sb.classList.add('spinning'); var _us = document.getElementById('um-sync'); if (_us) _us.style.opacity = '.4'; try { tasks = await fetchAll(); render(); scheduleNotifications(); } catch (e) { if (e.message !== 'Unauthorized') toast('Sync failed'); } finally { syncing = false; if (_sb) _sb.classList.remove('spinning'); if (_us) _us.style.opacity = ''; } }
+    async function fetchProjects() {
+      try {
+        var r = await api('projects?order=name.asc');
+        var data = await r.json();
+        if (Array.isArray(data)) {
+          projects = data.map(function(p) { return { id: p.id, name: p.name, color: p.color || '#8b5cf6' }; });
+          // ORB-30: persist to localStorage so quick.html can read project list
+          localStorage.setItem('pwa_projects', JSON.stringify(projects));
+        }
+      } catch(e) { /* projects already loaded from localStorage on init */ }
+    }
+    async function syncTasks() { if (syncing) return; syncing = true; var _sb = document.getElementById('sync-btn'); if (_sb) _sb.classList.add('spinning'); var _us = document.getElementById('um-sync'); if (_us) _us.style.opacity = '.4'; try { tasks = await fetchAll(); await fetchProjects(); populateProjectSelects(); render(); scheduleNotifications(); } catch (e) { if (e.message !== 'Unauthorized') toast('Sync failed'); } finally { syncing = false; if (_sb) _sb.classList.remove('spinning'); if (_us) _us.style.opacity = ''; } }
 
     // ─── Complete ─────────────────────────────────────────────────────────────────
+    // ORB-85: Calculate the next due date for recurring tasks.
+    function calculateNextDueDate(baseDateISO, rule) {
+      var base = new Date(baseDateISO);
+      switch (rule) {
+        case 'Daily':    base.setDate(base.getDate() + 1); break;
+        case 'Weekly':   base.setDate(base.getDate() + 7); break;
+        case 'Biweekly': base.setDate(base.getDate() + 14); break;
+        case 'Monthly':  base.setMonth(base.getMonth() + 1); break;
+        case 'Yearly':   base.setFullYear(base.getFullYear() + 1); break;
+        default: break;
+      }
+      return base.toISOString();
+    }
+
     async function completeTask(id) {
       var el = document.getElementById('task-' + id), task = tasks.find(function (t) { return t.id === id; });
       if (!task) return;
       haptic('success');
       if (el) { var cb = el.querySelector('.chk'); if (cb) { cb.classList.add('check-anim'); cb.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'; cb.style.borderColor = 'var(--green)'; cb.style.background = 'var(--green-dim)'; } setTimeout(function () { el.classList.add('completing'); }, 180); }
-      var _undone = false;
-      window._lastCompleted = { task: task, undone: false };
-      toast('Archived', 3500, 'window._lastCompleted&&(window._lastCompleted.undone=true,window._lastCompleted.task.is_completed=false,window._lastCompleted.task.completed_at=null,clearTimeout(window._completeDelay),render(),toast(\'Restored ✓\'))');
+      // ORB-83: pill label must say "Done", not "Archived"
+      var _snapshot = Object.assign({}, task);
+      toast('Done', 3500, function() {
+        // ORB-84: real function closure so variables are captured correctly
+        clearTimeout(window._completeDelay);
+        task.is_completed = false;
+        task.completed_at = null;
+        render();
+        toast('Restored ✓');
+      });
       window._completeDelay = setTimeout(function () {
-        if (window._lastCompleted && window._lastCompleted.undone) return;
-        task.is_completed = true; task.completed_at = new Date().toISOString(); render();
+        task.is_completed = true; task.completed_at = new Date().toISOString(); task.updated_at = new Date().toISOString();
+        // ORB-85: If recurring, create next instance anchored to today if no due date
+        if (task.repeat_rule && task.repeat_rule !== 'None') {
+          var anchorISO = task.due_date || new Date().toISOString();
+          var nextDue = calculateNextDueDate(anchorISO, task.repeat_rule);
+          var now = new Date().toISOString();
+          var nextTask = Object.assign({}, _snapshot, {
+            id: uuid(),
+            due_date: nextDue,
+            is_completed: false,
+            completed_at: null,
+            created_at: now,
+            updated_at: now
+          });
+          tasks.push(nextTask);
+          upsert(nextTask).catch(function() {});
+        }
+        render();
         markDone(task).catch(function () { task.is_completed = false; task.completed_at = null; render(); toast('Failed to sync'); });
       }, 480);
     }
@@ -3684,21 +3791,42 @@
       if (!task) return;
       var title = document.getElementById('d-title').value.trim();
       if (!title) { toast('Title required'); return; }
+      // ORB-82: Capture all edited fields into a patch payload
+      var dueVal = document.getElementById('d-due').value;
+      var dueTimeVal = document.getElementById('d-due-time').value;
+      var dueISO = dueVal ? (dueTimeVal ? new Date(dueVal + 'T' + dueTimeVal).toISOString() : new Date(dueVal + 'T00:00:00').toISOString()) : null;
+      var deferVal = document.getElementById('d-defer').value;
+      var deferISO = deferVal ? new Date(deferVal + 'T00:00:00').toISOString() : null;
+      var tagIds = JSON.stringify(detailModalTags.map(function (tn) { return { name: tn, color: getTagColor(tn) }; }));
+      var now = new Date().toISOString();
+      // Mutate local task object so render() shows changes immediately
       task.title = title;
       task.notes = document.getElementById('d-notes').value.trim();
       task.priority = document.getElementById('d-priority').value;
-      var dueVal = document.getElementById('d-due').value, dueTimeVal = document.getElementById('d-due-time').value;
-      task.due_date = dueVal ? (dueTimeVal ? new Date(dueVal + 'T' + dueTimeVal).toISOString() : new Date(dueVal + 'T00:00:00').toISOString()) : null;
-      var deferVal = document.getElementById('d-defer').value;
-      task.defer_date = deferVal ? new Date(deferVal + 'T00:00:00').toISOString() : null;
+      task.due_date = dueISO;
+      task.defer_date = deferISO;
       task.repeat_rule = document.getElementById('d-repeat').value || 'None';
       task.project_id = document.getElementById('d-project').value || null;
-      task.tag_ids = JSON.stringify(detailModalTags.map(function (tn) { return { name: tn, color: getTagColor(tn) }; }));
+      task.tag_ids = tagIds;
       task.is_flagged = flagged;
       task.is_today_task = detailToday;
-      task.updated_at = new Date().toISOString();
-      closeDetailModal(); render();
-      upsert(task).then(function () { toast('Task updated'); }).catch(function () { toast('Failed to sync'); });
+      task.updated_at = now;
+      closeDetailModal();
+      render();
+      // ORB-82: Use PATCH (targeted update) instead of upsert POST so edits always save
+      patch(task.id, {
+        title: task.title,
+        notes: task.notes,
+        priority: task.priority,
+        due_date: task.due_date,
+        defer_date: task.defer_date,
+        repeat_rule: task.repeat_rule,
+        project_id: task.project_id,
+        tag_ids: task.tag_ids,
+        is_flagged: task.is_flagged,
+        is_today_task: task.is_today_task,
+        updated_at: now
+      }).then(function () { toast('Task updated'); }).catch(function () { toast('Failed to sync'); });
     }
 
     // ─── Subtasks ─────────────────────────────────────────────────────────────────
@@ -3743,7 +3871,8 @@
     function deleteSubtask(id) {
       haptic('medium');
       tasks = tasks.filter(function (t) { return t.id !== id; });
-      api('tasks?id=eq.' + id, { method: 'DELETE', headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + (session?.access_token || SB_KEY), 'Prefer': 'return=minimal' } }).catch(function () { toast('Failed to sync'); });
+      // ORB-55: use deleteTask() which goes through the proper merged-header api() path
+      deleteTask(id).catch(function () { toast('Failed to sync'); });
       renderSubtasks(); render();
     }
     document.getElementById('new-subtask-input').addEventListener('keydown', function (e) { if (e.key === 'Enter') confirmAddSubtask(); });
@@ -3760,8 +3889,10 @@
       localStorage.removeItem('st_' + idToDelete);
       tasks = tasks.filter(function (t) { return t.id !== idToDelete; });
       render();
-      api('tasks?id=eq.' + idToDelete, { method: 'DELETE', headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + (session?.access_token || SB_KEY), 'Prefer': 'return=minimal' } }).then(function () { toast('Task deleted'); }).catch(function () { toast('Failed to sync'); });
+      // ORB-55: use deleteTask() helper so headers are always correctly merged
+      deleteTask(idToDelete).then(function () { toast('Task deleted'); }).catch(function () { toast('Failed to sync'); });
     }
+    // ORB-55: quickDeleteTask also uses deleteTask() helper
     function quickDeleteTask(id) {
       if (!id) return;
       haptic('medium');
@@ -3771,9 +3902,14 @@
       localStorage.removeItem('st_' + id);
       tasks = tasks.filter(function (t) { return t.id !== id; });
       render();
-      toast('Deleted', 3500, 'tasks.push(' + JSON.stringify(backup).replace(/'/g, "\\'") + ');render();toast("Restored \u2713")');
+      // ORB-84: pass a real function (not a string) for the undo callback
+      toast('Deleted', 3500, function() {
+        tasks.push(backup);
+        render();
+        toast('Restored ✓');
+      });
       setTimeout(function () {
-        api('tasks?id=eq.' + id, { method: 'DELETE', headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + (session?.access_token || SB_KEY), 'Prefer': 'return=minimal' } }).catch(function () { });
+        deleteTask(id).catch(function () { });
       }, 4000);
     }
 
@@ -4269,11 +4405,13 @@
     })();
 
     // ─── Init ─────────────────────────────────────────────────────────────────────
+    // parseHash is kept here for the OAuth redirect case (before bootstrapSession)
+    function parseHash() { const p = new URLSearchParams(window.location.hash.substring(1)); const t = p.get('access_token'), r = p.get('refresh_token'); if (!t) return null; try { const b = t.split('.')[1].replace(/-/g, '+').replace(/_/g, '/'); const pad = b + '===='.slice(b.length % 4 || 4); const d = JSON.parse(atob(pad)); if (r) localStorage.setItem('sb_refresh_token', r); return { access_token: t, user: { id: d.sub, email: d.email, user_metadata: d.user_metadata || {} } }; } catch (e) { return null; } }
     async function init() {
-      var h = parseHash();
-      if (h) { session = h; localStorage.setItem('sb_access_token', session.access_token); history.replaceState(null, '', window.location.pathname); }
-      if (!session) { var s = localStorage.getItem('sb_access_token'); if (s) { session = await verify(s); if (!session) { session = await refresh(); if (!session) { localStorage.removeItem('sb_access_token'); localStorage.removeItem('sb_refresh_token'); } } } }
-      if (!session) { var hr = localStorage.getItem('sb_refresh_token'); if (hr) { session = await refresh(); if (!session) localStorage.removeItem('sb_refresh_token'); } }
+      // ORB-21: Use shared bootstrapSession() from auth.js
+      session = await bootstrapSession();
+      // Pre-load projects from localStorage for instant rendering (ORB-30)
+      try { var _lsProj = localStorage.getItem('pwa_projects'); if (_lsProj) projects = JSON.parse(_lsProj); } catch(e) {}
       loadTheme();
       if (session) { updateAvatar(); populateProjectSelects(); show('screen-app'); render(); syncTasks(); }
       else show('screen-login');
@@ -4336,11 +4474,18 @@
         footer.innerHTML = '<div class="ds-footer-avatar">' + (avatarUrl ? '<img src="' + esc(avatarUrl) + '" alt="">' : initials) + '</div><div class="ds-footer-info"><div class="ds-footer-name">' + esc(n) + '</div><div class="ds-footer-email">' + esc(e) + '</div></div>';
       }
     }
-    // Patch render to also update sidebar
+    // ORB-81: Debounce render via requestAnimationFrame so rapid successive calls
+    // (e.g. badge update + sidebar update + task list) coalesce into a single DOM paint.
     var _origRender = render;
+    var _renderPending = false;
     render = function() {
-      _origRender();
-      if (_isDesktop.matches) renderDesktopSidebar();
+      if (_renderPending) return;
+      _renderPending = true;
+      requestAnimationFrame(function() {
+        _renderPending = false;
+        _origRender();
+        if (_isDesktop.matches) renderDesktopSidebar();
+      });
     };
     // Patch toggleTheme to update sidebar label
     var _origToggleTheme = toggleTheme;

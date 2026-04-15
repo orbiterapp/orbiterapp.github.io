@@ -67,6 +67,8 @@
       <div class="opt" id="chip-pri" onclick="cyclePri()"><div class="pdot" id="pdot" style="background:var(--text3)"></div><span id="plbl">None</span></div>
       <div class="opt" id="chip-due"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span id="dlbl">Due date</span><select id="dsel" onchange="handleDue(this.value)"><option value="">No date</option><option value="today">Today</option><option value="tomorrow">Tomorrow</option><option value="week">Next week</option><option value="custom">Pick…</option></select></div>
       <input type="date" id="dcustom" style="position:absolute;opacity:0;pointer-events:none" onchange="handleCustom(this.value)">
+      <!-- ORB-30: Project chip (retained after reset) -->
+      <div class="opt" id="chip-proj"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg><span id="pjlbl">Project</span><select id="pjsel" onchange="handleProject(this.value)"><option value="">No Project</option></select></div>
       <div class="opt" id="chip-flag" onclick="toggleF()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg><span>Flag</span></div>
     </div>
     <button class="submit" id="sbtn" onclick="submitTask()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add Task</button>
@@ -84,20 +86,87 @@
   <div class="success-sub">Tap anywhere to add another</div>
 </div>
 <script>
+// ORB-21: SB_URL / SB_KEY defined first so auth.js functions can use them
 const SB_URL='https://kmfymwtarvvmzuwwspwy.supabase.co',SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImttZnltd3RhcnZ2bXp1d3dzcHd5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3NTI2NzcsImV4cCI6MjA5MTMyODY3N30.9aBPLgECyFtj12sknviOhi4aR4p-tG1FBT0v9tbU5J4';
-let session=null,qP='None',qF=false,qD=null;
-async function verify(t){try{const r=await fetch(SB_URL+'/auth/v1/user',{headers:{'apikey':SB_KEY,'Authorization':'Bearer '+t}});if(!r.ok)return null;const u=await r.json();return u?.id?{access_token:t,user:u}:null}catch{return null}}
-async function refresh(){const rt=localStorage.getItem('sb_refresh_token');if(!rt)return null;try{const r=await fetch(SB_URL+'/auth/v1/token?grant_type=refresh_token',{method:'POST',headers:{'apikey':SB_KEY,'Content-Type':'application/json'},body:JSON.stringify({refresh_token:rt})});if(!r.ok)return null;const d=await r.json();if(!d.access_token)return null;localStorage.setItem('sb_access_token',d.access_token);if(d.refresh_token)localStorage.setItem('sb_refresh_token',d.refresh_token);return{access_token:d.access_token,user:d.user}}catch{return null}}
+</script>
+<!-- ORB-21: shared auth module -->
+<script src="auth.js"></script>
+<script>
+let session=null,qP='None',qF=false,qD=null,qProj=null;
+// ORB-30: load projects from same localStorage key used by main app
+let qProjects=[];
+try { qProjects=JSON.parse(localStorage.getItem('pwa_projects')||'[]'); } catch(e){}
+function populateProjectChip(){
+  var sel=document.getElementById('pjsel');
+  if(!sel)return;
+  sel.innerHTML='<option value="">No Project</option>'+qProjects.map(function(p){return'<option value="'+p.id+'">'+p.name+'</option>';}).join('');
+  if(qProj)sel.value=qProj;
+}
+function handleProject(v){
+  qProj=v||null;
+  var lbl=document.getElementById('pjlbl');
+  var chip=document.getElementById('chip-proj');
+  if(v){
+    var p=qProjects.find(function(x){return x.id===v;});
+    lbl.textContent=p?p.name:'Project';
+    chip.classList.add('active');
+  } else {
+    lbl.textContent='Project';
+    chip.classList.remove('active');
+  }
+}
 const PRI=['None','Low','Medium','High'],PCOL={None:'var(--text3)',Low:'var(--low)',Medium:'var(--medium)',High:'var(--high)'};
 function cyclePri(){const i=(PRI.indexOf(qP)+1)%PRI.length;qP=PRI[i];document.getElementById('plbl').textContent=qP;document.getElementById('pdot').style.background=PCOL[qP];const c=document.getElementById('chip-pri');c.classList.toggle('active',qP!=='None');c.style.borderColor=qP!=='None'?PCOL[qP]:''}
 function handleDue(v){const t=new Date();t.setHours(0,0,0,0);const c=document.getElementById('chip-due'),l=document.getElementById('dlbl');if(v==='custom'){document.getElementById('dcustom').showPicker?.();document.getElementById('dcustom').click();document.getElementById('dsel').value=qD?'custom':'';return}if(!v){qD=null;l.textContent='Due date';c.classList.remove('active');return}let d=new Date(t);if(v==='tomorrow')d.setDate(d.getDate()+1);if(v==='week')d.setDate(d.getDate()+7);qD=d.toISOString();l.textContent=v==='today'?'Today':v==='tomorrow'?'Tomorrow':'Next week';c.classList.add('active')}
 function handleCustom(v){if(!v)return;qD=new Date(v+'T00:00:00').toISOString();document.getElementById('dlbl').textContent=new Date(v).toLocaleDateString('en-US',{month:'short',day:'numeric'});document.getElementById('chip-due').classList.add('active');document.getElementById('dsel').value='custom'}
 function toggleF(){qF=!qF;document.getElementById('chip-flag').classList.toggle('flag-on',qF)}
-async function submitTask(){const title=document.getElementById('q-title').value.trim();if(!title){document.getElementById('q-title').focus();return}const btn=document.getElementById('sbtn');btn.disabled=true;btn.textContent='Adding…';const now=new Date().toISOString();const task={id:crypto.randomUUID?crypto.randomUUID():([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g,c=>(c^crypto.getRandomValues(new Uint8Array(1))[0]&15>>c/4).toString(16)),user_id:session.user.id,title,notes:document.getElementById('q-notes').value.trim(),due_date:qD,defer_date:null,is_completed:false,is_flagged:qF,priority:qP,project_id:null,tag_ids:'[]',created_at:now,completed_at:null,repeat_rule:'None',parent_id:null,sort_order:0,last_reviewed:null,next_review_date:null,review_frequency_num:null,review_frequency_unit:null,is_in_review:false,is_today_task:false,updated_at:now};try{let r=await fetch(SB_URL+'/rest/v1/tasks',{method:'POST',headers:{'apikey':SB_KEY,'Authorization':'Bearer '+session.access_token,'Content-Type':'application/json','Prefer':'resolution=merge-duplicates'},body:JSON.stringify(task)});if(r.status===401){const s=await refresh();if(s){session=s;r=await fetch(SB_URL+'/rest/v1/tasks',{method:'POST',headers:{'apikey':SB_KEY,'Authorization':'Bearer '+session.access_token,'Content-Type':'application/json','Prefer':'resolution=merge-duplicates'},body:JSON.stringify(task)})}}if(!r.ok)throw new Error('fail');showOK()}catch{btn.disabled=false;btn.innerHTML='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add Task';alert('Failed — check connection.')}}
+async function submitTask(){
+  const title=document.getElementById('q-title').value.trim();
+  if(!title){document.getElementById('q-title').focus();return}
+  const btn=document.getElementById('sbtn');btn.disabled=true;btn.textContent='Adding…';
+  const now=new Date().toISOString();
+  const task={id:crypto.randomUUID?crypto.randomUUID():([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g,c=>(c^crypto.getRandomValues(new Uint8Array(1))[0]&15>>c/4).toString(16)),user_id:session.user.id,title,notes:document.getElementById('q-notes').value.trim(),due_date:qD,defer_date:null,is_completed:false,is_flagged:qF,priority:qP,project_id:qProj,tag_ids:'[]',created_at:now,completed_at:null,repeat_rule:'None',parent_id:null,sort_order:0,last_reviewed:null,next_review_date:null,review_frequency_num:null,review_frequency_unit:null,is_in_review:false,is_today_task:false,updated_at:now};
+  try{
+    let r=await fetch(SB_URL+'/rest/v1/tasks',{method:'POST',headers:{'apikey':SB_KEY,'Authorization':'Bearer '+session.access_token,'Content-Type':'application/json','Prefer':'resolution=merge-duplicates'},body:JSON.stringify(task)});
+    if(r.status===401){const s=await refresh();if(s){session=s;r=await fetch(SB_URL+'/rest/v1/tasks',{method:'POST',headers:{'apikey':SB_KEY,'Authorization':'Bearer '+session.access_token,'Content-Type':'application/json','Prefer':'resolution=merge-duplicates'},body:JSON.stringify(task)})}}
+    if(!r.ok)throw new Error('fail');
+    showOK();
+  }catch{btn.disabled=false;btn.innerHTML='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add Task';alert('Failed — check connection.')}
+}
 function showOK(){const o=document.getElementById('sov');o.classList.add('show');o.onclick=()=>{o.classList.remove('show');reset()};setTimeout(()=>{if(o.classList.contains('show')){o.classList.remove('show');reset()}},2500)}
-function reset(){document.getElementById('q-title').value='';document.getElementById('q-notes').value='';qP='None';qF=false;qD=null;document.getElementById('plbl').textContent='None';document.getElementById('pdot').style.background='var(--text3)';document.getElementById('chip-pri').classList.remove('active');document.getElementById('chip-pri').style.borderColor='';document.getElementById('chip-due').classList.remove('active');document.getElementById('dlbl').textContent='Due date';document.getElementById('dsel').value='';document.getElementById('chip-flag').classList.remove('flag-on');const b=document.getElementById('sbtn');b.disabled=false;b.innerHTML='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add Task';setTimeout(()=>document.getElementById('q-title').focus(),100)}
+// ORB-30: reset clears title/notes/priority/date/flag but RETAINS project selection
+function reset(){
+  document.getElementById('q-title').value='';
+  document.getElementById('q-notes').value='';
+  qP='None';qF=false;qD=null;
+  document.getElementById('plbl').textContent='None';
+  document.getElementById('pdot').style.background='var(--text3)';
+  document.getElementById('chip-pri').classList.remove('active');
+  document.getElementById('chip-pri').style.borderColor='';
+  document.getElementById('chip-due').classList.remove('active');
+  document.getElementById('dlbl').textContent='Due date';
+  document.getElementById('dsel').value='';
+  document.getElementById('chip-flag').classList.remove('flag-on');
+  // Project intentionally NOT reset (ORB-30: retain project between rapid captures)
+  const b=document.getElementById('sbtn');
+  b.disabled=false;
+  b.innerHTML='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add Task';
+  setTimeout(()=>document.getElementById('q-title').focus(),100);
+}
 document.getElementById('q-title').addEventListener('keydown',e=>{if(e.key==='Enter')submitTask()});
-async function init(){const s=localStorage.getItem('sb_access_token');if(s){session=await verify(s);if(!session)session=await refresh()}if(!session)session=await refresh();if(session){document.getElementById('main-view').style.display='';document.getElementById('nsi').style.display='none';document.getElementById('q-title').focus()}else{document.getElementById('main-view').style.display='none';document.getElementById('nsi').style.display=''}}
+async function init(){
+  // ORB-21: use shared bootstrapSession from auth.js
+  session=await bootstrapSession();
+  if(session){
+    document.getElementById('main-view').style.display='';
+    document.getElementById('nsi').style.display='none';
+    populateProjectChip();
+    document.getElementById('q-title').focus();
+  } else {
+    document.getElementById('main-view').style.display='none';
+    document.getElementById('nsi').style.display='';
+  }
+}
 document.addEventListener('gesturestart', function(e) { e.preventDefault(); });
 init();
 </script>
