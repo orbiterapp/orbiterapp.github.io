@@ -34,8 +34,8 @@
       --text: #f0f0f5;
       --text2: rgba(255, 255, 255, 0.55);
       --text3: rgba(255, 255, 255, 0.32);
-      --purple: #8b5cf6;
-      --purple-dim: rgba(139, 92, 246, 0.15);
+      --purple: var(--accent);
+      --purple-dim: color-mix(in srgb, var(--accent) 15%, transparent);
       --cyan: #22d3ee;
       --cyan-dim: rgba(34, 211, 238, 0.12);
       --pink: #f43f7a;
@@ -162,7 +162,7 @@
       width: 360px;
       height: 360px;
       border-radius: 50%;
-      background: radial-gradient(circle, rgba(139, 92, 246, .20) 0%, transparent 70%);
+      background: radial-gradient(circle, color-mix(in srgb, var(--accent) 20%, transparent) 0%, transparent 70%);
       top: 6%;
       left: 50%;
       transform: translateX(-50%);
@@ -178,7 +178,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 16px 48px rgba(139, 92, 246, .4);
+      box-shadow: 0 16px 48px color-mix(in srgb, var(--accent) 40%, transparent);
       margin-bottom: 28px
     }
 
@@ -834,7 +834,7 @@
     .add-subtask-btn {
       background: var(--purple-dim);
       color: var(--purple);
-      border: 1px solid rgba(139, 92, 246, 0.3);
+      border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
       border-radius: 8px;
       padding: 6px 10px;
       font-size: 11px;
@@ -1091,18 +1091,18 @@
 
     .tb-add:active .tb-fab {
       transform: scale(.86) !important;
-      box-shadow: 0 2px 12px rgba(139, 92, 246, .35) !important
+      box-shadow: 0 2px 12px color-mix(in srgb, var(--accent) 35%, transparent) !important
     }
 
     .tb-fab {
       width: 56px;
       height: 56px;
       border-radius: 50%;
-      background: linear-gradient(145deg, #a78bfa 0%, var(--purple) 100%);
+      background: linear-gradient(145deg, color-mix(in srgb, var(--accent) 70%, white 30%) 0%, var(--accent) 100%);
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 6px 24px rgba(139, 92, 246, .55), 0 2px 8px rgba(0, 0, 0, .35), inset 0 1px 0 rgba(255, 255, 255, .22);
+      box-shadow: 0 6px 24px color-mix(in srgb, var(--accent) 55%, transparent), 0 2px 8px rgba(0, 0, 0, .35), inset 0 1px 0 rgba(255, 255, 255, .22);
       transition: transform .2s cubic-bezier(.32, .72, 0, 1), box-shadow .2s
     }
 
@@ -1300,7 +1300,7 @@
       border-radius: 12px;
       cursor: pointer;
       margin-top: 14px;
-      box-shadow: 0 4px 16px rgba(139, 92, 246, .3), inset 0 1px 0 rgba(255, 255, 255, .15);
+      box-shadow: 0 4px 16px color-mix(in srgb, var(--accent) 30%, transparent), inset 0 1px 0 rgba(255, 255, 255, .15);
       transition: all .15s
     }
 
@@ -2085,7 +2085,7 @@
       border-radius: 50%;
       background: var(--purple);
       pointer-events: none;
-      box-shadow: 0 0 6px rgba(139, 92, 246, .5)
+      box-shadow: 0 0 6px color-mix(in srgb, var(--accent) 50%, transparent)
     }
 
     /* ── Toast layout ── */
@@ -2596,18 +2596,18 @@
         font-weight: 700;
         cursor: pointer;
         margin-top: 10px;
-        box-shadow: 0 4px 14px rgba(139, 92, 246, .35), inset 0 1px 0 rgba(255, 255, 255, .18);
+        box-shadow: 0 4px 14px color-mix(in srgb, var(--accent) 35%, transparent), inset 0 1px 0 rgba(255, 255, 255, .18);
         transition: transform .12s, box-shadow .12s
       }
 
       .ds-new-btn:hover {
         transform: translateY(-1px);
-        box-shadow: 0 6px 20px rgba(139, 92, 246, .45), inset 0 1px 0 rgba(255, 255, 255, .18)
+        box-shadow: 0 6px 20px color-mix(in srgb, var(--accent) 45%, transparent), inset 0 1px 0 rgba(255, 255, 255, .18)
       }
 
       .ds-new-btn:active {
         transform: scale(.97);
-        box-shadow: 0 2px 8px rgba(139, 92, 246, .3)
+        box-shadow: 0 2px 8px color-mix(in srgb, var(--accent) 30%, transparent)
       }
 
       .ds-footer {
