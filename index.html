@@ -3051,11 +3051,6 @@
       :root {
         --detail-w: 340px;
       }
-      /* Hide panel on mobile — transform alone unreliable on iOS Safari */
-      @media (max-width: 767px) {
-        .desktop-detail-panel { display: none !important; }
-        #screen-app.detail-open { margin-right: 0 !important; }
-      }
       .desktop-detail-panel {
         position: fixed;
         top: 0;
@@ -3598,7 +3593,7 @@
   </div>
 
   <!-- ORB-79: Desktop right detail panel -->
-  <div class="desktop-detail-panel" id="desktop-detail-panel">
+  <div class="desktop-detail-panel" id="desktop-detail-panel" style="display:none">
     <div class="ddp-head">
       <div class="ddp-title">Task Details</div>
       <button class="ddp-close" onclick="closeDesktopDetailPanel()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
@@ -4238,7 +4233,6 @@
     // ─── Task Detail ──────────────────────────────────────────────────────────────
     let currentTaskId = null;
     function openTaskDetail(taskId) {
-      if (window.matchMedia('(min-width: 768px)').matches) { openDesktopDetailPanel(taskId); return; }
       var task = tasks.find(function (t) { return t.id === taskId; });
       if (!task) return;
       currentTaskId = taskId;
