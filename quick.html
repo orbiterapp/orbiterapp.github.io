@@ -126,14 +126,33 @@ async function submitTask(){
   const btn=document.getElementById('sbtn');btn.disabled=true;btn.textContent='Adding…';
   const now=new Date().toISOString();
   const task={id:crypto.randomUUID?crypto.randomUUID():([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g,c=>(c^crypto.getRandomValues(new Uint8Array(1))[0]&15>>c/4).toString(16)),user_id:session.user.id,title,notes:document.getElementById('q-notes').value.trim(),due_date:qD,defer_date:null,is_completed:false,is_flagged:qF,priority:qP,project_id:qProj,tag_ids:'[]',created_at:now,completed_at:null,repeat_rule:'None',parent_id:null,sort_order:0,last_reviewed:null,next_review_date:null,review_frequency_num:null,review_frequency_unit:null,is_in_review:false,is_today_task:false,updated_at:now};
+  // ORB-23: Offline queue
+  if(!navigator.onLine){
+    try{const outbox=JSON.parse(localStorage.getItem('orbiter_outbox')||'[]');outbox.push(task);localStorage.setItem('orbiter_outbox',JSON.stringify(outbox));showOKOffline();}
+    catch(e){btn.disabled=false;btn.innerHTML='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add Task';}
+    return;
+  }
   try{
     let r=await fetch(SB_URL+'/rest/v1/tasks',{method:'POST',headers:{'apikey':SB_KEY,'Authorization':'Bearer '+session.access_token,'Content-Type':'application/json','Prefer':'resolution=merge-duplicates'},body:JSON.stringify(task)});
     if(r.status===401){const s=await refresh();if(s){session=s;r=await fetch(SB_URL+'/rest/v1/tasks',{method:'POST',headers:{'apikey':SB_KEY,'Authorization':'Bearer '+session.access_token,'Content-Type':'application/json','Prefer':'resolution=merge-duplicates'},body:JSON.stringify(task)})}}
     if(!r.ok)throw new Error('fail');
     showOK();
-  }catch{btn.disabled=false;btn.innerHTML='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add Task';alert('Failed — check connection.')}
+  }catch{btn.disabled=false;btn.innerHTML='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add Task';}
 }
 function showOK(){const o=document.getElementById('sov');o.classList.add('show');o.onclick=()=>{o.classList.remove('show');reset()};setTimeout(()=>{if(o.classList.contains('show')){o.classList.remove('show');reset()}},2500)}
+function showOKOffline(){const o=document.getElementById('sov');if(o){const orig=o.textContent;o.textContent='Saved offline — syncs when connected';o.classList.add('show');o.onclick=()=>{o.classList.remove('show');o.textContent=orig;reset()};setTimeout(()=>{if(o.classList.contains('show')){o.classList.remove('show');o.textContent=orig;reset()}},3000)}else reset();}
+// ORB-23: Flush outbox on reconnect
+window.addEventListener('online',async function flushOutbox(){
+  const outbox=JSON.parse(localStorage.getItem('orbiter_outbox')||'[]');
+  if(!outbox.length)return;
+  const s=await bootstrapSession().catch(()=>null);
+  if(!s)return;
+  const remaining=[];
+  for(const task of outbox){
+    try{const r=await fetch(SB_URL+'/rest/v1/tasks',{method:'POST',headers:{'apikey':SB_KEY,'Authorization':'Bearer '+s.access_token,'Content-Type':'application/json','Prefer':'resolution=merge-duplicates'},body:JSON.stringify(task)});if(!r.ok)remaining.push(task);}catch{remaining.push(task);}
+  }
+  localStorage.setItem('orbiter_outbox',JSON.stringify(remaining));
+});
 // ORB-30: reset clears title/notes/priority/date/flag but RETAINS project selection
 function reset(){
   document.getElementById('q-title').value='';
