@@ -52,6 +52,7 @@ function clearSession() {
 /**
  * Bootstrap a session: check hash → stored token → refresh token.
  * Returns a session or null. Does NOT redirect to login — caller decides.
+ * ORB-26: Detects double-expiry (access + refresh token expired) and clears all tokens.
  */
 async function bootstrapSession() {
   // 1. OAuth redirect hash
@@ -73,11 +74,51 @@ async function bootstrapSession() {
   if (sat) {
     const s = await verify(sat);
     if (s) return s;
+    // Access token invalid — try refresh
   }
   // 3. Refresh token
-  const s = await refresh();
-  if (s) return s;
+  const rt = localStorage.getItem('sb_refresh_token');
+  if (rt) {
+    const s = await refresh();
+    if (s) return s;
+    // ORB-26: Refresh token also failed — double-expiry detected
+    // Clear all tokens and force re-auth
+    clearSession();
+    console.warn('ORB-26: Both access and refresh tokens expired — cleared session');
+    return null;
+  }
   // 4. Nothing — clear stale tokens
   clearSession();
   return null;
+}
+
+/**
+ * ORB-26: Check if user has any valid session.
+ * Returns true if either access token is valid OR refresh token exists.
+ * Use this to decide whether to show login screen or app.
+ */
+async function hasValidSession() {
+  const sat = localStorage.getItem('sb_access_token');
+  if (sat) {
+    const s = await verify(sat);
+    if (s) return true;
+  }
+  const rt = localStorage.getItem('sb_refresh_token');
+  if (rt) {
+    const s = await refresh();
+    if (s) return true;
+  }
+  return false;
+}
+
+/**
+ * ORB-26: Force logout due to expired tokens.
+ * Clears all session data and optionally redirects to login.
+ */
+function forceLogout(redirectToLogin = true) {
+  clearSession();
+  if (redirectToLogin && typeof window !== 'undefined') {
+    // Reload to trigger login screen
+    window.location.href = window.location.pathname;
+  }
 }

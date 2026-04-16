@@ -1,5 +1,6 @@
 // Animated Shader Background for Orbiter Login Page
 // Uses Three.js for WebGL rendering
+// ORB-24: Added prefers-reduced-motion, battery level detection, pixel ratio clamp
 
 (function() {
   'use strict';
@@ -18,6 +19,23 @@
     // Detect mobile for performance tuning
     const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || window.innerWidth < 768;
 
+    // ORB-24: Check prefers-reduced-motion
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    // ORB-24: Battery level detection
+    let batteryLevel = 1;
+    let lowBattery = false;
+    if ('getBattery' in navigator) {
+      navigator.getBattery().then(function(battery) {
+        batteryLevel = battery.level;
+        lowBattery = batteryLevel < 0.2;
+        battery.addEventListener('levelchange', function() {
+          batteryLevel = battery.level;
+          lowBattery = batteryLevel < 0.2;
+        });
+      }).catch(function() { /* ignore battery API errors */ });
+    }
+
     const scene = new THREE.Scene();
     const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
 
@@ -26,7 +44,7 @@
       renderer = new THREE.WebGLRenderer({
         antialias: false,
         alpha: false,
-        powerPreference: isMobile ? 'low-power' : 'high-performance'
+        powerPreference: (isMobile || lowBattery) ? 'low-power' : 'high-performance'
       });
     } catch (e) {
       console.warn('Shader background: WebGL not available', e.message);
@@ -34,15 +52,15 @@
       return;
     }
 
-    // Lower resolution on mobile for big perf win
-    const pixelRatio = isMobile ? 1 : Math.min(window.devicePixelRatio, 2);
+    // ORB-24: Standardize pixel ratio to max 1.5 (was 2), lower on mobile/low-battery
+    const pixelRatio = (isMobile || lowBattery) ? 1 : Math.min(window.devicePixelRatio, 1.5);
     renderer.setPixelRatio(pixelRatio);
     renderer.setSize(window.innerWidth, window.innerHeight);
     container.appendChild(renderer.domElement);
 
-    // Fewer loop iterations and octaves on mobile
-    const numLoops = isMobile ? 18 : 40;
-    const numOctaves = isMobile ? 3 : 5;
+    // ORB-24: Fewer loop iterations and octaves on mobile/low-battery/reduced-motion
+    const numLoops = (isMobile || lowBattery) ? 18 : (prefersReducedMotion ? 25 : 40);
+    const numOctaves = (isMobile || lowBattery) ? 3 : (prefersReducedMotion ? 4 : 5);
 
     const material = new THREE.ShaderMaterial({
       uniforms: {
@@ -130,14 +148,21 @@
 
     let frameId;
     let lastTime = 0;
-    // On mobile, cap at ~30fps to save battery and reduce lag
-    const targetInterval = isMobile ? 1000 / 30 : 0;
+    // ORB-24: Cap at ~15fps on low battery, ~30fps on mobile, ~60fps otherwise
+    // If prefers-reduced-motion, pause animation entirely
+    if (prefersReducedMotion) {
+      // Static render only
+      material.uniforms.iTime.value = 0;
+      renderer.render(scene, camera);
+      return;
+    }
+    const targetInterval = lowBattery ? 1000 / 15 : (isMobile ? 1000 / 30 : 0);
 
     const animate = (timestamp) => {
       frameId = requestAnimationFrame(animate);
-      if (isMobile && timestamp - lastTime < targetInterval) return;
+      if (targetInterval > 0 && timestamp - lastTime < targetInterval) return;
       lastTime = timestamp;
-      material.uniforms.iTime.value += isMobile ? 0.033 : 0.016;
+      material.uniforms.iTime.value += lowBattery ? 0.066 : (isMobile ? 0.033 : 0.016);
       renderer.render(scene, camera);
     };
     frameId = requestAnimationFrame(animate);

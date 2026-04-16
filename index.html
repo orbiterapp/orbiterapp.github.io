@@ -237,6 +237,100 @@
       text-align: center
     }
 
+    /* ORB-71: Frosted glass login card */
+    .login-card {
+      position: relative;
+      z-index: 1;
+      width: 380px;
+      max-width: calc(100% - 40px);
+      background: rgba(8, 8, 12, 0.65);
+      backdrop-filter: blur(40px) saturate(180%);
+      -webkit-backdrop-filter: blur(40px) saturate(180%);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 24px;
+      box-shadow: 0 32px 80px rgba(0, 0, 0, 0.4);
+      padding: 36px 32px calc(var(--safe-bottom) + 32px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0;
+    }
+    .login-card .login-logo {
+      margin-bottom: 20px;
+      box-shadow: none;
+    }
+    .login-card .login-logo img {
+      animation: logoSpin 1.2s ease-out;
+    }
+    @keyframes logoSpin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    .login-card .login-title {
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: -0.8px;
+      margin-bottom: 6px;
+      text-align: center;
+    }
+    .login-card .login-sub {
+      margin-bottom: 20px;
+      font-size: 15px;
+      text-align: center;
+    }
+    .login-divider {
+      width: 100%;
+      height: 1px;
+      background: rgba(255, 255, 255, 0.08);
+      margin: 16px 0 20px;
+    }
+    .login-card .google-btn {
+      height: 48px;
+      padding: 0 20px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 12px;
+      max-width: none;
+    }
+    .login-platform-hint {
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.4);
+      margin-top: 16px;
+      text-align: center;
+    }
+    .login-terms {
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.25);
+      margin-top: 14px;
+      text-align: center;
+    }
+    .login-terms a {
+      color: rgba(255, 255, 255, 0.4);
+      text-decoration: none;
+    }
+    #login-vignette {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      background: radial-gradient(ellipse at center, transparent 30%, rgba(0,0,0,0.35) 100%);
+    }
+    body.light .login-card {
+      background: rgba(255, 255, 255, 0.75);
+      border-color: rgba(0, 0, 0, 0.08);
+    }
+    body.light .login-card .google-btn {
+      background: rgba(0, 0, 0, 0.05);
+      border-color: rgba(0, 0, 0, 0.12);
+    }
+    @media (max-width: 420px) {
+      .login-card {
+        width: calc(100% - 40px);
+        border-radius: 20px;
+        padding: 28px 20px calc(var(--safe-bottom) + 20px);
+      }
+    }
+
     .app-header {
       padding: calc(var(--safe-top) + 12px) 20px 0;
       position: relative;
@@ -521,6 +615,11 @@
 
     .um-item.danger {
       color: var(--red)
+    }
+
+    /* ORB-87: Toggle in um-item */
+    .um-item .toggle {
+      margin-left: auto
     }
 
     .task-area {
@@ -1349,6 +1448,33 @@
       transform: scale(.9)
     }
 
+    /* ORB-88: Accent color presets */
+    :root {
+      --accent: #8b5cf6; /* default indigo/purple */
+    }
+    .color-picker {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 6px
+    }
+    .color-swatch {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: all .15s;
+      flex-shrink: 0
+    }
+    .color-swatch.selected {
+      border-color: white;
+      transform: scale(1.15)
+    }
+    .color-swatch:active {
+      transform: scale(.9)
+    }
+
     /* Toast */
     .toast {
       position: fixed;
@@ -1591,6 +1717,48 @@
       }
 
       .task-row:hover .row-del-btn {
+        opacity: 1
+      }
+    }
+
+    /* ── Today quick-action button (ORB-86) ── */
+    .row-today-btn {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      width: 30px;
+      height: 30px;
+      border-radius: 8px;
+      border: none;
+      background: none;
+      color: var(--text3);
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: color .12s, background .12s;
+      font-size: 14px;
+      line-height: 1;
+    }
+    .row-today-btn:hover {
+      color: var(--amber);
+      background: rgba(245, 158, 11, 0.12)
+    }
+    .row-today-indicator {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 30px;
+      height: 30px;
+      font-size: 14px;
+      color: var(--amber);
+      flex-shrink: 0;
+    }
+    @media (min-width: 768px) {
+      .row-today-btn {
+        display: flex;
+        opacity: 0;
+        transition: opacity .12s, color .12s, background .12s
+      }
+      .task-row:hover .row-today-btn {
         opacity: 1
       }
     }
@@ -2234,6 +2402,43 @@
       box-shadow: 0 1px 4px rgba(0, 0, 0, .2)
     }
 
+    /* ORB-70: Skeleton loader */
+    @keyframes skelPulse {
+      0%, 100% { opacity: .4 }
+      50% { opacity: .8 }
+    }
+    .skeleton-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 13px 4px;
+      border-top: 1px solid var(--border);
+    }
+    .skeleton-row:first-child { border-top: none }
+    .skel-circle {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: var(--surface2);
+      flex-shrink: 0;
+      animation: skelPulse 1.4s ease-in-out infinite;
+    }
+    .skel-lines {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .skel-line {
+      height: 10px;
+      border-radius: 5px;
+      background: var(--surface2);
+      animation: skelPulse 1.4s ease-in-out infinite;
+    }
+    .skel-line.short { width: 45% }
+    .skel-line.med { width: 70% }
+    .skel-line.long { width: 90% }
+
     /* ════════════════════════════════════════════════════════════════════════════
        DESKTOP LAYOUT — min-width: 768px
        All mobile styles above remain untouched.
@@ -2841,6 +3046,68 @@
         background: #fff;
         box-shadow: 0 16px 48px rgba(0, 0, 0, .12)
       }
+
+      /* ORB-79: Right detail panel (3rd column) */
+      :root {
+        --detail-w: 340px;
+      }
+      .desktop-detail-panel {
+        position: fixed;
+        top: 0;
+        right: 0;
+        width: var(--detail-w);
+        bottom: 0;
+        background: var(--bg2);
+        border-left: 1px solid var(--border);
+        z-index: 25;
+        overflow-y: auto;
+        scrollbar-width: thin;
+        scrollbar-color: var(--border2) transparent;
+        transform: translateX(100%);
+        transition: transform .3s cubic-bezier(.32,.72,0,1);
+        padding: 20px 20px calc(20px + var(--safe-bottom));
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+      }
+      .desktop-detail-panel.open {
+        transform: translateX(0);
+      }
+      #screen-app.detail-open {
+        margin-right: var(--detail-w);
+      }
+      .ddp-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 20px;
+      }
+      .ddp-title {
+        font-size: 16px;
+        font-weight: 800;
+        letter-spacing: -.3px;
+      }
+      .ddp-close {
+        background: var(--surface2);
+        border: none;
+        color: var(--text2);
+        cursor: pointer;
+        width: 28px;
+        height: 28px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all .12s;
+      }
+      .ddp-close:hover {
+        background: var(--surface3);
+        color: var(--text);
+      }
+      body.light .desktop-detail-panel {
+        background: #f0f0f4;
+        border-color: rgba(0,0,0,.06);
+      }
     }
 
     /* ── Extra-wide desktops ── */
@@ -2867,25 +3134,24 @@
   </div>
   <div class="screen" id="screen-login">
     <div id="login-shader-container" style="position:absolute;inset:0;z-index:0;overflow:hidden"></div>
+    <div id="login-vignette"></div>
     <div class="login-glow" style="z-index:1"></div>
-    <div class="login-logo"
-      style="z-index:1;background:none;padding:0;display:flex;align-items:center;justify-content:center;opacity:0.8">
-      <img src="iconbg.png" alt="Orbiter" style="width:72px;height:72px;object-fit:contain;border-radius:18px">
-    </div>
-    <div class="login-title" style="z-index:1">Orbiter</div>
-    <div class="login-sub" style="z-index:1">Sync tasks across every device with one tap.</div>
-    <button class="google-btn" onclick="signInWithGoogle()" style="z-index:1"><svg class="google-logo"
-        viewBox="0 0 24 24">
-        <path fill="#4285F4"
-          d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-        <path fill="#34A853"
-          d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-        <path fill="#FBBC05"
-          d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" />
-        <path fill="#EA4335"
-          d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
+    <div class="login-card">
+      <div class="login-logo" style="margin-bottom:20px;box-shadow:none;background:none;padding:0;display:flex;align-items:center;justify-content:center;opacity:0.85">
+        <img src="iconbg.png" alt="Orbiter" style="width:64px;height:64px;object-fit:contain;border-radius:16px;animation:logoSpin 1.2s ease-out">
+      </div>
+      <div class="login-title">Orbiter</div>
+      <div class="login-sub">Your tasks, beautifully simple.</div>
+      <div class="login-divider"></div>
+      <button class="google-btn" onclick="signInWithGoogle()" style="width:100%"><svg class="google-logo" viewBox="0 0 24 24">
+        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/>
+        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
       </svg>Continue with Google</button>
-    <div class="login-footer" style="z-index:1">Your tasks stay private and secure.</div>
+      <div class="login-platform-hint">Syncs with macOS · Windows · iPhone</div>
+      <div class="login-terms"><a href="#">Privacy Policy</a> · <a href="#">Terms</a></div>
+    </div>
   </div>
   <div class="screen" id="screen-app">
     <div class="app-header">
@@ -3035,6 +3301,16 @@
           fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
         </svg> <span id="theme-label">Light Mode</span><span class="kbd-hint">⌘D</span></div>
+      <!-- ORB-87: Confirm before delete toggle -->
+      <div class="um-item" style="flex-direction:column;align-items:flex-start;gap:8px;padding:13px 16px 14px" onclick="event.stopPropagation()">
+        <div style="display:flex;align-items:center;justify-content:space-between;width:100%"><div style="display:flex;align-items:center;gap:8px"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg><span style="font-size:14px;font-weight:600">Confirm Delete</span></div><button class="toggle" id="confirm-delete-toggle" onclick="toggleConfirmDelete(event)" style="margin-left:auto"></button></div>
+        <div style="font-size:11px;color:var(--text3);padding-left:23px">Show confirmation dialog before deleting tasks</div>
+      </div>
+      <!-- ORB-88: Accent color picker -->
+      <div class="um-item" style="flex-direction:column;align-items:flex-start;gap:8px;padding:13px 16px 14px" onclick="event.stopPropagation()">
+        <div style="display:flex;align-items:center;gap:8px;width:100%"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 0 20"/></svg><span style="font-size:14px;font-weight:600">Accent Color</span></div>
+        <div class="color-picker" id="accent-picker" style="margin-top:4px"></div>
+      </div>
       <div class="um-item" onclick="toggleMenu(false);toggleArchiveView()"><svg width="15" height="15"
           viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
           stroke-linejoin="round">
@@ -3314,6 +3590,27 @@
         style="display:block;width:100%;padding:14px;background:var(--purple);border:none;border-radius:12px;color:white;font-family:inherit;font-size:15px;font-weight:700;text-align:center;text-decoration:none;box-shadow:0 4px 16px rgba(139,92,246,.3)">Open
         Quick Capture</a>
     </div>
+  </div>
+
+  <!-- ORB-79: Desktop right detail panel -->
+  <div class="desktop-detail-panel" id="desktop-detail-panel">
+    <div class="ddp-head">
+      <div class="ddp-title">Task Details</div>
+      <button class="ddp-close" onclick="closeDesktopDetailPanel()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="m-field"><label>Title</label><input type="text" id="ddp-title-input" placeholder="Task name" autocomplete="off"></div>
+    <div class="m-field"><label>Notes</label><textarea id="ddp-notes" placeholder="Add notes…"></textarea></div>
+    <div style="display:flex;gap:10px">
+      <div class="m-field" style="flex:1"><label>Priority</label><select id="ddp-priority"><option value="None">None</option><option value="Low">Low</option><option value="Medium">Medium</option><option value="High">High</option></select></div>
+      <div class="m-field" style="flex:1"><label>Due Date</label><input type="date" id="ddp-due"></div>
+      <div class="m-field" style="flex:0 0 90px"><label>Time</label><input type="time" id="ddp-due-time"></div>
+    </div>
+    <div class="m-field"><label>Project</label><select id="ddp-project"><option value="">No Project</option></select></div>
+    <div class="m-field"><label>Repeat</label><select id="ddp-repeat"><option value="None">None</option><option value="Daily">Daily</option><option value="Weekly">Weekly</option><option value="Biweekly">Biweekly</option><option value="Monthly">Monthly</option><option value="Yearly">Yearly</option></select></div>
+    <div class="toggle-row"><span class="toggle-label"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--pink)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg> Flagged</span><button class="toggle" id="ddp-tog-flag" onclick="toggleDdpFlag()"></button></div>
+    <div class="toggle-row"><span class="toggle-label"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--amber)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg> Today</span><button class="toggle" id="ddp-tog-today" onclick="toggleDdpToday()"></button></div>
+    <button class="modal-submit" onclick="saveDdpDetails()" style="margin-top:16px">Save Changes</button>
+    <button class="delete-btn" onclick="deleteDdpTask()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:8px"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>Delete Task</button>
   </div>
 
   <!-- ORB-21: Shared auth module (verify, refresh, bootstrapSession) -->
@@ -3724,8 +4021,9 @@
         var dragH = showArchived ? '' : '<div class="drag-handle" draggable="true" data-id="' + t.id + '" ontouchstart="event.stopPropagation()"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="6" r="1.5"/><circle cx="15" cy="6" r="1.5"/><circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/><circle cx="9" cy="18" r="1.5"/><circle cx="15" cy="18" r="1.5"/></svg></div>';
         var chkBtn = showArchived ? '<button class="chk p-high" style="border-color:var(--green);background:var(--green-dim)" onclick="event.stopPropagation();unarchiveTask(\'' + t.id + '\')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></button>' : '<button class="chk ' + pc + '" onclick="event.stopPropagation();completeTask(\'' + t.id + '\')"></button>';
         var _accent = fTagColor ? 'border-left:3px solid ' + fTagColor + ';padding-left:10px;' : '';
+        var _todayBtn = showArchived ? '' : (t.is_today_task ? '<span class="row-today-indicator" title="In Today">☀</span>' : '<button class="row-today-btn" onclick="event.stopPropagation();markAsToday(\'' + t.id + '\')" title="Add to Today">☀</button>');
         var _trashBtn = showArchived ? '' : '<button class="row-del-btn" onclick="event.stopPropagation();quickDeleteTask(\'' + t.id + '\')" title="Delete"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>';
-        return '<div class="task-row clickable' + archCls + '" id="task-' + t.id + '" data-sort="' + i + '" style="' + _accent + 'animation-delay:' + Math.min(i * 0.03, 0.3) + 's" onclick="openTaskDetail(\'' + t.id + '\')" oncontextmenu="event.preventDefault();showCtxMenu(event,\'' + t.id + '\')" data-longpress="' + t.id + '">' + dragH + chkBtn + '<div class="task-body"><div class="task-name">' + esc(t.title) + '</div>' + (chips ? '<div class="task-chips">' + chips + '</div>' : '') + '</div>' + _trashBtn + '</div>';
+        return '<div class="task-row clickable' + archCls + '" id="task-' + t.id + '" data-sort="' + i + '" style="' + _accent + 'animation-delay:' + Math.min(i * 0.03, 0.3) + 's" onclick="openTaskDetail(\'' + t.id + '\')" oncontextmenu="event.preventDefault();showCtxMenu(event,\'' + t.id + '\')" data-longpress="' + t.id + '">' + dragH + chkBtn + '<div class="task-body"><div class="task-name">' + esc(t.title) + '</div>' + (chips ? '<div class="task-chips">' + chips + '</div>' : '') + '</div>' + _todayBtn + _trashBtn + '</div>';
       }
       var _rHtml = '';
       if (_overdue.length) {
@@ -3764,7 +4062,56 @@
         }
       } catch (e) { /* projects already loaded from localStorage on init */ }
     }
-    async function syncTasks() { if (syncing) return; syncing = true; var _sb = document.getElementById('sync-btn'); if (_sb) _sb.classList.add('spinning'); var _us = document.getElementById('um-sync'); if (_us) _us.style.opacity = '.4'; try { tasks = await fetchAll(); await fetchProjects(); populateProjectSelects(); render(); scheduleNotifications(); } catch (e) { if (e.message !== 'Unauthorized') toast('Sync failed'); } finally { syncing = false; if (_sb) _sb.classList.remove('spinning'); if (_us) _us.style.opacity = ''; } }
+    function showSkeleton() {
+      var area = document.getElementById('task-area');
+      if (!area || tasks.length > 0) return; // only on first load
+      var html = '';
+      for (var i = 0; i < 6; i++) {
+        var w = ['long','med','long','short','med','long'][i];
+        html += '<div class="skeleton-row"><div class="skel-circle"></div><div class="skel-lines"><div class="skel-line '+w+'"></div><div class="skel-line short"></div></div></div>';
+      }
+      area.innerHTML = html;
+    }
+    async function syncTasks() { if (syncing) return; syncing = true; var _sb = document.getElementById('sync-btn'); if (_sb) _sb.classList.add('spinning'); var _us = document.getElementById('um-sync'); if (_us) _us.style.opacity = '.4'; showSkeleton(); try { tasks = await fetchAll(); await fetchProjects(); populateProjectSelects(); render(); scheduleNotifications(); } catch (e) { if (e.message !== 'Unauthorized') toast('Sync failed'); } finally { syncing = false; if (_sb) _sb.classList.remove('spinning'); if (_us) _us.style.opacity = ''; } }
+
+    // ─── ORB-37: Supabase Realtime subscription ──────────────────────────────────
+    var _realtimeChannel = null;
+    function initRealtime() {
+      if (!session || !window.supabase) return;
+      if (_realtimeChannel) return; // already subscribed
+      var client = window.supabase.createClient(SB_URL, SB_KEY, {
+        auth: { persistSession: false, autoRefreshToken: false },
+        realtime: { params: { eventsPerSecond: 10 } }
+      });
+      // Set access token for RLS
+      client.realtime.setAuth(session.access_token);
+      _realtimeChannel = client
+        .channel('tasks-realtime')
+        .on('postgres_changes', {
+          event: '*',
+          schema: 'public',
+          table: 'tasks',
+          filter: 'user_id=eq.' + session.user.id
+        }, function(payload) {
+          if (payload.eventType === 'INSERT') {
+            if (!tasks.find(function(t) { return t.id === payload.new.id; })) {
+              tasks.push(payload.new);
+              render();
+            }
+          } else if (payload.eventType === 'UPDATE') {
+            var idx = tasks.findIndex(function(t) { return t.id === payload.new.id; });
+            if (idx !== -1) { Object.assign(tasks[idx], payload.new); render(); }
+            else { tasks.push(payload.new); render(); }
+          } else if (payload.eventType === 'DELETE') {
+            tasks = tasks.filter(function(t) { return t.id !== payload.old.id; });
+            render();
+          }
+        })
+        .subscribe();
+      window.addEventListener('beforeunload', function() {
+        if (_realtimeChannel) client.removeChannel(_realtimeChannel);
+      });
+    }
 
     // ─── Complete ─────────────────────────────────────────────────────────────────
     // ORB-85: Calculate the next due date for recurring tasks.
@@ -3841,7 +4188,7 @@
 
     // ─── Project selects ──────────────────────────────────────────────────────────
     function populateProjectSelects() {
-      ['i-project', 'd-project'].forEach(function (id) {
+      ['i-project', 'd-project', 'ddp-project'].forEach(function (id) {
         var sel = document.getElementById(id);
         if (!sel) return;
         var current = sel.value;
@@ -3886,6 +4233,7 @@
     // ─── Task Detail ──────────────────────────────────────────────────────────────
     let currentTaskId = null;
     function openTaskDetail(taskId) {
+      if (window.matchMedia('(min-width: 768px)').matches) { openDesktopDetailPanel(taskId); return; }
       var task = tasks.find(function (t) { return t.id === taskId; });
       if (!task) return;
       currentTaskId = taskId;
@@ -3957,6 +4305,70 @@
       }).then(function () { toast('Task updated'); }).catch(function () { toast('Failed to sync'); });
     }
 
+    // ─── ORB-79: Desktop right detail panel ──────────────────────────────────────
+    var ddpFlag = false, ddpToday = false;
+    function openDesktopDetailPanel(taskId) {
+      var task = tasks.find(function(t) { return t.id === taskId; });
+      if (!task) return;
+      currentTaskId = taskId;
+      document.getElementById('ddp-title-input').value = task.title || '';
+      document.getElementById('ddp-notes').value = task.notes || '';
+      document.getElementById('ddp-priority').value = task.priority || 'None';
+      document.getElementById('ddp-due').value = task.due_date ? task.due_date.split('T')[0] : '';
+      var dueT = task.due_date && task.due_date.includes('T') ? task.due_date.split('T')[1] : '';
+      document.getElementById('ddp-due-time').value = dueT ? dueT.substring(0,5) === '00:00' ? '' : dueT.substring(0,5) : '';
+      document.getElementById('ddp-repeat').value = task.repeat_rule || 'None';
+      ddpFlag = task.is_flagged || false;
+      ddpToday = task.is_today_task || false;
+      document.getElementById('ddp-tog-flag').classList.toggle('on', ddpFlag);
+      document.getElementById('ddp-tog-today').classList.toggle('on', ddpToday);
+      // populate project select
+      var ps = document.getElementById('ddp-project');
+      if (ps) { ps.innerHTML = '<option value="">No Project</option>' + projects.map(function(p){return '<option value="'+p.id+'">'+esc(p.name)+'</option>';}).join(''); ps.value = task.project_id || ''; }
+      document.getElementById('desktop-detail-panel').classList.add('open');
+      document.getElementById('screen-app').classList.add('detail-open');
+    }
+    function closeDesktopDetailPanel() {
+      document.getElementById('desktop-detail-panel').classList.remove('open');
+      document.getElementById('screen-app').classList.remove('detail-open');
+      currentTaskId = null;
+    }
+    function toggleDdpFlag() { ddpFlag = !ddpFlag; document.getElementById('ddp-tog-flag').classList.toggle('on', ddpFlag); }
+    function toggleDdpToday() { ddpToday = !ddpToday; document.getElementById('ddp-tog-today').classList.toggle('on', ddpToday); }
+    function saveDdpDetails() {
+      var task = tasks.find(function(t) { return t.id === currentTaskId; });
+      if (!task) return;
+      var title = document.getElementById('ddp-title-input').value.trim();
+      if (!title) { toast('Title required'); return; }
+      var dueVal = document.getElementById('ddp-due').value;
+      var dueTimeVal = document.getElementById('ddp-due-time').value;
+      var dueISO = dueVal ? (dueTimeVal ? new Date(dueVal+'T'+dueTimeVal).toISOString() : new Date(dueVal+'T00:00:00').toISOString()) : null;
+      var now = new Date().toISOString();
+      task.title = title;
+      task.notes = document.getElementById('ddp-notes').value.trim();
+      task.priority = document.getElementById('ddp-priority').value;
+      task.due_date = dueISO;
+      task.repeat_rule = document.getElementById('ddp-repeat').value || 'None';
+      task.project_id = document.getElementById('ddp-project').value || null;
+      task.is_flagged = ddpFlag;
+      task.is_today_task = ddpToday;
+      task.updated_at = now;
+      render();
+      patch(task.id, { title:task.title, notes:task.notes, priority:task.priority, due_date:task.due_date, repeat_rule:task.repeat_rule, project_id:task.project_id, is_flagged:task.is_flagged, is_today_task:task.is_today_task, updated_at:now }).then(function(){ toast('Saved'); }).catch(function(){ toast('Sync failed'); });
+    }
+    function deleteDdpTask() {
+      var id = currentTaskId;
+      if (!id) return;
+      if (shouldConfirmDelete()) {
+        closeDesktopDetailPanel();
+        currentTaskId = id;
+        document.getElementById('delete-modal-bg').classList.add('open');
+      } else {
+        closeDesktopDetailPanel();
+        quickDeleteTask(id);
+      }
+    }
+
     // ─── Subtasks ─────────────────────────────────────────────────────────────────
     function renderSubtasks() {
       if (!currentTaskId) return;
@@ -4015,7 +4427,17 @@
     document.getElementById('new-subtask-input').addEventListener('keydown', function (e) { if (e.key === 'Enter') confirmAddSubtask(); });
 
     // ─── Delete ───────────────────────────────────────────────────────────────────
-    function showDeleteConfirm() { document.getElementById('delete-modal-bg').classList.add('open'); }
+    // ORB-87: Show confirmation modal only if user enabled the setting
+    function showDeleteConfirm() {
+      if (shouldConfirmDelete()) {
+        document.getElementById('delete-modal-bg').classList.add('open');
+      } else {
+        // Skip confirmation, delete immediately
+        var idToDelete = currentTaskId;
+        closeDetailModal();
+        if (idToDelete) quickDeleteTask(idToDelete);
+      }
+    }
     function closeDeleteConfirm() { document.getElementById('delete-modal-bg').classList.remove('open'); }
     function handleDeleteModalBg(e) { if (e.target.id === 'delete-modal-bg') closeDeleteConfirm(); }
     function confirmDeleteTask() {
@@ -4042,6 +4464,25 @@
         render();
         toast('Restored ✓');
       });
+    }
+
+    // ORB-86: Mark task as Today (hover quick-action)
+    async function markAsToday(id) {
+      var task = tasks.find(function(t) { return t.id === id; });
+      if (!task) return;
+      haptic('light');
+      var wasToday = task.is_today_task;
+      task.is_today_task = !wasToday;
+      task.updated_at = new Date().toISOString();
+      render();
+      try {
+        await patch(id, { is_today_task: task.is_today_task, updated_at: task.updated_at });
+        toast(task.is_today_task ? 'Added to Today' : 'Removed from Today');
+      } catch(e) {
+        task.is_today_task = wasToday;
+        render();
+        toast('Sync failed');
+      }
     }
 
     // ─── Projects ─────────────────────────────────────────────────────────────────
@@ -4364,6 +4805,56 @@
       if (t === 'light') { document.body.classList.add('light'); document.getElementById('theme-label').textContent = 'Dark Mode'; }
     }
 
+    // ─── ORB-88: Accent Color Picker ─────────────────────────────────────────
+    var ACCENT_COLORS = [
+      { name: 'Indigo', value: '#8b5cf6' },
+      { name: 'Blue', value: '#3b82f6' },
+      { name: 'Teal', value: '#14b8a6' },
+      { name: 'Green', value: '#22c55e' },
+      { name: 'Orange', value: '#f97316' },
+      { name: 'Pink', value: '#ec4899' }
+    ];
+    function loadAccentColor() {
+      var saved = localStorage.getItem('accent_color');
+      var accent = saved || ACCENT_COLORS[0].value;
+      document.documentElement.style.setProperty('--accent', accent);
+      renderAccentPicker();
+    }
+    function setAccentColor(value) {
+      localStorage.setItem('accent_color', value);
+      document.documentElement.style.setProperty('--accent', value);
+      renderAccentPicker();
+    }
+    function renderAccentPicker() {
+      var container = document.getElementById('accent-picker');
+      if (!container) return;
+      var current = localStorage.getItem('accent_color') || ACCENT_COLORS[0].value;
+      container.innerHTML = ACCENT_COLORS.map(function(c) {
+        return '<div class="color-swatch' + (c.value === current ? ' selected' : '') + '" style="background:' + c.value + '" title="' + c.name + '" onclick="setAccentColor(\'' + c.value + '\')"></div>';
+      }).join('');
+    }
+
+    // ─── ORB-87: Confirm Before Delete ───────────────────────────────────────
+    function loadConfirmDeleteSetting() {
+      var val = localStorage.getItem('confirm_before_delete');
+      var enabled = (val === 'true');
+      var toggle = document.getElementById('confirm-delete-toggle');
+      if (toggle) {
+        toggle.classList.toggle('on', enabled);
+      }
+      return enabled;
+    }
+    function toggleConfirmDelete(e) {
+      if (e) e.stopPropagation();
+      var toggle = document.getElementById('confirm-delete-toggle');
+      var enabled = !toggle.classList.contains('on');
+      toggle.classList.toggle('on', enabled);
+      localStorage.setItem('confirm_before_delete', enabled ? 'true' : 'false');
+    }
+    function shouldConfirmDelete() {
+      return localStorage.getItem('confirm_before_delete') === 'true';
+    }
+
     // ─── Smart Filters ──────────────────────────────────────────────────────
     function renderActiveFilterBadge() { var fBtn = document.getElementById('filter-btn'); if (fBtn) fBtn.classList.toggle('filter-active', !!hasActiveFilters()); }
     function toggleFilters() {
@@ -4566,7 +5057,8 @@
       // Pre-load projects from localStorage for instant rendering (ORB-30)
       try { var _lsProj = localStorage.getItem('pwa_projects'); if (_lsProj) projects = JSON.parse(_lsProj); } catch (e) { }
       loadTheme();
-      if (session) { updateAvatar(); populateProjectSelects(); show('screen-app'); render(); syncTasks(); }
+      loadAccentColor();
+      if (session) { updateAvatar(); populateProjectSelects(); show('screen-app'); render(); syncTasks(); loadConfirmDeleteSetting(); setTimeout(initRealtime, 2000); }
       else show('screen-login');
     }
     if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').then(function (reg) { reg.update(); }).catch(function () { });
@@ -4676,6 +5168,7 @@
 
     init();
   </script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="shader-background.js"></script>
 </body>
