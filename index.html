@@ -3051,6 +3051,11 @@
       :root {
         --detail-w: 340px;
       }
+      /* Hide panel on mobile — transform alone unreliable on iOS Safari */
+      @media (max-width: 767px) {
+        .desktop-detail-panel { display: none !important; }
+        #screen-app.detail-open { margin-right: 0 !important; }
+      }
       .desktop-detail-panel {
         position: fixed;
         top: 0;
