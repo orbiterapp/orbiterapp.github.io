@@ -13,6 +13,14 @@
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
   <title>Orbiter</title>
+  <script>
+    (function redirectRootToLanding() {
+      const path = window.location.pathname || '';
+      const isRootPath = path.endsWith('/');
+      if (!isRootPath) return;
+      window.location.replace(path + 'landing.html');
+    })();
+  </script>
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="iconbg.png" type="image/png">
   <link rel="apple-touch-icon" href="icon.png">
