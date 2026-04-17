@@ -1,9 +1,15 @@
-const CACHE = 'tasks-v7'; // ORB-22: bumped to bust cache after adding auth.js + shader
+// ORB-116: bump CACHE_VERSION on each release to invalidate old caches
+const CACHE_VERSION = 'v8';
+const CACHE = `orbiter-${CACHE_VERSION}`;
 const SHELL  = ['./index.html', './quick.html', './manifest.json', './iconbg.png', './auth.js', './shader-background.js'];
 
 self.addEventListener('install', e => {
-  self.skipWaiting();
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)));
+});
+
+// ORB-116: allow clients to trigger immediate activation on update
+self.addEventListener('message', e => {
+  if (e.data === 'SKIP_WAITING') self.skipWaiting();
 });
 
 self.addEventListener('activate', e =>

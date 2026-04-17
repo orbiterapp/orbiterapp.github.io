@@ -49,6 +49,8 @@
     .nsi-text{font-size:17px;font-weight:700}
     .nsi-sub{font-size:13px;color:var(--text2);line-height:1.5}
     .nsi-link{color:var(--purple);font-weight:600;text-decoration:none;padding:11px 22px;background:var(--purple-dim);border-radius:11px;border:1px solid rgba(139,92,246,.2)}
+    /* ORB-124: iOS safe area for fixed overlays */
+    .success-overlay{padding-bottom:max(env(safe-area-inset-bottom),12px)}
   </style>
 </head>
 <body>
@@ -70,6 +72,8 @@
       <!-- ORB-30: Project chip (retained after reset) -->
       <div class="opt" id="chip-proj"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg><span id="pjlbl">Project</span><select id="pjsel" onchange="handleProject(this.value)"><option value="">No Project</option></select></div>
       <div class="opt" id="chip-flag" onclick="toggleF()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg><span>Flag</span></div>
+      <!-- ORB-119: energy level chip -->
+      <div class="opt" id="chip-energy" onclick="cycleEnergy()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg><span id="elbl">Energy</span></div>
     </div>
     <button class="submit" id="sbtn" onclick="submitTask()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add Task</button>
   </div>
@@ -87,12 +91,18 @@
 </div>
 <script>
 // ORB-21: SB_URL / SB_KEY defined first so auth.js functions can use them
+// Supabase anon key is intentionally public — safe to expose in client code.
+// All data is protected by Row Level Security (RLS) policies.
+// See: https://supabase.com/docs/guides/auth/row-level-security
 const SB_URL='https://kmfymwtarvvmzuwwspwy.supabase.co',SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImttZnltd3RhcnZ2bXp1d3dzcHd5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3NTI2NzcsImV4cCI6MjA5MTMyODY3N30.9aBPLgECyFtj12sknviOhi4aR4p-tG1FBT0v9tbU5J4';
 </script>
 <!-- ORB-21: shared auth module -->
 <script src="auth.js"></script>
 <script>
-let session=null,qP='None',qF=false,qD=null,qProj=null;
+let session=null,qP='None',qF=false,qD=null,qProj=null,qE='None';
+// ORB-119: energy level chip
+const ENERGY=['None','Low','Medium','High'],ECOL={None:'var(--text3)',Low:'var(--cyan)',Medium:'var(--amber)',High:'var(--pink)'};
+function cycleEnergy(){const i=(ENERGY.indexOf(qE)+1)%ENERGY.length;qE=ENERGY[i];document.getElementById('elbl').textContent=qE==='None'?'Energy':qE;const chip=document.getElementById('chip-energy');chip.classList.toggle('active',qE!=='None');chip.style.borderColor=qE!=='None'?ECOL[qE]:'';}
 // ORB-30: load projects from same localStorage key used by main app
 let qProjects=[];
 try { qProjects=JSON.parse(localStorage.getItem('pwa_projects')||'[]'); } catch(e){}
@@ -125,7 +135,7 @@ async function submitTask(){
   if(!title){document.getElementById('q-title').focus();return}
   const btn=document.getElementById('sbtn');btn.disabled=true;btn.textContent='Adding…';
   const now=new Date().toISOString();
-  const task={id:crypto.randomUUID?crypto.randomUUID():([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g,c=>(c^crypto.getRandomValues(new Uint8Array(1))[0]&15>>c/4).toString(16)),user_id:session.user.id,title,notes:document.getElementById('q-notes').value.trim(),due_date:qD,defer_date:null,is_completed:false,is_flagged:qF,priority:qP,project_id:qProj,tag_ids:'[]',created_at:now,completed_at:null,repeat_rule:'None',parent_id:null,sort_order:0,last_reviewed:null,next_review_date:null,review_frequency_num:null,review_frequency_unit:null,is_in_review:false,is_today_task:false,updated_at:now};
+  const task={id:crypto.randomUUID?crypto.randomUUID():([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g,c=>(c^crypto.getRandomValues(new Uint8Array(1))[0]&15>>c/4).toString(16)),user_id:session.user.id,title,notes:document.getElementById('q-notes').value.trim(),due_date:qD,defer_date:null,is_completed:false,is_flagged:qF,priority:qP,project_id:qProj,tag_ids:'[]',energy_level:qE,created_at:now,completed_at:null,repeat_rule:'None',parent_id:null,sort_order:0,last_reviewed:null,next_review_date:null,review_frequency_num:null,review_frequency_unit:null,is_in_review:false,is_today_task:false,updated_at:now};
   // ORB-23: Offline queue
   if(!navigator.onLine){
     try{const outbox=JSON.parse(localStorage.getItem('orbiter_outbox')||'[]');outbox.push(task);localStorage.setItem('orbiter_outbox',JSON.stringify(outbox));showOKOffline();}
@@ -141,7 +151,7 @@ async function submitTask(){
 }
 function showOK(){const o=document.getElementById('sov');o.classList.add('show');o.onclick=()=>{o.classList.remove('show');reset()};setTimeout(()=>{if(o.classList.contains('show')){o.classList.remove('show');reset()}},2500)}
 function showOKOffline(){const o=document.getElementById('sov');if(o){const orig=o.textContent;o.textContent='Saved offline — syncs when connected';o.classList.add('show');o.onclick=()=>{o.classList.remove('show');o.textContent=orig;reset()};setTimeout(()=>{if(o.classList.contains('show')){o.classList.remove('show');o.textContent=orig;reset()}},3000)}else reset();}
-// ORB-23: Flush outbox on reconnect
+// ORB-23 + ORB-120: Flush outbox on reconnect — each task isolated so one failure doesn't abort rest
 window.addEventListener('online',async function flushOutbox(){
   const outbox=JSON.parse(localStorage.getItem('orbiter_outbox')||'[]');
   if(!outbox.length)return;
@@ -149,15 +159,18 @@ window.addEventListener('online',async function flushOutbox(){
   if(!s)return;
   const remaining=[];
   for(const task of outbox){
-    try{const r=await fetch(SB_URL+'/rest/v1/tasks',{method:'POST',headers:{'apikey':SB_KEY,'Authorization':'Bearer '+s.access_token,'Content-Type':'application/json','Prefer':'resolution=merge-duplicates'},body:JSON.stringify(task)});if(!r.ok)remaining.push(task);}catch{remaining.push(task);}
+    let ok=false;
+    try{const r=await fetch(SB_URL+'/rest/v1/tasks',{method:'POST',headers:{'apikey':SB_KEY,'Authorization':'Bearer '+s.access_token,'Content-Type':'application/json','Prefer':'resolution=merge-duplicates'},body:JSON.stringify(task)});ok=r.ok;}catch{ok=false;}
+    if(!ok)remaining.push(task);
   }
   localStorage.setItem('orbiter_outbox',JSON.stringify(remaining));
+  if(remaining.length===0)showToast('Offline tasks synced ✓');
 });
 // ORB-30: reset clears title/notes/priority/date/flag but RETAINS project selection
 function reset(){
   document.getElementById('q-title').value='';
   document.getElementById('q-notes').value='';
-  qP='None';qF=false;qD=null;
+  qP='None';qF=false;qD=null;qE='None';
   document.getElementById('plbl').textContent='None';
   document.getElementById('pdot').style.background='var(--text3)';
   document.getElementById('chip-pri').classList.remove('active');
@@ -166,12 +179,14 @@ function reset(){
   document.getElementById('dlbl').textContent='Due date';
   document.getElementById('dsel').value='';
   document.getElementById('chip-flag').classList.remove('flag-on');
+  const ec=document.getElementById('chip-energy');if(ec){ec.classList.remove('active');ec.style.borderColor='';document.getElementById('elbl').textContent='Energy';}
   // Project intentionally NOT reset (ORB-30: retain project between rapid captures)
   const b=document.getElementById('sbtn');
   b.disabled=false;
   b.innerHTML='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add Task';
   setTimeout(()=>document.getElementById('q-title').focus(),100);
 }
+function showToast(msg){const t=document.createElement('div');t.textContent=msg;t.style.cssText='position:fixed;bottom:calc(env(safe-area-inset-bottom)+20px);left:50%;transform:translateX(-50%);background:rgba(30,30,38,0.95);color:#f0f0f5;padding:10px 18px;border-radius:10px;font-size:13px;font-weight:600;z-index:200;border:1px solid rgba(255,255,255,0.12)';document.body.appendChild(t);setTimeout(()=>t.remove(),3000);}
 document.getElementById('q-title').addEventListener('keydown',e=>{if(e.key==='Enter')submitTask()});
 async function init(){
   // ORB-21: use shared bootstrapSession from auth.js

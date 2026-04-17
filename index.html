@@ -3269,6 +3269,9 @@
 </head>
 
 <body>
+  <!-- ORB-116: SW update banner -->
+  <div id="update-banner" style="display:none;align-items:center;justify-content:center;gap:8px;background:#1e1a3a;color:#c4b5fd;font-size:13px;font-weight:600;padding:8px 16px;position:fixed;top:0;left:0;right:0;z-index:9999;border-bottom:1px solid rgba(139,92,246,0.3)"></div>
+
   <div class="screen active" id="screen-loading">
     <div style="display:flex;flex-direction:column;align-items:center;gap:14px;margin:auto">
       <div class="spinner"></div>
@@ -3493,6 +3496,11 @@
           <rect x="1" y="3" width="22" height="5" />
           <line x1="10" y1="12" x2="14" y2="12" />
         </svg> <span id="archive-label">View Archive</span></div>
+      <!-- ORB-121: Tag management -->
+      <div class="um-item" onclick="toggleMenu(false);openTagManager()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg> Manage Tags</div>
+      <!-- ORB-123: Export tasks -->
+      <div class="um-item" onclick="toggleMenu(false);exportJSON()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Export JSON</div>
+      <div class="um-item" onclick="toggleMenu(false);exportCSV()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> Export CSV</div>
       <div class="um-item danger" onclick="signOut()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"
           stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
@@ -3681,6 +3689,25 @@
 
   <div class="toast" id="toast"></div>
 
+  <!-- ORB-121: Tag Manager Modal -->
+  <div class="modal-bg" id="tag-manager-bg" onclick="if(event.target.id==='tag-manager-bg')closeTagManager()" style="display:none;z-index:130">
+    <div class="modal-sheet" style="padding-bottom:calc(var(--safe-bottom) + 24px);overflow-y:auto;max-height:85dvh">
+      <div class="modal-handle"></div>
+      <div class="modal-head">
+        <div class="modal-title">Manage Tags</div><button class="modal-cancel" onclick="closeTagManager()">Done</button>
+      </div>
+      <div id="tag-manager-list" style="margin-bottom:16px"></div>
+      <div style="border-top:1px solid var(--border);padding-top:16px">
+        <div style="font-size:12px;font-weight:700;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:10px">New Tag</div>
+        <div style="display:flex;gap:8px;margin-bottom:10px">
+          <input type="text" id="new-tag-name" placeholder="Tag name…" autocomplete="off" style="flex:1;background:var(--surface2);border:1px solid var(--border2);border-radius:9px;padding:10px 12px;color:var(--text);font-family:inherit;font-size:14px">
+          <input type="color" id="new-tag-color" value="#8b5cf6" style="width:40px;height:40px;border-radius:8px;border:1px solid var(--border2);cursor:pointer;background:none;padding:2px">
+        </div>
+        <button class="modal-submit" onclick="createCustomTag()">Create Tag</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Pull-to-refresh spinner -->
   <div id="ptr"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
       stroke-linecap="round" stroke-linejoin="round">
@@ -3848,6 +3875,32 @@
     function show(id) { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); document.getElementById(id).classList.add('active'); }
     function signInWithGoogle() { const r = encodeURIComponent(window.location.href.split('#')[0]); window.location.href = SB_URL + '/auth/v1/authorize?provider=google&prompt=select_account&redirect_to=' + r; }
     async function signOut() { toggleMenu(false); await fetch(SB_URL + '/auth/v1/logout', { method: 'POST', headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + (session?.access_token || '') } }).catch(() => { }); session = null; tasks = []; localStorage.removeItem('sb_access_token'); localStorage.removeItem('sb_refresh_token'); show('screen-login'); }
+
+    // ORB-123: Export tasks to JSON and CSV
+    function downloadFile(name, type, content) {
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([content], { type: type }));
+      a.download = name;
+      a.click();
+      setTimeout(function () { URL.revokeObjectURL(a.href); }, 1000);
+    }
+    async function exportJSON() {
+      try {
+        var data = await (await api('tasks?order=created_at.desc')).json();
+        downloadFile('orbiter-export.json', 'application/json', JSON.stringify(data, null, 2));
+        toast('Exported ' + data.length + ' tasks');
+      } catch (e) { toast('Export failed'); }
+    }
+    function csvEscape(s) { s = String(s || ''); if (s.includes(',') || s.includes('"') || s.includes('\n')) return '"' + s.replace(/"/g, '""') + '"'; return s; }
+    async function exportCSV() {
+      try {
+        var data = await (await api('tasks?order=created_at.desc')).json();
+        var header = 'id,title,notes,priority,due_date,is_completed,is_flagged,project_id,energy_level';
+        var rows = data.map(function (t) { return [t.id, csvEscape(t.title), csvEscape(t.notes || ''), t.priority, t.due_date || '', t.is_completed, t.is_flagged, t.project_id || '', t.energy_level || ''].join(','); });
+        downloadFile('orbiter-export.csv', 'text/csv', [header].concat(rows).join('\n'));
+        toast('Exported ' + data.length + ' tasks');
+      } catch (e) { toast('Export failed'); }
+    }
     function parseHash() { const p = new URLSearchParams(window.location.hash.substring(1)); const t = p.get('access_token'), r = p.get('refresh_token'); if (!t) return null; try { const b = t.split('.')[1].replace(/-/g, '+').replace(/_/g, '/'); const pad = b + '===='.slice(b.length % 4 || 4); const d = JSON.parse(atob(pad)); if (r) localStorage.setItem('sb_refresh_token', r); return { access_token: t, user: { id: d.sub, email: d.email, user_metadata: d.user_metadata || {} } }; } catch (e) { return null; } }
     // verify() and refresh() are now in auth.js (ORB-21 — shared auth module)
     // They are loaded via <script src="auth.js"> before this script.
@@ -4706,11 +4759,41 @@
     function selectProjColor(color) { newProjColor = color; renderProjColorPicker(); }
     function renderProjList() {
       var list = document.getElementById('proj-list');
+      var active = projects.filter(function (p) { return !p.is_completed; });
+      var completed = projects.filter(function (p) { return p.is_completed; });
       if (projects.length === 0) { list.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text3);font-size:13px">No projects yet</div>'; return; }
-      list.innerHTML = projects.map(function (p) {
+      var html = active.map(function (p) {
         var count = tasks.filter(function (t) { return !t.is_completed && t.project_id === p.id; }).length;
-        return '<div class="proj-row"><span class="proj-color-dot" style="background:' + p.color + '"></span><span class="proj-row-name">' + esc(p.name) + '</span><span class="proj-row-count">' + count + ' task' + (count !== 1 ? 's' : '') + '</span><button class="proj-del-btn" onclick="deleteProject(\'' + p.id + '\')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>';
+        return '<div class="proj-row"><span class="proj-color-dot" style="background:' + p.color + '"></span><span class="proj-row-name">' + esc(p.name) + '</span><span class="proj-row-count">' + count + ' task' + (count !== 1 ? 's' : '') + '</span><button class="proj-del-btn" onclick="completeProject(\'' + p.id + '\')" title="Complete project" style="color:var(--green)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg></button><button class="proj-del-btn" onclick="deleteProject(\'' + p.id + '\')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>';
       }).join('');
+      if (completed.length > 0) {
+        html += '<div style="font-size:11px;font-weight:700;color:var(--text3);letter-spacing:1px;text-transform:uppercase;padding:12px 0 6px">Archived</div>';
+        html += completed.map(function (p) {
+          return '<div class="proj-row" style="opacity:0.5"><span class="proj-color-dot" style="background:' + p.color + '"></span><span class="proj-row-name" style="text-decoration:line-through">' + esc(p.name) + '</span><button class="proj-del-btn" onclick="reopenProject(\'' + p.id + '\')" title="Reopen" style="font-size:11px;font-weight:600;color:var(--purple)">Reopen</button><button class="proj-del-btn" onclick="deleteProject(\'' + p.id + '\')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>';
+        }).join('');
+      }
+      list.innerHTML = html;
+    }
+    // ORB-122: Complete project — marks all active tasks and the project done
+    async function completeProject(id) {
+      var now = new Date().toISOString();
+      var proj = projects.find(function (p) { return p.id === id; });
+      if (!proj) return;
+      var activeTasks = tasks.filter(function (t) { return t.project_id === id && !t.is_completed; });
+      activeTasks.forEach(function (t) { t.is_completed = true; t.completed_at = now; });
+      proj.is_completed = true; proj.completed_at = now;
+      await Promise.allSettled(activeTasks.map(function (t) { return upsert(t); }));
+      await api('projects?id=eq.' + id, { method: 'PATCH', headers: { 'Prefer': 'return=minimal' }, body: JSON.stringify({ is_completed: true, completed_at: now }) }).catch(function () { });
+      renderProjList(); populateProjectSelects(); render();
+      toast('Project completed ✓');
+    }
+    function reopenProject(id) {
+      var proj = projects.find(function (p) { return p.id === id; });
+      if (!proj) return;
+      proj.is_completed = false; proj.completed_at = null;
+      api('projects?id=eq.' + id, { method: 'PATCH', headers: { 'Prefer': 'return=minimal' }, body: JSON.stringify({ is_completed: false, completed_at: null }) }).catch(function () { });
+      renderProjList(); populateProjectSelects(); render();
+      toast('Project reopened');
     }
     function createProject() {
       var name = document.getElementById('new-proj-name').value.trim();
@@ -4743,6 +4826,51 @@
         renderProjList(); populateProjectSelects(); render();
         toast('Restored ✓');
       });
+    }
+
+    // ORB-121: Tag management
+    const TAG_COLORS_PRESET = ['#8b5cf6','#22d3ee','#f59e0b','#34d399','#6089f5','#f43f7a','#fb923c','#ef4444'];
+    function openTagManager() {
+      document.getElementById('tag-manager-bg').style.display = 'flex';
+      renderTagManagerList();
+    }
+    function closeTagManager() {
+      document.getElementById('tag-manager-bg').style.display = 'none';
+    }
+    function renderTagManagerList() {
+      var list = document.getElementById('tag-manager-list');
+      var allTags = getAllTags();
+      if (!allTags.length) { list.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text3);font-size:13px">No tags yet</div>'; return; }
+      list.innerHTML = allTags.map(function (tag, i) {
+        var count = tasks.filter(function (t) { try { return (JSON.parse(t.tag_ids || '[]')).includes(tag.name); } catch { return false; } }).length;
+        var isPreset = PRESET_TAGS.some(function (p) { return p.name === tag.name; });
+        return '<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)">'
+          + '<span style="width:10px;height:10px;border-radius:50%;background:' + tag.color + ';flex-shrink:0"></span>'
+          + '<span style="flex:1;font-size:14px;font-weight:500">' + esc(tag.name) + '</span>'
+          + '<span style="font-size:12px;color:var(--text3)">' + count + ' task' + (count !== 1 ? 's' : '') + '</span>'
+          + (!isPreset ? '<button onclick="deleteCustomTag(\'' + esc(tag.name) + '\')" style="background:none;border:none;color:var(--text3);cursor:pointer;padding:4px;border-radius:6px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>' : '')
+          + '</div>';
+      }).join('');
+    }
+    function createCustomTag() {
+      var name = document.getElementById('new-tag-name').value.trim();
+      var color = document.getElementById('new-tag-color').value;
+      if (!name) { document.getElementById('new-tag-name').focus(); return; }
+      if (getAllTags().some(function (t) { return t.name.toLowerCase() === name.toLowerCase(); })) { toast('Tag already exists'); return; }
+      localCustomTags.push({ name: name, color: color });
+      saveCustomTags();
+      document.getElementById('new-tag-name').value = '';
+      renderTagManagerList();
+      toast('Tag created');
+    }
+    function deleteCustomTag(name) {
+      var count = tasks.filter(function (t) { try { return (JSON.parse(t.tag_ids || '[]')).includes(name); } catch { return false; } }).length;
+      if (count > 0 && !confirm('Delete "' + name + '"? Used by ' + count + ' task(s).')) return;
+      localCustomTags = localCustomTags.filter(function (t) { return t.name !== name; });
+      saveCustomTags();
+      renderTagManagerList();
+      render();
+      toast('Tag deleted');
     }
 
     // ─── Misc event handlers ──────────────────────────────────────────────────────
@@ -5273,7 +5401,28 @@
       }
       else show('screen-login');
     }
-    if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').then(function (reg) { reg.update(); }).catch(function () { });
+    if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').then(function (reg) {
+      reg.update();
+      // ORB-116: detect new SW waiting and show update banner
+      reg.addEventListener('updatefound', function () {
+        var newSW = reg.installing;
+        newSW.addEventListener('statechange', function () {
+          if (newSW.state === 'installed' && navigator.serviceWorker.controller) {
+            var b = document.getElementById('update-banner');
+            if (b) {
+              b.innerHTML = 'New version available — <button onclick="applyUpdate()" style="background:none;border:none;color:inherit;font-weight:700;cursor:pointer;text-decoration:underline;font-family:inherit;font-size:inherit">Refresh</button>';
+              b.style.display = 'flex';
+            }
+          }
+        });
+      });
+    }).catch(function () { });
+    function applyUpdate() {
+      navigator.serviceWorker.ready.then(function (reg) {
+        if (reg.waiting) reg.waiting.postMessage('SKIP_WAITING');
+      });
+      window.location.reload();
+    }
 
     // ─── ORB-69: Onboarding ───────────────────────────────────────────────────────
     var _onboardStep = 0;
