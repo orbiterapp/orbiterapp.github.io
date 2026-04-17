@@ -1,0 +1,1100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Orbiter — Task management that moves at your speed</title>
+  <meta name="description" content="Orbiter is a fast, focused task manager for macOS, Windows and the web. Capture tasks instantly, stay organised across devices, never lose a thought." />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #08080c;
+      --bg2: #0c0c14;
+      --surface: #111118;
+      --surface2: rgba(255,255,255,0.04);
+      --card: #14141c;
+      --border: rgba(255,255,255,0.07);
+      --border2: rgba(255,255,255,0.13);
+      --text: #f0f0f5;
+      --text2: rgba(240,240,245,0.65);
+      --text3: rgba(240,240,245,0.38);
+      --accent: #8C59F2;
+      --accent-light: #b890ff;
+      --accent2: #5B7FFF;
+      --cyan: #33D9E6;
+      --pink: #F2408C;
+      --amber: #F2A624;
+      --green: #34d399;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Outfit', system-ui, sans-serif;
+      font-size: 16px;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+    a { color: inherit; text-decoration: none; }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+      .orb { display: none; }
+    }
+
+    /* ─── STATIC BACKGROUND (cheap, no paint cost) ─── */
+    .bg-static {
+      position: fixed; inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      background:
+        radial-gradient(ellipse 80% 60% at 50% -10%, rgba(140,89,242,0.12), transparent 60%),
+        radial-gradient(ellipse 60% 40% at 100% 100%, rgba(91,127,255,0.06), transparent 60%),
+        linear-gradient(180deg, var(--bg) 0%, var(--bg2) 100%);
+    }
+    .bg-grid {
+      position: fixed; inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.018) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.018) 1px, transparent 1px);
+      background-size: 60px 60px;
+      mask-image: radial-gradient(ellipse 70% 60% at 50% 40%, black 40%, transparent 100%);
+      -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 40%, black 40%, transparent 100%);
+      will-change: transform;
+    }
+
+    /* ─── PARALLAX BLOBS (scroll-linked) ─── */
+    .blobs { position: fixed; inset: 0; z-index: 1; pointer-events: none; overflow: hidden; }
+    .blob {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.55;
+      will-change: transform;
+    }
+    .blob-1 {
+      width: 520px; height: 520px;
+      top: 10%; left: -8%;
+      background: radial-gradient(circle, rgba(140,89,242,0.55), transparent 70%);
+      animation: blobDrift1 22s ease-in-out infinite;
+    }
+    .blob-2 {
+      width: 620px; height: 620px;
+      top: 45%; right: -10%;
+      background: radial-gradient(circle, rgba(242,64,140,0.38), transparent 70%);
+      animation: blobDrift2 28s ease-in-out infinite;
+    }
+    .blob-3 {
+      width: 460px; height: 460px;
+      bottom: 5%; left: 25%;
+      background: radial-gradient(circle, rgba(51,217,230,0.32), transparent 70%);
+      animation: blobDrift3 26s ease-in-out infinite;
+    }
+    .blob-4 {
+      width: 360px; height: 360px;
+      top: 72%; left: -6%;
+      background: radial-gradient(circle, rgba(91,127,255,0.38), transparent 70%);
+      animation: blobDrift4 24s ease-in-out infinite;
+    }
+    @keyframes blobDrift1 {
+      0%,100% { transform: translate3d(0, var(--py,0), 0); }
+      50%     { transform: translate3d(40px, calc(var(--py,0px) + 30px), 0); }
+    }
+    @keyframes blobDrift2 {
+      0%,100% { transform: translate3d(0, var(--py,0), 0); }
+      50%     { transform: translate3d(-50px, calc(var(--py,0px) - 40px), 0); }
+    }
+    @keyframes blobDrift3 {
+      0%,100% { transform: translate3d(0, var(--py,0), 0); }
+      50%     { transform: translate3d(30px, calc(var(--py,0px) + 20px), 0); }
+    }
+    @keyframes blobDrift4 {
+      0%,100% { transform: translate3d(0, var(--py,0), 0); }
+      50%     { transform: translate3d(-25px, calc(var(--py,0px) - 25px), 0); }
+    }
+
+    /* ─── PARTICLE FIELD (ambient twinkle, CSS-only) ─── */
+    .particles { position: fixed; inset: 0; z-index: 1; pointer-events: none; will-change: transform; }
+    .p {
+      position: absolute;
+      width: 2px; height: 2px;
+      border-radius: 50%;
+      background: rgba(212, 181, 255, 0.9);
+      box-shadow: 0 0 6px rgba(140,89,242,0.7);
+      animation: pTwinkle 4s ease-in-out infinite;
+    }
+    @keyframes pTwinkle {
+      0%, 100% { opacity: 0.15; transform: scale(0.7); }
+      50%      { opacity: 0.95; transform: scale(1.1); }
+    }
+
+    /* ─── SCROLL PROGRESS ─── */
+    .progress {
+      position: fixed; top: 0; left: 0; right: 0;
+      height: 2px;
+      background: rgba(140,89,242,0.08);
+      z-index: 200;
+    }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent), var(--accent2), var(--cyan));
+      transform-origin: left center;
+      transform: scaleX(0);
+      will-change: transform;
+    }
+
+    /* ─── NAV ─── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 40px;
+      height: 60px;
+      background: rgba(8,8,12,0.78);
+      -webkit-backdrop-filter: blur(12px);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-logo {
+      font-size: 20px; font-weight: 800;
+      color: var(--accent-light);
+      letter-spacing: -0.3px;
+      display: inline-flex; align-items: center; gap: 10px;
+    }
+    .nav-dot {
+      width: 10px; height: 10px; border-radius: 50%;
+      background: radial-gradient(circle at 30% 30%, #d4b5ff, var(--accent));
+      box-shadow: 0 0 10px rgba(140,89,242,0.7);
+    }
+    .nav-links { display: flex; gap: 32px; }
+    .nav-links a { color: var(--text2); font-size: 14px; font-weight: 500; transition: color 0.2s; cursor: pointer; }
+    .nav-links a:hover { color: var(--text); }
+    .nav-cta {
+      background: var(--accent); color: #fff;
+      font-size: 14px; font-weight: 600;
+      padding: 9px 20px; border-radius: 9px;
+      transition: transform 0.2s, box-shadow 0.2s;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(140,89,242,0.32);
+    }
+    .nav-cta:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(140,89,242,0.5); }
+
+    /* ─── FLOATING SHAPES (hero only, reduced count) ─── */
+    .shapes {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      pointer-events: none;
+      z-index: 1;
+    }
+    .shape {
+      position: absolute;
+      border-radius: 9999px;
+      border: 1.5px solid rgba(255,255,255,0.09);
+      will-change: transform, opacity;
+      opacity: 0;
+    }
+    .shape-1 {
+      width: 560px; height: 130px;
+      left: -6%; top: 22%;
+      background: linear-gradient(90deg, rgba(140,89,242,0.16), transparent 70%);
+      animation:
+        shapeIn 2.4s 0.3s cubic-bezier(0.2, 0.9, 0.3, 1) forwards,
+        shapeFloat 14s 2.7s ease-in-out infinite;
+      --rot: 12deg;
+    }
+    .shape-2 {
+      width: 460px; height: 110px;
+      right: -4%; top: 66%;
+      background: linear-gradient(90deg, rgba(242,64,140,0.14), transparent 70%);
+      animation:
+        shapeIn 2.4s 0.5s cubic-bezier(0.2, 0.9, 0.3, 1) forwards,
+        shapeFloat 16s 2.9s ease-in-out infinite reverse;
+      --rot: -14deg;
+    }
+    .shape-3 {
+      width: 240px; height: 64px;
+      right: 14%; top: 12%;
+      background: linear-gradient(90deg, rgba(51,217,230,0.16), transparent 70%);
+      animation:
+        shapeIn 2.4s 0.6s cubic-bezier(0.2, 0.9, 0.3, 1) forwards,
+        shapeFloat 12s 3.0s ease-in-out infinite;
+      --rot: 18deg;
+    }
+    @keyframes shapeIn {
+      0% { opacity: 0; transform: translate3d(0, -80px, 0) rotate(calc(var(--rot) - 12deg)); }
+      100% { opacity: 1; transform: translate3d(0, 0, 0) rotate(var(--rot)); }
+    }
+    @keyframes shapeFloat {
+      0%, 100% { transform: translate3d(0, 0, 0) rotate(var(--rot)); }
+      50%      { transform: translate3d(0, 18px, 0) rotate(var(--rot)); }
+    }
+
+    /* ─── SCROLL ORB ─── */
+    .orb-wrap {
+      position: fixed;
+      top: 50%; left: 50%;
+      width: 0; height: 0;
+      z-index: 2;
+      pointer-events: none;
+      will-change: transform;
+      transform: translate3d(0, 0, 0);
+      transition: transform 900ms cubic-bezier(0.25, 0.8, 0.25, 1);
+    }
+    .orb {
+      position: absolute;
+      width: 360px; height: 360px;
+      left: -180px; top: -180px;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at 34% 32%,
+          rgba(212, 181, 255, 0.95) 0%,
+          rgba(140, 89, 242, 0.78) 22%,
+          rgba(91, 127, 255, 0.42) 50%,
+          rgba(30, 30, 60, 0.12) 78%,
+          transparent 90%);
+      box-shadow: 0 0 60px rgba(140,89,242,0.22);
+      will-change: transform;
+      transition: transform 900ms cubic-bezier(0.25, 0.8, 0.25, 1),
+                  opacity 700ms ease;
+      animation: orbFloat 9s ease-in-out infinite;
+      --scale: 1;
+    }
+    @keyframes orbFloat {
+      0%, 100% { transform: translate3d(0, 0, 0) scale(var(--scale, 1)); }
+      50%      { transform: translate3d(0, -14px, 0) scale(var(--scale, 1)); }
+    }
+
+    /* ─── SECTIONS ─── */
+    section {
+      position: relative;
+      z-index: 10;
+      padding: 110px 24px;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 20px;
+      width: 100%;
+    }
+    .reveal {
+      opacity: 0;
+      transform: translate3d(0, 32px, 0);
+      transition: opacity 0.8s cubic-bezier(0.2, 0.8, 0.2, 1),
+                  transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+      will-change: opacity, transform;
+    }
+    .reveal.in {
+      opacity: 1;
+      transform: translate3d(0, 0, 0);
+      will-change: auto;
+    }
+    .reveal.d1 { transition-delay: 0.08s; }
+    .reveal.d2 { transition-delay: 0.16s; }
+    .reveal.d3 { transition-delay: 0.24s; }
+    .reveal.d4 { transition-delay: 0.32s; }
+
+    /* ─── HERO ─── */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 140px 24px 80px;
+      position: relative;
+    }
+    .pills {
+      display: flex; gap: 10px; justify-content: center;
+      margin-bottom: 32px; flex-wrap: wrap;
+      opacity: 0;
+      animation: fadeUp 0.9s 0.3s cubic-bezier(0.25, 0.4, 0.25, 1) forwards;
+    }
+    .pill {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 5px 14px; border-radius: 100px;
+      border: 1px solid var(--border2);
+      background: rgba(255,255,255,0.03);
+      font-size: 13px; font-weight: 500; color: var(--text2);
+    }
+    .pill svg { width: 14px; height: 14px; }
+    .pill-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--pink);
+      box-shadow: 0 0 6px var(--pink);
+    }
+    .hero h1 {
+      font-size: clamp(44px, 7vw, 86px);
+      font-weight: 800;
+      letter-spacing: -2px;
+      line-height: 1.04;
+      max-width: 920px;
+      margin-bottom: 28px;
+    }
+    .hero h1 .word { display: inline-block; margin-right: 0.25em; }
+    .hero h1 .letter {
+      display: inline-block;
+      opacity: 0;
+      transform: translate3d(0, 60px, 0);
+      animation: letterIn 0.85s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+    /* apply gradient to each letter (inline-block breaks parent background-clip) */
+    .hero h1 .line-a .letter {
+      background: linear-gradient(180deg, #ffffff 0%, rgba(255,255,255,0.78) 100%);
+      -webkit-background-clip: text; background-clip: text;
+      -webkit-text-fill-color: transparent; color: transparent;
+    }
+    .hero h1 .line-b .letter {
+      background: linear-gradient(100deg, #d4b5ff 0%, #ffffff 55%, #ffc2de 100%);
+      -webkit-background-clip: text; background-clip: text;
+      -webkit-text-fill-color: transparent; color: transparent;
+    }
+    @keyframes letterIn { to { opacity: 1; transform: translate3d(0, 0, 0); } }
+    @keyframes fadeUp {
+      0%   { opacity: 0; transform: translate3d(0, 18px, 0); }
+      100% { opacity: 1; transform: translate3d(0, 0, 0); }
+    }
+    .hero p {
+      font-size: clamp(16px, 2vw, 20px);
+      color: var(--text2);
+      max-width: 580px;
+      margin-bottom: 40px;
+      font-weight: 300;
+      opacity: 0;
+      animation: fadeUp 0.9s 1.2s cubic-bezier(0.25, 0.4, 0.25, 1) forwards;
+    }
+    .hero-actions {
+      display: flex; gap: 14px; flex-wrap: wrap; justify-content: center;
+      opacity: 0;
+      animation: fadeUp 0.9s 1.4s cubic-bezier(0.25, 0.4, 0.25, 1) forwards;
+    }
+    .btn-primary {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: var(--accent); color: #fff;
+      font-size: 16px; font-weight: 700;
+      padding: 15px 30px; border-radius: 12px;
+      transition: transform 0.2s, box-shadow 0.2s;
+      box-shadow: 0 8px 28px rgba(140,89,242,0.38);
+      cursor: pointer;
+    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 36px rgba(140,89,242,0.5); }
+    .btn-secondary {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border2);
+      color: var(--text);
+      font-size: 16px; font-weight: 600;
+      padding: 15px 30px; border-radius: 12px;
+      transition: background 0.2s, transform 0.2s, border-color 0.2s;
+      cursor: pointer;
+    }
+    .btn-secondary:hover { background: rgba(255,255,255,0.08); transform: translateY(-2px); border-color: rgba(255,255,255,0.22); }
+    .btn-icon { width: 18px; height: 18px; }
+    .hero-note {
+      margin-top: 22px; font-size: 13px; color: var(--text3);
+      opacity: 0;
+      animation: fadeUp 0.9s 1.6s cubic-bezier(0.25, 0.4, 0.25, 1) forwards;
+    }
+
+    /* ─── SECTION HEADERS ─── */
+    .eyebrow {
+      display: inline-block;
+      font-size: 12px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 1.5px;
+      color: var(--accent-light);
+      padding: 5px 12px;
+      border: 1px solid rgba(140,89,242,0.28);
+      border-radius: 999px;
+      background: rgba(140,89,242,0.06);
+      margin-bottom: 20px;
+    }
+    .section-title {
+      font-size: clamp(32px, 4.6vw, 52px);
+      font-weight: 800;
+      letter-spacing: -1.2px;
+      line-height: 1.1;
+      margin-bottom: 18px;
+      max-width: 720px;
+    }
+    .section-title .grad {
+      background: linear-gradient(100deg, #ffffff 0%, #d4b5ff 100%);
+      -webkit-background-clip: text; background-clip: text;
+      -webkit-text-fill-color: transparent; color: transparent;
+    }
+    .section-sub {
+      color: var(--text2);
+      font-size: clamp(15px, 1.6vw, 18px);
+      max-width: 560px;
+      font-weight: 300;
+    }
+
+    /* ─── SCROLL SECTION LAYOUTS ─── */
+    .scroll-section {
+      min-height: 90vh;
+      display: flex; flex-direction: column;
+      justify-content: center;
+    }
+    /* two-column split for sections with text + visual */
+    .split {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 64px;
+      align-items: center;
+    }
+    .split.reverse { direction: rtl; }
+    .split.reverse > * { direction: ltr; }
+    .col-text { max-width: 520px; }
+    .col-visual { display: flex; justify-content: center; align-items: center; }
+    .content-center {
+      max-width: 720px; margin: 0 auto; text-align: center;
+    }
+    .content-center .section-title,
+    .content-center .section-sub { margin-left: auto; margin-right: auto; }
+    @media (max-width: 900px) {
+      .split { grid-template-columns: 1fr; gap: 40px; text-align: center; }
+      .split.reverse { direction: ltr; }
+      .col-text { max-width: 100%; margin: 0 auto; }
+      .col-text .section-title { margin-left: auto; margin-right: auto; }
+      .col-text .section-sub { margin-left: auto; margin-right: auto; }
+    }
+
+    /* ─── FEATURES ─── */
+    .features {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+      max-width: 1040px;
+      margin: 56px auto 0;
+    }
+    .feature {
+      background: rgba(20,20,28,0.70);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 26px;
+      transition: border-color 0.3s, transform 0.3s, background 0.3s;
+    }
+    .feature:hover {
+      border-color: rgba(140,89,242,0.38);
+      transform: translateY(-3px);
+      background: rgba(26,22,40,0.85);
+    }
+    .feature-icon {
+      width: 42px; height: 42px;
+      border-radius: 11px;
+      display: inline-flex; align-items: center; justify-content: center;
+      margin-bottom: 16px;
+    }
+    .feature-icon svg { width: 22px; height: 22px; }
+    .feature-title { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
+    .feature-desc { font-size: 14px; color: var(--text2); line-height: 1.6; font-weight: 300; }
+
+    /* ─── APP PREVIEW ─── */
+    .preview-wrap {
+      padding: 56px 24px 0;
+      display: flex; justify-content: center;
+    }
+    .preview-frame {
+      width: 100%; max-width: 960px;
+      border-radius: 18px;
+      border: 1px solid var(--border2);
+      background: rgba(20,20,28,0.90);
+      overflow: hidden;
+      box-shadow: 0 30px 80px rgba(0,0,0,0.55), 0 0 0 1px rgba(140,89,242,0.08);
+    }
+    .preview-bar {
+      height: 40px;
+      background: rgba(24,24,31,0.95);
+      display: flex; align-items: center;
+      padding: 0 16px; gap: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+    .bar-dot { width: 12px; height: 12px; border-radius: 50%; }
+    .bar-dot:nth-child(1) { background: #ff5f57; }
+    .bar-dot:nth-child(2) { background: #febc2e; }
+    .bar-dot:nth-child(3) { background: #28c840; }
+    .preview-body { display: flex; height: 460px; }
+    .app-sidebar {
+      width: 220px;
+      background: rgba(15,15,22,0.80);
+      border-right: 1px solid var(--border);
+      padding: 16px 12px; flex-shrink: 0;
+    }
+    .sb-section { margin-bottom: 24px; }
+    .sb-label {
+      font-size: 11px; font-weight: 600;
+      color: var(--text3); text-transform: uppercase;
+      letter-spacing: 0.6px; padding: 0 8px; margin-bottom: 6px;
+    }
+    .sb-row {
+      display: flex; align-items: center; gap: 10px;
+      padding: 7px 8px; border-radius: 8px;
+      font-size: 13px; font-weight: 500; color: var(--text2);
+    }
+    .sb-row.active { background: rgba(140,89,242,0.14); color: var(--text); }
+    .sb-row.active .sb-icon { background: rgba(140,89,242,0.3); }
+    .sb-icon {
+      width: 26px; height: 26px; border-radius: 7px;
+      background: var(--surface2);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .sb-icon svg { width: 14px; height: 14px; color: var(--text); }
+    .count-pill {
+      margin-left: auto; font-size: 12px;
+      color: var(--accent-light); background: rgba(140,89,242,0.15);
+      padding: 1px 7px; border-radius: 10px;
+    }
+    .app-main { flex: 1; padding: 24px 28px; overflow: hidden; }
+    .main-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+    .main-title { font-size: 19px; font-weight: 700; }
+    .task {
+      display: flex; align-items: center; gap: 12px;
+      padding: 10px 12px; border-radius: 8px; margin-bottom: 4px;
+      transition: background 0.15s;
+    }
+    .task:hover { background: var(--surface2); }
+    .cbox {
+      width: 18px; height: 18px; border-radius: 50%;
+      border: 1.5px solid var(--border2); flex-shrink: 0;
+    }
+    .cbox.done {
+      background: var(--accent); border-color: var(--accent);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .t-title { font-size: 14px; color: var(--text); flex: 1; }
+    .t-title.done { color: var(--text3); text-decoration: line-through; }
+    .t-tag {
+      font-size: 11px; padding: 2px 8px; border-radius: 4px;
+      background: rgba(140,89,242,0.15); color: var(--accent-light); font-weight: 500;
+    }
+    .t-due { font-size: 12px; color: var(--text3); }
+    .prio { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+
+    /* ─── CAPTURE DEMO ─── */
+    .capture {
+      max-width: 560px;
+      margin: 32px auto 0;
+      background: rgba(20,20,28,0.88);
+      border: 1px solid var(--border2);
+      border-radius: 20px;
+      padding: 30px;
+      box-shadow: 0 30px 60px rgba(0,0,0,0.4);
+      position: relative; overflow: hidden;
+    }
+    .capture::before {
+      content: ""; position: absolute; inset: 0;
+      background: radial-gradient(circle at 0% 0%, rgba(140,89,242,0.14), transparent 55%);
+      pointer-events: none;
+    }
+    .capture-input {
+      font-size: 19px; font-weight: 600;
+      color: var(--text);
+      background: none; border: none; outline: none;
+      width: 100%;
+      font-family: 'Outfit', system-ui, sans-serif;
+      caret-color: var(--accent-light);
+      position: relative;
+    }
+    .capture-input::placeholder { color: var(--text3); }
+    .capture-cursor {
+      display: inline-block; width: 2px; height: 20px;
+      background: var(--accent-light); vertical-align: middle;
+      margin-left: 2px;
+      animation: blink 1s step-end infinite;
+    }
+    @keyframes blink { 50% { opacity: 0; } }
+    .kbd {
+      display: inline-flex; align-items: center; justify-content: center;
+      min-width: 20px; padding: 2px 6px;
+      font-size: 11px; font-weight: 600;
+      background: var(--surface2); border: 1px solid var(--border2);
+      border-radius: 5px; color: var(--text2);
+      font-family: inherit;
+    }
+    .capture-hint {
+      font-size: 12px; color: var(--text3); margin-top: 22px;
+      display: flex; gap: 18px; align-items: center;
+      position: relative;
+    }
+
+    /* ─── CTA ─── */
+    .cta {
+      text-align: center;
+      padding: 130px 24px 130px;
+      position: relative; overflow: hidden;
+    }
+    .cta::before {
+      content: ""; position: absolute; inset: 0;
+      background: radial-gradient(ellipse 80% 50% at center top, rgba(140,89,242,0.14) 0%, transparent 60%);
+      pointer-events: none;
+    }
+    .cta h2 {
+      font-size: clamp(34px, 5vw, 54px);
+      font-weight: 800; letter-spacing: -1.4px;
+      margin-bottom: 18px;
+      position: relative;
+    }
+    .cta h2 .grad {
+      background: linear-gradient(100deg, #d4b5ff 0%, #ffffff 55%, #ffc2de 100%);
+      -webkit-background-clip: text; background-clip: text;
+      -webkit-text-fill-color: transparent; color: transparent;
+    }
+    .cta p { color: var(--text2); font-size: 17px; margin-bottom: 40px; font-weight: 300; position: relative; }
+    .cta .hero-actions { position: relative; }
+
+    /* ─── FOOTER ─── */
+    footer {
+      position: relative; z-index: 10;
+      border-top: 1px solid var(--border);
+      padding: 36px 40px;
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 16px;
+      background: rgba(8,8,12,0.85);
+    }
+    .footer-logo { font-size: 17px; font-weight: 800; color: var(--accent-light); display: inline-flex; align-items: center; gap: 10px; }
+    .footer-links { display: flex; gap: 24px; }
+    .footer-links a { color: var(--text3); font-size: 13px; transition: color 0.2s; }
+    .footer-links a:hover { color: var(--text); }
+    .footer-copy { color: var(--text3); font-size: 13px; }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 900px) {
+      .orb { width: 260px; height: 260px; left: -130px; top: -130px; }
+      .content-left, .content-right { max-width: 100%; text-align: center; margin: 0 auto; }
+      .content-right .section-title, .content-right .section-sub { margin-right: auto; }
+      section { padding: 100px 24px; }
+    }
+    @media (max-width: 640px) {
+      nav { padding: 0 20px; }
+      .nav-links { display: none; }
+      footer { flex-direction: column; text-align: center; }
+      .app-sidebar { display: none; }
+      .orb { width: 200px; height: 200px; left: -100px; top: -100px; opacity: 0.6; }
+      .hero h1 { font-size: clamp(36px, 10vw, 56px); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- BACKGROUND -->
+  <div class="bg-static" aria-hidden="true"></div>
+  <div class="bg-grid" aria-hidden="true" id="bgGrid"></div>
+  <div class="blobs" aria-hidden="true">
+    <div class="blob blob-1" data-speed="0.25"></div>
+    <div class="blob blob-2" data-speed="0.15"></div>
+    <div class="blob blob-3" data-speed="0.35"></div>
+    <div class="blob blob-4" data-speed="0.20"></div>
+  </div>
+  <div class="particles" aria-hidden="true" id="particles"></div>
+
+  <!-- PROGRESS -->
+  <div class="progress"><div class="progress-fill" id="progress"></div></div>
+
+  <!-- SCROLL ORB -->
+  <div class="orb-wrap" id="orbWrap" aria-hidden="true">
+    <div class="orb" id="orb"></div>
+  </div>
+
+  <!-- NAV -->
+  <nav>
+    <span class="nav-logo"><span class="nav-dot"></span>Orbiter</span>
+    <div class="nav-links">
+      <a href="#features">Features</a>
+      <a href="#preview">Preview</a>
+      <a href="#capture">Capture</a>
+      <a href="/privacy.html">Privacy</a>
+    </div>
+    <a class="nav-cta" href="/download.html">Download</a>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero" data-orb="right">
+    <div class="shapes" aria-hidden="true">
+      <div class="shape shape-1"></div>
+      <div class="shape shape-2"></div>
+      <div class="shape shape-3"></div>
+    </div>
+
+    <div class="pills">
+      <div class="pill"><span class="pill-dot"></span>Free during beta</div>
+      <div class="pill">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+        macOS
+      </div>
+      <div class="pill">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5zm2 0v14h14V5H5z"/></svg>
+        Windows
+      </div>
+      <div class="pill">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20"/></svg>
+        Web
+      </div>
+    </div>
+
+    <h1 id="heroTitle">
+      <span class="word line-a" data-text="Task management"></span>
+      <br />
+      <span class="word line-b" data-text="that orbits you."></span>
+    </h1>
+    <p>Capture tasks in under a second. Stay organised across every device. Focus on what matters, not the app.</p>
+
+    <div class="hero-actions">
+      <a class="btn-primary" href="/download.html" id="download">
+        <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M8 11l4 4 4-4"/><path d="M5 21h14"/></svg>
+        Download
+      </a>
+      <a class="btn-secondary" href="/index.html">
+        <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 8 16 12 12 16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+        Open Web App
+      </a>
+    </div>
+    <p class="hero-note">No credit card required &nbsp;·&nbsp; Works offline &nbsp;·&nbsp; Syncs everywhere</p>
+  </section>
+
+  <!-- FEATURES -->
+  <section id="features" class="scroll-section" data-orb="left">
+    <div class="container">
+      <div style="max-width:620px;">
+        <span class="eyebrow reveal">Why Orbiter</span>
+        <h2 class="section-title reveal d1"><span class="grad">Everything you need,</span><br/>nothing you don't.</h2>
+        <p class="section-sub reveal d2">Built for people who think fast and work across multiple devices. No bloat, no friction.</p>
+      </div>
+    <div class="features">
+      <div class="feature reveal d1">
+        <div class="feature-icon" style="background:rgba(140,89,242,0.18);color:var(--accent-light);">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        </div>
+        <h3 class="feature-title">Quick Capture</h3>
+        <p class="feature-desc">Hit ⌥Space from anywhere to capture a task without breaking flow. Under a second from thought to saved.</p>
+      </div>
+      <div class="feature reveal d2">
+        <div class="feature-icon" style="background:rgba(51,217,230,0.14);color:var(--cyan);">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+        </div>
+        <h3 class="feature-title">Real-time Sync</h3>
+        <p class="feature-desc">Changes appear instantly across macOS, Windows, and web via Supabase Realtime.</p>
+      </div>
+      <div class="feature reveal d3">
+        <div class="feature-icon" style="background:rgba(52,211,153,0.14);color:var(--green);">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.55a11 11 0 0 1 14 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>
+        </div>
+        <h3 class="feature-title">Works Offline</h3>
+        <p class="feature-desc">Create, edit, complete tasks without a connection. Everything syncs when you're back online.</p>
+      </div>
+      <div class="feature reveal d1">
+        <div class="feature-icon" style="background:rgba(242,166,36,0.14);color:var(--amber);">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+        </div>
+        <h3 class="feature-title">Recurring Tasks</h3>
+        <p class="feature-desc">Daily, weekly, monthly. Complete one and the next appears automatically.</p>
+      </div>
+      <div class="feature reveal d2">
+        <div class="feature-icon" style="background:rgba(242,64,140,0.14);color:var(--pink);">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+        </div>
+        <h3 class="feature-title">Projects &amp; Tags</h3>
+        <p class="feature-desc">Group tasks into projects. Tag across projects to find related work in a single click.</p>
+      </div>
+      <div class="feature reveal d3">
+        <div class="feature-icon" style="background:rgba(91,127,255,0.14);color:var(--accent2);">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        </div>
+        <h3 class="feature-title">Smart Reminders</h3>
+        <p class="feature-desc">Native notifications before due dates — nothing slips through the cracks.</p>
+      </div>
+    </div>
+    </div>
+  </section>
+
+  <!-- PREVIEW -->
+  <section id="preview" class="scroll-section" data-orb="back">
+    <div class="container">
+    <div class="content-center">
+      <span class="eyebrow reveal">Inside the app</span>
+      <h2 class="section-title reveal d1"><span class="grad">Calm on the surface.</span><br/>Fast underneath.</h2>
+      <p class="section-sub reveal d2">A clean, distraction-free interface that keeps your tasks front and centre.</p>
+    </div>
+    <div class="preview-wrap reveal d3">
+      <div class="preview-frame">
+        <div class="preview-bar">
+          <div class="bar-dot"></div><div class="bar-dot"></div><div class="bar-dot"></div>
+        </div>
+        <div class="preview-body">
+          <div class="app-sidebar">
+            <div class="sb-section">
+              <div class="sb-label">Views</div>
+              <div class="sb-row active">
+                <div class="sb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg></div>
+                Inbox
+                <span class="count-pill">4</span>
+              </div>
+              <div class="sb-row">
+                <div class="sb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+                Today
+              </div>
+              <div class="sb-row">
+                <div class="sb-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="13 17 18 12 13 7"/><polyline points="6 17 11 12 6 7"/></svg></div>
+                Upcoming
+              </div>
+            </div>
+            <div class="sb-section">
+              <div class="sb-label">Projects</div>
+              <div class="sb-row">
+                <div class="sb-icon" style="background:rgba(140,89,242,0.22);"><svg viewBox="0 0 24 24" fill="none" stroke="#d4b5ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="M12 15l-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/></svg></div>
+                Orbiter v2
+              </div>
+              <div class="sb-row">
+                <div class="sb-icon" style="background:rgba(51,217,230,0.18);"><svg viewBox="0 0 24 24" fill="none" stroke="#33D9E6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></div>
+                Blog
+              </div>
+            </div>
+          </div>
+          <div class="app-main">
+            <div class="main-head">
+              <span class="main-title">Inbox</span>
+              <span style="font-size:12px;color:var(--text3);">4 tasks</span>
+            </div>
+            <div class="task">
+              <div class="cbox done">
+                <svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4l3 3 5-6" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </div>
+              <span class="t-title done">Set up Supabase schema</span>
+              <span class="t-due">Yesterday</span>
+            </div>
+            <div class="task">
+              <div class="cbox"></div>
+              <div class="prio" style="background:#ef4444;"></div>
+              <span class="t-title">Finish landing page copy</span>
+              <span class="t-tag">Design</span>
+              <span class="t-due">Today</span>
+            </div>
+            <div class="task">
+              <div class="cbox"></div>
+              <div class="prio" style="background:#F2A624;"></div>
+              <span class="t-title">Write onboarding email sequence</span>
+              <span class="t-due">Tomorrow</span>
+            </div>
+            <div class="task">
+              <div class="cbox"></div>
+              <div class="prio" style="background:#33D9E6;"></div>
+              <span class="t-title">Review PR #47 — quick capture UI</span>
+              <span class="t-tag">Dev</span>
+            </div>
+            <div class="task">
+              <div class="cbox"></div>
+              <span class="t-title">Prep beta launch announcement</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    </div>
+  </section>
+
+  <!-- CAPTURE -->
+  <section id="capture" class="scroll-section" data-orb="right">
+    <div class="container">
+      <div class="split reverse">
+        <div class="col-text">
+          <span class="eyebrow reveal">Quick Capture</span>
+          <h2 class="section-title reveal d1"><span class="grad">Capture before</span><br/>the thought disappears.</h2>
+          <p class="section-sub reveal d2">Press ⌥Space from anywhere. Type. Done. No context switching required.</p>
+        </div>
+        <div class="col-visual">
+          <div class="capture reveal d3" style="margin:0;">
+            <input class="capture-input" type="text" placeholder="What needs to be done?" readonly id="captureInput" />
+            <p class="capture-hint">
+              <span><span class="kbd">⎋</span> dismiss</span>
+              <span><span class="kbd">↵</span> save</span>
+              <span><span class="kbd">⌘K</span> add tag</span>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta" data-orb="center">
+    <div class="container">
+    <h2 class="reveal"><span class="grad">Ready to get organised?</span></h2>
+    <p class="reveal d1">Download Orbiter free and capture your first task in under a minute.</p>
+    <div class="hero-actions reveal d2" style="justify-content:center;">
+      <a class="btn-primary" href="/download.html">
+        <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M8 11l4 4 4-4"/><path d="M5 21h14"/></svg>
+        Download — Free
+      </a>
+      <a class="btn-secondary" href="/index.html">Open Web App</a>
+    </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <span class="footer-logo"><span class="nav-dot"></span>Orbiter</span>
+    <div class="footer-links">
+      <a href="/privacy.html">Privacy</a>
+      <a href="/terms.html">Terms</a>
+      <a href="mailto:support@orbiterapp.com">Support</a>
+      <a href="https://github.com/orbiterapp">GitHub</a>
+    </div>
+    <span class="footer-copy">© 2026 Orbiter</span>
+  </footer>
+
+  <script>
+    // ─── 1. Split hero title letter-by-letter ─────────────────
+    (function splitTitle() {
+      const words = document.querySelectorAll('#heroTitle .word');
+      let i = 0;
+      words.forEach((w) => {
+        const txt = w.dataset.text;
+        w.textContent = '';
+        for (const ch of txt) {
+          const s = document.createElement('span');
+          s.className = 'letter';
+          s.textContent = ch === ' ' ? '\u00A0' : ch;
+          s.style.animationDelay = (0.25 + i * 0.035) + 's';
+          w.appendChild(s);
+          i++;
+        }
+      });
+    })();
+
+    // ─── 1b. Generate particle field ──────────────────────────
+    (function makeParticles() {
+      const box = document.getElementById('particles');
+      const N = 40;
+      const frag = document.createDocumentFragment();
+      for (let i = 0; i < N; i++) {
+        const p = document.createElement('div');
+        p.className = 'p';
+        p.style.left = (Math.random() * 100) + 'vw';
+        p.style.top  = (Math.random() * 100) + 'vh';
+        p.style.animationDelay  = (Math.random() * -4) + 's';
+        p.style.animationDuration = (3 + Math.random() * 4) + 's';
+        const size = 1 + Math.random() * 2;
+        p.style.width = p.style.height = size + 'px';
+        p.dataset.speed = (0.08 + Math.random() * 0.25).toFixed(2);
+        frag.appendChild(p);
+      }
+      box.appendChild(frag);
+    })();
+
+    // ─── 2. Scroll orb + progress + parallax (single rAF) ─────
+    (function scrollOrb() {
+      const orbWrap   = document.getElementById('orbWrap');
+      const orb       = document.getElementById('orb');
+      const progress  = document.getElementById('progress');
+      const sections  = Array.from(document.querySelectorAll('[data-orb]'));
+      const blobs     = Array.from(document.querySelectorAll('.blob'));
+      const grid      = document.getElementById('bgGrid');
+
+      // positions in viewport units — x,y = offset from center, scale, opacity
+      const POS = {
+        right:  { x:  28, y:   0, scale: 1.00, opacity: 0.85 },
+        left:   { x: -30, y:  -4, scale: 0.85, opacity: 0.75 },
+        center: { x:   0, y:   0, scale: 1.25, opacity: 0.55 },
+        back:   { x:   0, y:   0, scale: 2.00, opacity: 0.14 },
+      };
+
+      let currentKey = null;
+
+      function update() {
+        const sT = window.pageYOffset;
+        const dH = document.documentElement.scrollHeight - window.innerHeight;
+
+        // progress bar
+        progress.style.transform = `scaleX(${Math.min(Math.max(sT / dH, 0), 1)})`;
+
+        // parallax: blobs drift opposite scroll at varying speeds
+        for (const b of blobs) {
+          const speed = parseFloat(b.dataset.speed);
+          b.style.setProperty('--py', (-sT * speed).toFixed(1) + 'px');
+        }
+        // particle field drifts slowly as one layer (cheap — single transform)
+        document.getElementById('particles').style.transform =
+          `translate3d(0, ${(-sT * 0.12).toFixed(1)}px, 0)`;
+        // grid parallax — very subtle
+        grid.style.transform = `translate3d(0, ${(-sT * 0.05).toFixed(1)}px, 0)`;
+
+        // orb: only re-apply when active section changes
+        const vpCenter = window.innerHeight * 0.5;
+        let active = sections[0], best = Infinity;
+        for (const s of sections) {
+          const r = s.getBoundingClientRect();
+          const d = Math.abs(r.top + r.height / 2 - vpCenter);
+          if (d < best) { best = d; active = s; }
+        }
+        const key = active.dataset.orb;
+        if (key === currentKey) return;
+        currentKey = key;
+        const p = POS[key] || POS.right;
+        orbWrap.style.transform = `translate3d(${p.x}vw, ${p.y}vh, 0)`;
+        orb.style.setProperty('--scale', p.scale);
+        orb.style.opacity = p.opacity;
+      }
+
+      let pending = false;
+      function onScroll() {
+        if (pending) return;
+        pending = true;
+        requestAnimationFrame(() => { update(); pending = false; });
+      }
+      window.addEventListener('scroll', onScroll, { passive: true });
+      window.addEventListener('resize', onScroll, { passive: true });
+      update();
+    })();
+
+    // ─── 3. Reveal on scroll ──────────────────────────────────
+    (function revealOnScroll() {
+      const io = new IntersectionObserver((entries) => {
+        for (const e of entries) {
+          if (e.isIntersecting) {
+            e.target.classList.add('in');
+            io.unobserve(e.target);
+          }
+        }
+      }, { threshold: 0.14, rootMargin: '0px 0px -40px 0px' });
+      document.querySelectorAll('.reveal').forEach((el) => io.observe(el));
+    })();
+
+    // ─── 4. Capture input typing loop ─────────────────────────
+    (function typingDemo() {
+      const input = document.getElementById('captureInput');
+      const phrases = [
+        'Ship landing page redesign',
+        'Call the dentist Friday',
+        'Review Q2 roadmap',
+        'Buy oat milk tomorrow',
+      ];
+      let pi = 0, ci = 0, deleting = false, timer;
+
+      function step() {
+        const cur = phrases[pi];
+        if (!deleting) {
+          input.value = cur.slice(0, ++ci);
+          if (ci === cur.length) { deleting = true; timer = setTimeout(step, 1700); return; }
+        } else {
+          input.value = cur.slice(0, --ci);
+          if (ci === 0) { deleting = false; pi = (pi + 1) % phrases.length; }
+        }
+        timer = setTimeout(step, deleting ? 30 : 58);
+      }
+
+      const io = new IntersectionObserver((entries) => {
+        for (const e of entries) {
+          if (e.isIntersecting) { step(); io.disconnect(); return; }
+        }
+      }, { threshold: 0.4 });
+      io.observe(input);
+    })();
+  </script>
+
+</body>
+</html>

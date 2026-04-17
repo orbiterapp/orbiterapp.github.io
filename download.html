@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Download Orbiter — macOS & Windows</title>
+  <meta name="description" content="Download Orbiter for macOS or Windows. Free during beta. Capture tasks in under a second, stay organised across every device." />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #08080c;
+      --bg2: #0c0c14;
+      --surface: #111118;
+      --card: #14141c;
+      --card-hover: #1a1a26;
+      --border: rgba(255,255,255,0.07);
+      --border2: rgba(255,255,255,0.14);
+      --border-hot: rgba(140,89,242,0.55);
+      --text: #f0f0f5;
+      --text2: rgba(240,240,245,0.65);
+      --text3: rgba(240,240,245,0.38);
+      --accent: #8C59F2;
+      --accent-light: #b890ff;
+      --accent2: #5B7FFF;
+      --accent-dim: rgba(140,89,242,0.14);
+      --green: #34d399;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Outfit', system-ui, -apple-system, sans-serif;
+      font-size: 16px;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+      min-height: 100vh;
+      position: relative;
+    }
+    a { color: inherit; text-decoration: none; }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+    }
+
+    /* ambient background */
+    .bg {
+      position: fixed; inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      background:
+        radial-gradient(1000px 700px at 18% 12%, rgba(140,89,242,0.14), transparent 62%),
+        radial-gradient(900px 620px at 82% 78%, rgba(91,127,255,0.10), transparent 62%),
+        radial-gradient(600px 500px at 50% 100%, rgba(140,89,242,0.08), transparent 60%);
+    }
+    .bg::after {
+      content: '';
+      position: absolute; inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+      background-size: 48px 48px;
+      mask-image: radial-gradient(ellipse at center, #000 35%, transparent 75%);
+      -webkit-mask-image: radial-gradient(ellipse at center, #000 35%, transparent 75%);
+      opacity: 0.55;
+    }
+
+    /* nav */
+    nav {
+      position: fixed;
+      top: 16px; left: 16px; right: 16px;
+      z-index: 50;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 22px;
+      background: rgba(12,12,20,0.72);
+      backdrop-filter: blur(18px) saturate(1.2);
+      -webkit-backdrop-filter: blur(18px) saturate(1.2);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+    }
+    .nav-logo {
+      display: inline-flex; align-items: center; gap: 10px;
+      font-weight: 800; font-size: 17px; letter-spacing: -0.2px;
+    }
+    .nav-dot {
+      width: 10px; height: 10px; border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 14px rgba(140,89,242,0.7);
+    }
+    .nav-back {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 8px 16px; border-radius: 999px;
+      font-size: 14px; font-weight: 600;
+      color: var(--text2);
+      border: 1px solid var(--border);
+      transition: color 180ms ease, border-color 180ms ease, background 180ms ease;
+    }
+    .nav-back:hover { color: var(--text); border-color: var(--border2); background: rgba(255,255,255,0.04); }
+    .nav-back svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+    /* page */
+    .wrap {
+      position: relative;
+      z-index: 2;
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 140px 24px 80px;
+    }
+
+    .intro { text-align: center; max-width: 680px; margin: 0 auto 56px; }
+    .eyebrow {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 6px 14px; border-radius: 999px;
+      background: var(--accent-dim);
+      border: 1px solid rgba(140,89,242,0.28);
+      color: var(--accent-light);
+      font-size: 12px; font-weight: 600; letter-spacing: 0.4px;
+      text-transform: uppercase;
+      margin-bottom: 22px;
+      animation: rise 600ms cubic-bezier(0.25, 0.8, 0.25, 1) both;
+    }
+    .eyebrow .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent-light); box-shadow: 0 0 8px var(--accent-light); }
+
+    h1 {
+      font-size: clamp(40px, 6vw, 68px);
+      font-weight: 800;
+      letter-spacing: -1.8px;
+      line-height: 1.02;
+      margin-bottom: 18px;
+      animation: rise 700ms cubic-bezier(0.25, 0.8, 0.25, 1) 80ms both;
+    }
+    h1 .grad {
+      background: linear-gradient(120deg, #fff 0%, var(--accent-light) 45%, var(--accent2) 100%);
+      -webkit-background-clip: text; background-clip: text;
+      -webkit-text-fill-color: transparent; color: transparent;
+    }
+    .sub {
+      font-size: 17px;
+      color: var(--text2);
+      max-width: 540px; margin: 0 auto;
+      animation: rise 700ms cubic-bezier(0.25, 0.8, 0.25, 1) 160ms both;
+    }
+
+    /* platform cards */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 22px;
+      margin-bottom: 48px;
+    }
+    @media (max-width: 760px) { .grid { grid-template-columns: 1fr; } }
+
+    .card {
+      position: relative;
+      padding: 36px 32px 32px;
+      background: linear-gradient(180deg, var(--card) 0%, var(--bg2) 100%);
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      cursor: pointer;
+      overflow: hidden;
+      transition: border-color 260ms ease, transform 260ms cubic-bezier(0.25, 0.8, 0.25, 1), background 260ms ease;
+      animation: rise 700ms cubic-bezier(0.25, 0.8, 0.25, 1) 240ms both;
+    }
+    .card:nth-child(2) { animation-delay: 320ms; }
+    .card::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: radial-gradient(500px 280px at 50% -10%, rgba(140,89,242,0.18), transparent 60%);
+      opacity: 0;
+      transition: opacity 260ms ease;
+      pointer-events: none;
+    }
+    .card:hover {
+      border-color: var(--border-hot);
+      transform: translateY(-4px);
+      background: linear-gradient(180deg, var(--card-hover) 0%, var(--bg2) 100%);
+    }
+    .card:hover::before { opacity: 1; }
+    .card:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+    .card.recommended { border-color: var(--border-hot); }
+    .card.recommended::after {
+      content: 'Recommended';
+      position: absolute;
+      top: 16px; right: 16px;
+      padding: 5px 11px;
+      font-size: 11px; font-weight: 700; letter-spacing: 0.5px;
+      text-transform: uppercase;
+      color: var(--accent-light);
+      background: var(--accent-dim);
+      border: 1px solid rgba(140,89,242,0.4);
+      border-radius: 999px;
+    }
+
+    .card-icon {
+      width: 56px; height: 56px;
+      border-radius: 16px;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(140,89,242,0.12);
+      color: var(--accent-light);
+      margin-bottom: 20px;
+      transition: background 260ms ease;
+    }
+    .card:hover .card-icon { background: rgba(140,89,242,0.22); }
+    .card-icon svg { width: 28px; height: 28px; }
+
+    .card-platform { font-size: 13px; font-weight: 600; color: var(--text3); letter-spacing: 0.6px; text-transform: uppercase; margin-bottom: 8px; }
+    .card-title { font-size: 26px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 10px; }
+    .card-desc { font-size: 15px; color: var(--text2); margin-bottom: 24px; }
+
+    .card-meta {
+      display: flex; flex-wrap: wrap; gap: 8px;
+      margin-bottom: 24px;
+    }
+    .meta-chip {
+      padding: 5px 10px;
+      font-size: 12px; font-weight: 500;
+      color: var(--text2);
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+    }
+
+    .card-btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+      width: 100%;
+      padding: 14px 20px;
+      font-size: 15px; font-weight: 600;
+      color: #fff;
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(140,89,242,0.28);
+      transition: transform 180ms ease, box-shadow 180ms ease;
+    }
+    .card:hover .card-btn { transform: translateY(-1px); box-shadow: 0 12px 30px rgba(140,89,242,0.38); }
+    .card-btn svg { width: 16px; height: 16px; stroke: #fff; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+    /* alt actions */
+    .alt {
+      display: flex; align-items: center; justify-content: center; gap: 18px;
+      flex-wrap: wrap;
+      padding-top: 32px;
+      border-top: 1px solid var(--border);
+      color: var(--text3);
+      font-size: 14px;
+    }
+    .alt a {
+      color: var(--text2);
+      font-weight: 500;
+      border-bottom: 1px solid transparent;
+      transition: color 180ms ease, border-color 180ms ease;
+    }
+    .alt a:hover { color: var(--accent-light); border-color: var(--accent-light); }
+    .alt .sep { color: var(--text3); }
+
+    .notes {
+      margin-top: 36px; text-align: center;
+      color: var(--text3); font-size: 13px;
+    }
+    .notes .row { display: inline-flex; align-items: center; gap: 6px; margin: 0 10px; }
+    .notes svg { width: 14px; height: 14px; stroke: var(--green); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <div class="bg" aria-hidden="true"></div>
+
+  <nav>
+    <a class="nav-logo" href="/landing.html"><span class="nav-dot"></span>Orbiter</a>
+    <a class="nav-back" href="/landing.html">
+      <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
+      Back
+    </a>
+  </nav>
+
+  <main class="wrap">
+    <div class="intro">
+      <span class="eyebrow"><span class="dot"></span>Free during beta</span>
+      <h1><span class="grad">Download Orbiter.</span><br/>Pick your platform.</h1>
+      <p class="sub">Same fast, focused task manager. Native on every device you own.</p>
+    </div>
+
+    <div class="grid">
+      <!-- macOS -->
+      <a class="card" id="card-mac" href="#" data-platform="mac">
+        <div class="card-icon">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+        </div>
+        <div class="card-platform">macOS</div>
+        <div class="card-title">Orbiter for Mac</div>
+        <p class="card-desc">Native Apple Silicon &amp; Intel build. Menu bar capture, global shortcut, dark-mode aware.</p>
+        <div class="card-meta">
+          <span class="meta-chip">Universal .dmg</span>
+          <span class="meta-chip">macOS 12+</span>
+          <span class="meta-chip">~42 MB</span>
+        </div>
+        <span class="card-btn">
+          <svg viewBox="0 0 24 24"><path d="M12 3v12"/><path d="M8 11l4 4 4-4"/><path d="M5 21h14"/></svg>
+          Download for macOS
+        </span>
+      </a>
+
+      <!-- Windows -->
+      <a class="card" id="card-win" href="#" data-platform="win">
+        <div class="card-icon">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 5.5 11 4.3v7.3H3V5.5zm0 7.2h8v7.3L3 18.5v-5.8zm9-8.6 9-1.4v9H12V4.1zm0 8.6h9v9.1l-9-1.4v-7.7z"/></svg>
+        </div>
+        <div class="card-platform">Windows</div>
+        <div class="card-title">Orbiter for Windows</div>
+        <p class="card-desc">Signed installer with auto-update. Global hotkey, system tray capture, Windows 10 &amp; 11.</p>
+        <div class="card-meta">
+          <span class="meta-chip">64-bit installer</span>
+          <span class="meta-chip">Windows 10+</span>
+          <span class="meta-chip">~58 MB</span>
+        </div>
+        <span class="card-btn">
+          <svg viewBox="0 0 24 24"><path d="M12 3v12"/><path d="M8 11l4 4 4-4"/><path d="M5 21h14"/></svg>
+          Download for Windows
+        </span>
+      </a>
+    </div>
+
+    <div class="alt">
+      <span>Other options:</span>
+      <a href="/index.html">Use the Web App</a>
+      <span class="sep">·</span>
+      <a href="/install.html">Install on iOS / Android</a>
+      <span class="sep">·</span>
+      <a href="https://github.com/orbiterapp/orbiter/releases">All releases</a>
+    </div>
+
+    <p class="notes">
+      <span class="row"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>No account required</span>
+      <span class="row"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>Works offline</span>
+      <span class="row"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>Syncs across devices</span>
+    </p>
+  </main>
+
+  <script>
+    (function () {
+      const RELEASES = 'https://github.com/orbiterapp/orbiter/releases/latest';
+      const mac = document.getElementById('card-mac');
+      const win = document.getElementById('card-win');
+
+      // For now point to GitHub releases (replace with direct asset URLs when published)
+      mac.href = RELEASES;
+      win.href = RELEASES;
+
+      // Detect OS → mark recommended
+      const ua = (navigator.userAgent || '').toLowerCase();
+      const plat = (navigator.platform || '').toLowerCase();
+      const isMac = /mac|darwin/.test(ua) || /mac/.test(plat);
+      const isWin = /win/.test(ua) || /win/.test(plat);
+      if (isMac) mac.classList.add('recommended');
+      else if (isWin) win.classList.add('recommended');
+    })();
+  </script>
+</body>
+</html>
