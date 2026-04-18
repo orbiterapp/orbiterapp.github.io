@@ -974,6 +974,8 @@
     }
     .ms-toolbar.show { opacity: 1; transform: translateX(-50%) translateY(0); pointer-events: auto }
     .ms-btn { background: none; border: 1px solid var(--border2); color: var(--text); font-family: inherit; font-size: 13px; font-weight: 600; padding: 7px 14px; border-radius: 12px; cursor: pointer }
+    .clone-opt-btn { background: var(--surface2); border: 1px solid var(--border); color: var(--text); font-family: inherit; font-size: 14px; font-weight: 500; padding: 10px 14px; border-radius: 10px; cursor: pointer; text-align: left; transition: background 0.15s }
+    .clone-opt-btn:hover { background: var(--surface) }
     .ms-btn.danger { color: var(--red); border-color: var(--red-dim) }
     .ms-btn.primary { background: var(--accent); color: #fff; border-color: transparent }
     .ms-count { font-size: 13px; font-weight: 700; color: var(--text2); padding: 0 4px }
@@ -2592,19 +2594,29 @@
       transform: scale(.92)
     }
 
+    .cal-dots {
+      position: absolute;
+      bottom: 2px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 2px;
+      pointer-events: none
+    }
+
     .cal-dot {
       width: 4px;
       height: 4px;
       border-radius: 50%;
       background: var(--cyan);
-      position: absolute;
-      bottom: 2px;
-      left: 50%;
-      transform: translateX(-50%);
-      pointer-events: none
     }
 
-    .cal-day-btn.selected~.cal-dot {
+    .cal-dot.p-urgent { background: #ef4444 }
+    .cal-dot.p-high { background: #f97316 }
+    .cal-dot.p-medium { background: #eab308 }
+    .cal-dot.p-low { background: var(--cyan) }
+
+    .cal-day-btn.selected ~ .cal-dots .cal-dot {
       background: var(--bg);
       opacity: 0.6
     }
@@ -3881,6 +3893,10 @@
             <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" />
             <line x1="4" y1="22" x2="4" y2="15" />
           </svg> Flagged</span><button class="toggle" id="tog-flag" onclick="toggleFlag()"></button></div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+        <button class="toggle" id="tog-add-another" onclick="document.getElementById('tog-add-another').classList.toggle('on')"></button>
+        <span style="font-size:13px;color:var(--text2)">Add another after saving</span>
+      </div>
       <button class="modal-submit" onclick="addTask()">Add Task</button>
     </div>
   </div>
@@ -4026,6 +4042,48 @@
   </div>
 
   <div class="toast" id="toast"></div>
+  <!-- Clone Task Modal -->
+  <div class="modal-bg" id="clone-modal-bg" onclick="if(event.target.id==='clone-modal-bg')hideCloneModal()" style="z-index:700">
+    <div class="modal-sheet" style="max-width:340px;padding:20px 24px 24px">
+      <div class="modal-head" style="margin-bottom:16px">
+        <div class="modal-title">Clone Task</div>
+        <button class="modal-cancel" onclick="hideCloneModal()">Cancel</button>
+      </div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:12px">Set due date for the clone:</div>
+      <div style="display:flex;flex-direction:column;gap:8px" id="clone-opts">
+        <button class="clone-opt-btn" onclick="confirmClone('same')">Same date</button>
+        <button class="clone-opt-btn" onclick="confirmClone('today')">Today</button>
+        <button class="clone-opt-btn" onclick="confirmClone('tomorrow')">Tomorrow</button>
+        <button class="clone-opt-btn" onclick="confirmClone('week')">+1 week</button>
+        <button class="clone-opt-btn" onclick="confirmClone('none')">No date</button>
+        <div style="display:flex;gap:8px;align-items:center;margin-top:4px">
+          <input type="date" id="clone-custom-date" style="flex:1;padding:8px 10px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:13px">
+          <button class="clone-opt-btn" style="flex-shrink:0" onclick="confirmClone('custom')">Use</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Keyboard Shortcuts Modal -->
+  <div class="modal-bg" id="shortcuts-modal-bg" onclick="if(event.target.id==='shortcuts-modal-bg')hideShortcutsModal()" style="z-index:700">
+    <div class="modal-sheet" style="max-width:420px;padding:20px 24px 28px">
+      <div class="modal-head" style="margin-bottom:16px">
+        <div class="modal-title">Keyboard Shortcuts</div>
+        <button class="modal-cancel" onclick="hideShortcutsModal()">Done</button>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:4px;font-size:13px">
+        <div style="color:var(--text3);font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;margin:8px 0 4px">Navigation</div>
+        <div style="display:flex;justify-content:space-between;padding:5px 0"><span style="color:var(--text2)">1 / 2 / 3 / 4</span><span>Switch tabs</span></div>
+        <div style="display:flex;justify-content:space-between;padding:5px 0"><span style="color:var(--text2)">/</span><span>Focus search</span></div>
+        <div style="display:flex;justify-content:space-between;padding:5px 0"><span style="color:var(--text2)">?</span><span>Show shortcuts</span></div>
+        <div style="color:var(--text3);font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;margin:12px 0 4px">Tasks</div>
+        <div style="display:flex;justify-content:space-between;padding:5px 0"><span style="color:var(--text2)">n</span><span>New task</span></div>
+        <div style="display:flex;justify-content:space-between;padding:5px 0"><span style="color:var(--text2)">Escape</span><span>Close / save panel</span></div>
+        <div style="color:var(--text3);font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;margin:12px 0 4px">Multi-Select</div>
+        <div style="display:flex;justify-content:space-between;padding:5px 0"><span style="color:var(--text2)">Long press</span><span>Enter multi-select</span></div>
+        <div style="display:flex;justify-content:space-between;padding:5px 0"><span style="color:var(--text2)">Escape</span><span>Exit multi-select</span></div>
+      </div>
+    </div>
+  </div>
   <div class="ms-toolbar" id="ms-toolbar">
     <span class="ms-count" id="ms-count">0 selected</span>
     <button class="ms-btn primary" onclick="bulkComplete()">Complete</button>
@@ -4184,6 +4242,7 @@
     let searchQuery = '', currentProjectFilter = null;
     let showArchived = false;
     let activeFilters = { priority: null, due: null, tag: null }; // smart filters
+    var inboxSort = localStorage.getItem('inbox_sort') || 'created';
 
     // ─── Projects (localStorage) ──────────────────────────────────────────────────
     let projects = [];
@@ -4531,7 +4590,7 @@
       var base;
       if (showArchived) {
         base = tasks.filter(function (x) { return x.is_completed; });
-        if (searchQuery) { var q = searchQuery.toLowerCase(); base = base.filter(function (x) { return x.title.toLowerCase().includes(q) || (x.notes && x.notes.toLowerCase().includes(q)); }); }
+        if (searchQuery) { var q = searchQuery.toLowerCase(); base = base.filter(function (x) { return x.title.toLowerCase().includes(q) || (x.notes && x.notes.toLowerCase().includes(q)) || getTagArr(x).some(function (tg) { return tg.toLowerCase().includes(q); }); }); }
         return base;
       }
       switch (currentTab) {
@@ -4558,7 +4617,7 @@
         case 'all': base = tasks.filter(function (x) { return !x.is_completed && !x.parent_id; }); break;
         default: base = [];
       }
-      if (searchQuery) { var q = searchQuery.toLowerCase(); base = base.filter(function (x) { return x.title.toLowerCase().includes(q) || (x.notes && x.notes.toLowerCase().includes(q)); }); }
+      if (searchQuery) { var q = searchQuery.toLowerCase(); base = base.filter(function (x) { return x.title.toLowerCase().includes(q) || (x.notes && x.notes.toLowerCase().includes(q)) || getTagArr(x).some(function (tg) { return tg.toLowerCase().includes(q); }); }); }
       // Smart filters
       if (activeFilters.priority) { base = base.filter(function (x) { return x.priority === activeFilters.priority; }); }
       if (activeFilters.tag) { base = base.filter(function (x) { return getTagArr(x).indexOf(activeFilters.tag) !== -1; }); }
@@ -4568,8 +4627,18 @@
         else if (activeFilters.due === 'week') base = base.filter(function (x) { if (!x.due_date) return false; var d = new Date(x.due_date); return d >= t && d < new Date(t.getTime() + 7 * 864e5); });
         else if (activeFilters.due === 'nodate') base = base.filter(function (x) { return !x.due_date; });
       }
+      if (currentTab === 'inbox' && inboxSort !== 'created') {
+        var _priOrder = { High: 0, Medium: 1, Low: 2, None: 3 };
+        base = base.slice().sort(function (a, b) {
+          if (inboxSort === 'due') { if (!a.due_date && !b.due_date) return 0; if (!a.due_date) return 1; if (!b.due_date) return -1; return new Date(a.due_date) - new Date(b.due_date); }
+          if (inboxSort === 'priority') { return (_priOrder[a.priority] || 3) - (_priOrder[b.priority] || 3); }
+          if (inboxSort === 'title') { return a.title.localeCompare(b.title); }
+          return 0;
+        });
+      }
       return base;
     }
+    function setInboxSort(val) { inboxSort = val; localStorage.setItem('inbox_sort', val); render(); }
 
 
     // --- Calendar UI ---
@@ -4642,12 +4711,13 @@
         }
       }
 
-      // Pre-compute tasks per day
+      // Pre-compute tasks per day (priority → dot color)
       var td = {};
       tasks.forEach(function (t) {
         if (t.is_completed || t.parent_id || !t.due_date) return;
         var tdStr = t.due_date.split('T')[0];
-        td[tdStr] = true;
+        if (!td[tdStr]) td[tdStr] = [];
+        td[tdStr].push(t.priority || 'low');
       });
 
       days.forEach(function (dy) {
@@ -4657,14 +4727,22 @@
         var isT = dt.getTime() === sToday.getTime();
         var isS = dt.getTime() === sSel.getTime();
         var dtStr = dt.getFullYear() + '-' + String(dt.getMonth() + 1).padStart(2, '0') + '-' + String(dt.getDate()).padStart(2, '0');
-        var isHasTasks = !!td[dtStr];
+        var dayPriorities = td[dtStr] || [];
 
         var cls = 'cal-day-btn';
         if (dy.out) cls += ' outside';
         if (isT) cls += ' is-today';
         if (isS) cls += ' selected';
 
-        grid += '<div class="cal-cell"><button class="' + cls + '" onclick="setCalSelDate(' + dyY + ',' + dyM + ',' + dy.d + ')">' + dy.d + '</button>' + (isHasTasks ? '<div class="cal-dot"></div>' : '') + '</div>';
+        var dotsHtml = '';
+        if (dayPriorities.length) {
+          var seen = {};
+          var dotOrder = ['urgent','high','medium','low'];
+          var dots = dotOrder.filter(function(p){ return dayPriorities.indexOf(p) !== -1; }).slice(0,3);
+          dotsHtml = '<div class="cal-dots">' + dots.map(function(p){ return '<div class="cal-dot p-'+p+'"></div>'; }).join('') + '</div>';
+        }
+
+        grid += '<div class="cal-cell"><button class="' + cls + '" onclick="setCalSelDate(' + dyY + ',' + dyM + ',' + dy.d + ')">' + dy.d + '</button>' + dotsHtml + '</div>';
       });
       grid += '</div>';
 
@@ -4932,18 +5010,24 @@
     }
 
     // ─── Tags picker ───────────────────────────────────────────────────────────────
-    function buildTagsPicker(containerId, selectedArr) {
+    function buildTagsPicker(containerId, selectedArr, filterStr) {
       var container = document.getElementById(containerId);
-      container.innerHTML = PRESET_TAGS.map(function (tag) {
+      var allTags = getAllTags();
+      var q = (filterStr || '').toLowerCase();
+      var filtered = q ? allTags.filter(function(t){ return t.name.toLowerCase().includes(q); }) : allTags;
+      var tagHtml = filtered.map(function (tag) {
         var sel = selectedArr.indexOf(tag.name) !== -1;
         return '<div class="tag-opt' + (sel ? ' selected' : '') + '" style="color:' + tag.color + (sel ? ';background:' + tag.color + '22;border-color:' + tag.color : '') + '" onclick="toggleTagOpt(\'' + containerId + '\',\'' + tag.name + '\')"><span class="tag-dot" style="background:' + tag.color + '"></span>' + tag.name + '</div>';
       }).join('');
+      var inputHtml = '<input id="' + containerId + '-search" type="text" placeholder="Filter tags…" value="' + esc(filterStr||'') + '" oninput="buildTagsPicker(\'' + containerId + '\',' + (containerId==='i-tags-picker'?'addModalTags':'detailModalTags') + ',this.value)" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:5px 8px;font-size:12px;color:var(--text);margin-bottom:6px;box-sizing:border-box" autocomplete="off">';
+      container.innerHTML = inputHtml + tagHtml;
     }
     function toggleTagOpt(containerId, tagName) {
       var arr = containerId === 'i-tags-picker' ? addModalTags : detailModalTags;
       var idx = arr.indexOf(tagName);
       if (idx === -1) arr.push(tagName); else arr.splice(idx, 1);
-      buildTagsPicker(containerId, arr);
+      var searchEl = document.getElementById(containerId + '-search');
+      buildTagsPicker(containerId, arr, searchEl ? searchEl.value : '');
     }
 
     // ─── Project selects ──────────────────────────────────────────────────────────
@@ -4987,8 +5071,17 @@
       var dueDate = document.getElementById('i-due').value, dueTime = document.getElementById('i-due-time').value;
       var dueISO = dueDate ? (dueTime ? new Date(dueDate + 'T' + dueTime).toISOString() : new Date(dueDate + 'T00:00:00').toISOString()) : null;
       var task = { id: uuid(), user_id: session.user.id, title: title, notes: document.getElementById('i-notes').value.trim(), due_date: dueISO, defer_date: null, is_completed: false, is_flagged: flagged, priority: document.getElementById('i-priority').value, project_id: document.getElementById('i-project').value || null, tag_ids: JSON.stringify(addModalTags.map(function (tn) { return { name: tn, color: getTagColor(tn) }; })), created_at: now, completed_at: null, repeat_rule: document.getElementById('i-repeat').value || 'None', parent_id: null, sort_order: tasks.length, last_reviewed: null, next_review_date: null, review_frequency_num: null, review_frequency_unit: null, is_in_review: false, is_today_task: false, notify_before_minutes: parseInt(document.getElementById('i-notify-before').value) || 30, notified_at: null, updated_at: now };
-      tasks.push(task); closeModal(); render(); haptic('medium');
-      try { await upsert(task); toast('Task added'); } catch (e) { toast('Failed to sync'); }
+      tasks.push(task); render(); haptic('medium');
+      var addAnother = document.getElementById('tog-add-another')?.classList.contains('on');
+      if (addAnother) {
+        ['i-title','i-notes'].forEach(function(id){document.getElementById(id).value='';});
+        document.getElementById('i-priority').value='None'; document.getElementById('i-due').value=''; document.getElementById('i-due-time').value=''; document.getElementById('i-repeat').value='None'; document.getElementById('i-notify-before').value='30';
+        flagged=false; addModalTags=[]; document.getElementById('tog-flag').classList.remove('on'); buildTagsPicker('i-tags-picker',addModalTags);
+        var strip=document.getElementById('i-nlp-strip'); if(strip){strip.style.display='none';strip.innerHTML='';}
+        setTimeout(function(){document.getElementById('i-title').focus();},100);
+        toast('Task added ✓');
+      } else { closeModal(); toast('Task added'); }
+      try { await upsert(task); } catch (e) { toast('Failed to sync'); }
     }
 
     // ─── Task Detail ──────────────────────────────────────────────────────────────
@@ -5025,6 +5118,29 @@
     }
     function closeDetailModal() { document.getElementById('detail-modal-bg').classList.remove('open'); currentTaskId = null; }
     function handleDetailModalBg(e) { if (e.target.id === 'detail-modal-bg') closeDetailModal(); }
+    function showShortcutsModal() { document.getElementById('shortcuts-modal-bg').classList.add('open'); }
+    function hideShortcutsModal() { document.getElementById('shortcuts-modal-bg').classList.remove('open'); }
+
+    var _cloneSourceId = null;
+    function showCloneModal(id) { _cloneSourceId = id; document.getElementById('clone-modal-bg').classList.add('open'); }
+    function hideCloneModal() { document.getElementById('clone-modal-bg').classList.remove('open'); _cloneSourceId = null; }
+    function confirmClone(mode) {
+      var src = tasks.find(function (t) { return t.id === _cloneSourceId; });
+      if (!src) { hideCloneModal(); return; }
+      var newDue = null;
+      if (mode === 'same') { newDue = src.due_date || null; }
+      else if (mode === 'today') { var d = new Date(); d.setHours(9,0,0,0); newDue = d.toISOString(); }
+      else if (mode === 'tomorrow') { var d = new Date(); d.setDate(d.getDate()+1); d.setHours(9,0,0,0); newDue = d.toISOString(); }
+      else if (mode === 'week') { var d = src.due_date ? new Date(src.due_date) : new Date(); d.setDate(d.getDate()+7); newDue = d.toISOString(); }
+      else if (mode === 'none') { newDue = null; }
+      else if (mode === 'custom') { var v = document.getElementById('clone-custom-date').value; newDue = v ? new Date(v+'T09:00:00').toISOString() : null; }
+      var now = new Date().toISOString();
+      var dup = Object.assign({}, src, { id: uuid(), created_at: now, updated_at: now, due_date: newDue, notified_at: null });
+      hideCloneModal();
+      tasks.push(dup);
+      render();
+      upsert(dup).then(function () { toast('Task cloned'); }).catch(function () { toast('Sync failed'); });
+    }
     function toggleDetailFlag() { flagged = !flagged; document.getElementById('d-tog-flag').classList.toggle('on', flagged); }
     function toggleDetailToday() { detailToday = !detailToday; document.getElementById('d-tog-today').classList.toggle('on', detailToday); }
 
@@ -5629,7 +5745,25 @@
       document.body.appendChild(menu);
       function closeCtx() { menu.classList.remove('open'); _tid = null; }
       document.addEventListener('click', function (e) { if (!e.target.closest('#ctx-menu')) closeCtx(); });
-      document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { closeCtx(); if (_msMode) exitMsMode(); } });
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') {
+          closeCtx();
+          if (_msMode) { exitMsMode(); return; }
+          var ddp = document.getElementById('desktop-detail-panel');
+          if (ddp && ddp.classList.contains('open')) { saveDdpDetails(); closeDesktopDetailPanel(); return; }
+          var dm = document.getElementById('detail-modal-bg');
+          if (dm && dm.classList.contains('open')) { saveTaskDetails(); closeDetailModal(); return; }
+        }
+        if (e.key === '?' && !e.target.closest('input,textarea,select')) { showShortcutsModal(); }
+        if (!e.target.closest('input,textarea,select')) {
+          if (e.key === 'n') { e.preventDefault(); openModal(); }
+          if (e.key === '/') { e.preventDefault(); var s = document.getElementById('search-input'); if (s) s.focus(); }
+          if (e.key === '1') switchTab('inbox');
+          if (e.key === '2') switchTab('calendar');
+          if (e.key === '3') switchTab('flagged');
+          if (e.key === '4') switchTab('projects');
+        }
+      });
       window.showCtxMenu = function (e, id) {
         _tid = id;
         var task = tasks.find(function (t) { return t.id === id; });
@@ -5638,7 +5772,7 @@
           { icon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>', label: 'Mark Complete', fn: function () { closeCtx(); completeTask(id); } },
           { icon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--pink)" stroke-width="2.5" stroke-linecap="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>', label: task.is_flagged ? 'Unflag' : 'Flag', fn: function () { closeCtx(); task.is_flagged = !task.is_flagged; task.updated_at = new Date().toISOString(); render(); upsert(task).then(function () { toast(task.is_flagged ? 'Flagged' : 'Unflagged'); }).catch(function () { toast('Sync failed'); }); } },
           { icon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--purple)" stroke-width="2.5" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>', label: task.is_today_task ? 'Remove from Today' : 'Add to Today', fn: function () { closeCtx(); task.is_today_task = !task.is_today_task; task.updated_at = new Date().toISOString(); render(); upsert(task).then(function () { toast(task.is_today_task ? 'Added to Today' : 'Removed from Today'); }).catch(function () { toast('Sync failed'); }); } },
-          { icon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--cyan)" stroke-width="2.5" stroke-linecap="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>', label: 'Duplicate', fn: function () { closeCtx(); var now = new Date().toISOString(); var dup = Object.assign({}, task, { id: uuid(), created_at: now, updated_at: now, title: task.title + ' (copy)' }); tasks.push(dup); render(); upsert(dup).then(function () { toast('Duplicated'); }).catch(function () { toast('Sync failed'); }); } },
+          { icon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--cyan)" stroke-width="2.5" stroke-linecap="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>', label: 'Clone…', fn: function () { closeCtx(); showCloneModal(id); } },
           { icon: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2.5" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>', label: 'Delete', fn: function () { closeCtx(); showDeleteConfirm(); currentTaskId = id; }, danger: true }
         ];
         menu.innerHTML = items.map(function (it, idx) {
@@ -5866,6 +6000,14 @@
         PRESET_TAGS.forEach(function (tag) {
           var sel = activeFilters.tag === tag.name;
           h += '<div class="filter-chip' + (sel ? ' active' : '') + '" onclick="setFilter(\'tag\',\'' + tag.name + '\')" style="' + (sel ? 'border-color:' + tag.color + ';color:' + tag.color + ';background:' + tag.color + '18' : '') + '"><span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:' + tag.color + '"></span>' + tag.name + '</div>';
+        });
+      }
+      if (currentTab === 'inbox') {
+        var sorts = [['created', 'Date Added'], ['due', 'Due Date'], ['priority', 'Priority'], ['title', 'A–Z']];
+        h += '<div style="width:1px;height:20px;background:var(--border);margin:0 2px"></div>';
+        h += '<div style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;color:var(--text2)">Sort:</div>';
+        sorts.forEach(function (s) {
+          h += '<div class="filter-chip' + (inboxSort === s[0] ? ' active' : '') + '" onclick="setInboxSort(\'' + s[0] + '\')">' + s[1] + '</div>';
         });
       }
       c.innerHTML = h;
