@@ -21,11 +21,33 @@ self.addEventListener('activate', e =>
 );
 
 // ORB-117: Push notification handler for due-date reminders
+function formatPushTitle(taskTitle, dueDate) {
+  const due = new Date(dueDate);
+  const now = new Date();
+  const min = Math.round((due - now) / 60000);
+  const timeStr = due.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+
+  if (min <= 0) return `${taskTitle} is due now`;
+  if (min < 60) return `${taskTitle} due in ${min} minute${min !== 1 ? 's' : ''} (${timeStr})`;
+  if (min < 24 * 60) {
+    const h = Math.round(min / 60);
+    return `${taskTitle} due in ${h} hour${h !== 1 ? 's' : ''} (${timeStr})`;
+  }
+  const d = Math.round(min / (24 * 60));
+  return `${taskTitle} due in ${d} day${d !== 1 ? 's' : ''}`;
+}
+
 self.addEventListener('push', event => {
   const data = event.data?.json() ?? {};
+  const title = data.taskTitle && data.dueDate
+    ? formatPushTitle(data.taskTitle, data.dueDate)
+    : (data.title || 'Task Due');
+  const body = data.count > 1
+    ? data.body || ''
+    : 'Tap to open Orbiter';
   event.waitUntil(
-    self.registration.showNotification(data.title || 'Task Due', {
-      body: data.body || '',
+    self.registration.showNotification(title, {
+      body,
       icon: '/iconbg.png',
       badge: '/iconbg.png',
       data: { taskId: data.taskId },

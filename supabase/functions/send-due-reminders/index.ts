@@ -49,21 +49,16 @@ Deno.serve(async (_req) => {
 
       if (!subs?.length) continue;
 
-      const title = userTasks.length === 1
-        ? `Due soon: ${userTasks[0].title}`
-        : `${userTasks.length} tasks due soon`;
-      const body = userTasks.length === 1
-        ? 'Tap to open Orbiter'
-        : userTasks.slice(0, 3).map((t: { title: string }) => `• ${t.title}`).join('\n');
+      const count = userTasks.length;
       const taskId = userTasks[0].id;
+      const payload = count === 1
+        ? JSON.stringify({ taskTitle: userTasks[0].title, dueDate: userTasks[0].due_date, taskId, count })
+        : JSON.stringify({ title: `${count} tasks due soon`, body: userTasks.slice(0, 3).map((t: { title: string }) => `• ${t.title}`).join('\n'), taskId, count });
 
       for (const sub of subs) {
         try {
           const parsed = JSON.parse(sub.subscription);
-          const result = await webpush.sendNotification(
-            parsed,
-            JSON.stringify({ title, body, taskId })
-          );
+          const result = await webpush.sendNotification(parsed, payload);
           if (result.statusCode === 201 || result.statusCode === 200) {
             sent++;
             for (const t of userTasks) if (!notified.includes(t.id)) notified.push(t.id);
