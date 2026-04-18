@@ -42,9 +42,13 @@ self.addEventListener('push', event => {
   const title = data.taskTitle && data.dueDate
     ? formatPushTitle(data.taskTitle, data.dueDate)
     : (data.title || 'Task Due');
-  const body = data.count > 1
-    ? data.body || ''
-    : 'Tap to open Orbiter';
+  let body = data.body || '';
+  if (data.count <= 1 && data.dueDate) {
+    const due = new Date(data.dueDate);
+    const t = due.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+    const d = `${due.getMonth() + 1}/${due.getDate()}`;
+    body = `Due at ${t} ${d}`;
+  }
   event.waitUntil(
     self.registration.showNotification(title, {
       body,
