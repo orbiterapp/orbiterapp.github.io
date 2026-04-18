@@ -23,7 +23,8 @@
   </script>
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="iconbg.png" type="image/png">
-  <link rel="apple-touch-icon" href="icon.png">
+  <link rel="apple-touch-icon" href="iconbg.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="iconbg.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap"
@@ -4557,6 +4558,7 @@
         var off = _nlpNamedDay(w); if (off !== null) { if (!due) { due = new Date(today); due.setDate(due.getDate() + off); } rm.add(i); continue; }
         if (w === 'next' && i + 1 < words.length && words[i + 1].toLowerCase() === 'week') { due = new Date(today); due.setDate(due.getDate() + 7); rm.add(i); rm.add(i + 1); i++; continue; }
         var mon = _nlpMonthNum(w); if (mon !== null && i + 1 < words.length) { var day = parseInt(words[i + 1]); if (day) { due = new Date(today.getFullYear(), mon - 1, day); if (due < today) due.setFullYear(due.getFullYear() + 1); rm.add(i); rm.add(i + 1); i++; continue; } }
+        var mdm = w.match(/^(\d{1,2})\/(\d{1,2})(?:\/(\d{2,4}))?$/); if (mdm) { var mm = parseInt(mdm[1]), dd = parseInt(mdm[2]), yy = mdm[3] ? (mdm[3].length === 2 ? 2000 + parseInt(mdm[3]) : parseInt(mdm[3])) : today.getFullYear(); if (mm >= 1 && mm <= 12 && dd >= 1 && dd <= 31) { due = new Date(yy, mm - 1, dd); if (due < today && !mdm[3]) due.setFullYear(due.getFullYear() + 1); rm.add(i); continue; } }
       }
       if (timeH !== null) { if (!due) due = new Date(today); due.setHours(timeH, timeM, 0, 0); }
       var remaining = words.filter(function (_, i) { return !rm.has(i); }).join(' ').trim();
