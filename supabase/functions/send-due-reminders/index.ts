@@ -96,30 +96,34 @@ async function sendPush(subscription: { endpoint: string; keys: { p256dh: string
 
 Deno.serve(async (_req) => {
   try {
-    const now = new Date();
-    const windowStart = now.toISOString();
-    const windowEnd = new Date(now.getTime() + 60 * 60 * 1000).toISOString(); // next 1 hour
-
-    // Find incomplete tasks due within the next hour
     const { data: dueTasks, error: taskErr } = await supabase
       .from('tasks')
-      .select('id, title, user_id, due_date')
+      .select('id, title, user_id, due_date, notify_before_minutes')
       .eq('is_completed', false)
-      .gte('due_date', windowStart)
-      .lte('due_date', windowEnd);
+      .is('notified_at', null)
+      .not('due_date', 'is', null)
+      .lte('due_date', new Date(Date.now() + 16 * 60 * 1000).toISOString())
+      .gte('due_date', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString());
 
     if (taskErr) throw taskErr;
-    if (!dueTasks?.length) return new Response(JSON.stringify({ sent: 0 }), { status: 200 });
 
-    // Group by user_id
-    const byUser: Record<string, typeof dueTasks> = {};
-    for (const t of dueTasks) {
+    const now = Date.now();
+    const ready = (dueTasks ?? []).filter((t: { due_date: string; notify_before_minutes: number }) => {
+      const notifyAt = new Date(t.due_date).getTime() - (t.notify_before_minutes ?? 30) * 60 * 1000;
+      return notifyAt <= now;
+    });
+
+    if (!ready.length) return new Response(JSON.stringify({ sent: 0 }), { status: 200 });
+
+    const byUser: Record<string, typeof ready> = {};
+    for (const t of ready) {
       if (!byUser[t.user_id]) byUser[t.user_id] = [];
       byUser[t.user_id].push(t);
     }
 
     let sent = 0;
     const stale: string[] = [];
+    const notified: string[] = [];
 
     for (const [userId, userTasks] of Object.entries(byUser)) {
       const { data: subs } = await supabase
@@ -143,15 +147,17 @@ Deno.serve(async (_req) => {
           const status = await sendPush(parsed, title, body, taskId);
           if (status === 201 || status === 200) {
             sent++;
+            for (const t of userTasks) notified.push(t.id);
           } else if (status === 410 || status === 404) {
-            // Subscription expired — mark for removal
             stale.push(sub.id);
           }
-        } catch (_e) { /* individual push failure — skip */ }
+        } catch (_e) { /* skip */ }
       }
     }
 
-    // Remove expired subscriptions
+    if (notified.length) {
+      await supabase.from('tasks').update({ notified_at: new Date().toISOString() }).in('id', notified);
+    }
     if (stale.length) {
       await supabase.from('push_subscriptions').delete().in('id', stale);
     }
