@@ -1,5 +1,12 @@
+// @ts-ignore: Deno URL import
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2?target=deno';
+// @ts-ignore: Deno npm specifier
 import webpush from 'npm:web-push';
+
+declare const Deno: {
+  env: { get(key: string): string | undefined };
+  serve(handler: (req: Request) => Promise<Response> | Response): void;
+};
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
