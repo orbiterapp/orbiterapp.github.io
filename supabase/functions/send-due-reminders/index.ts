@@ -1,8 +1,13 @@
 // ORB-117: Edge Function — send web push notifications for tasks due within the next hour
 // Deploy: npx supabase functions deploy send-due-reminders
 // Schedule via pg_cron every 15 minutes (see README)
+// @ts-ignore: Deno URL import
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2?target=deno';
 
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+declare const Deno: {
+  env: { get(key: string): string | undefined };
+  serve(handler: (req: Request) => Promise<Response> | Response): void;
+};
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -129,7 +134,7 @@ Deno.serve(async (_req) => {
         : `${userTasks.length} tasks due soon`;
       const body = userTasks.length === 1
         ? 'Tap to open Orbiter'
-        : userTasks.slice(0, 3).map(t => `• ${t.title}`).join('\n');
+        : userTasks.slice(0, 3).map((t: { title: string }) => `• ${t.title}`).join('\n');
       const taskId = userTasks[0].id;
 
       for (const sub of subs) {
