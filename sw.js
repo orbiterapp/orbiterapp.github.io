@@ -29,10 +29,10 @@ function formatPushTitle(taskTitle, dueDate) {
   const timeStr = due.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
 
   if (min <= 0) return `${taskTitle} is due now`;
-  if (min < 60) return `${taskTitle} due in ${min} minute${min !== 1 ? 's' : ''} (${timeStr})`;
+  if (min < 60) return `${taskTitle} due in ${min} minute${min !== 1 ? 's' : ''}`;
   if (min < 24 * 60) {
     const h = Math.round(min / 60);
-    return `${taskTitle} due in ${h} hour${h !== 1 ? 's' : ''} (${timeStr})`;
+    return `${taskTitle} due in ${h} hour${h !== 1 ? 's' : ''}`;
   }
   const d = Math.round(min / (24 * 60));
   return `${taskTitle} due in ${d} day${d !== 1 ? 's' : ''}`;
