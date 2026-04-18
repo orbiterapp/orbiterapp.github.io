@@ -1,5 +1,14 @@
 // ORB-116: bump CACHE_VERSION on each release to invalidate old caches
-const CACHE_VERSION = 'v10';
+const CACHE_VERSION = 'v11';
+// Quiet hours state — updated via message from client page
+let _qhEnabled = false, _qhStart = '22:00', _qhEnd = '07:00';
+function _isQuietHours() {
+  if (!_qhEnabled) return false;
+  const now = new Date(), hm = now.getHours() * 60 + now.getMinutes();
+  const [sh, sm] = _qhStart.split(':').map(Number), [eh, em] = _qhEnd.split(':').map(Number);
+  const s = sh * 60 + sm, e = eh * 60 + em;
+  return s <= e ? (hm >= s && hm < e) : (hm >= s || hm < e);
+}
 const CACHE = `orbiter-${CACHE_VERSION}`;
 const SHELL  = ['./index.html', './quick.html', './manifest.json', './iconbg.png', './auth.js', './shader-background.js'];
 
@@ -11,6 +20,7 @@ self.addEventListener('install', e => {
 // ORB-116: allow clients to trigger immediate activation on update
 self.addEventListener('message', e => {
   if (e.data === 'SKIP_WAITING') self.skipWaiting();
+  if (e.data?.type === 'SET_QUIET_HOURS') { _qhEnabled = !!e.data.enabled; _qhStart = e.data.start || '22:00'; _qhEnd = e.data.end || '07:00'; }
 });
 
 self.addEventListener('activate', e =>
@@ -51,16 +61,13 @@ self.addEventListener('push', event => {
     body = `Due at ${t} ${d}`;
   }
   event.waitUntil(
-    self.registration.showNotification(title, {
-      body,
-      icon: '/iconbg.png',
-      badge: '/iconbg.png',
-      data: { taskId: data.taskId },
-      actions: [
-        { action: 'complete', title: 'Mark Complete' },
-        { action: 'snooze', title: 'Snooze 1 hr' }
-      ]
-    })
+    _isQuietHours()
+      ? self.registration.showNotification(title, { silent: true, badge: '/iconbg.png', data: { taskId: data.taskId } })
+      : self.registration.showNotification(title, {
+          body, icon: '/iconbg.png', badge: '/iconbg.png',
+          data: { taskId: data.taskId },
+          actions: [{ action: 'complete', title: 'Mark Complete' }, { action: 'snooze', title: 'Snooze 1 hr' }]
+        })
   );
 });
 

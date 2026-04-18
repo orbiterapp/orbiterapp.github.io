@@ -3590,18 +3590,18 @@
             <svg id="sync-spinner" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="animation:spin 0.8s linear infinite;display:none"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
             <span id="sync-status-text"></span>
           </div>
-          <button class="hdr-btn" id="filter-btn" onclick="toggleFilters()" title="Filters"><svg width="20" height="20"
+          <button class="hdr-btn" id="filter-btn" onclick="toggleFilters()" aria-label="Toggle filters" title="Filters"><svg width="20" height="20"
               viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
               stroke-linejoin="round">
               <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
             </svg></button>
-          <button class="hdr-btn" id="search-btn" onclick="toggleSearch()"><svg width="20" height="20"
+          <button class="hdr-btn" id="search-btn" onclick="toggleSearch()" aria-label="Search tasks"><svg width="20" height="20"
               viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
               stroke-linejoin="round">
               <circle cx="11" cy="11" r="8" />
               <line x1="21" y1="21" x2="16.65" y2="16.65" />
             </svg></button>
-          <button class="hdr-btn" id="settings-gear-btn" onclick="openSettings()" title="Settings"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
+          <button class="hdr-btn" id="settings-gear-btn" onclick="openSettings()" aria-label="Settings" title="Settings"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
           <div class="avatar-btn" id="avatar-btn" onclick="toggleMenu()">?</div>
         </div>
       </div>
@@ -3615,7 +3615,7 @@
           </svg>
           <input class="search-input" id="search-input" placeholder="Search tasks…" oninput="onSearch(this.value)"
             autocomplete="off">
-          <button class="search-clear" onclick="clearSearch()" id="search-clear-btn" style="display:none"><svg
+          <button class="search-clear" onclick="clearSearch()" id="search-clear-btn" aria-label="Clear search" style="display:none"><svg
               width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
               stroke-linecap="round">
               <line x1="18" y1="6" x2="6" y2="18" />
@@ -3759,6 +3759,22 @@
             </div>
             <div class="st-row-body"><div class="st-row-title">Enable Notifications</div></div>
             <div class="st-row-end"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div>
+          </div>
+          <div class="st-row" onclick="event.stopPropagation()">
+            <div class="st-row-ic" style="background:rgba(140,89,242,0.13)">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.7 7.7a2.5 2.5 0 1 1 1.8 4.3H2"/><path d="M9.6 4.6A2 2 0 1 1 11 8H2"/><path d="M12.6 19.4A2 2 0 1 0 14 16H2"/></svg>
+            </div>
+            <div class="st-row-body">
+              <div class="st-row-title">Quiet Hours</div>
+              <div class="st-row-sub" style="display:flex;align-items:center;gap:6px;margin-top:4px;flex-wrap:wrap">
+                <input type="time" id="qh-start" value="22:00" onchange="saveQuietHours()" style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:3px 6px;color:var(--text);font-size:12px">
+                <span style="color:var(--text3)">to</span>
+                <input type="time" id="qh-end" value="07:00" onchange="saveQuietHours()" style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:3px 6px;color:var(--text);font-size:12px">
+              </div>
+            </div>
+            <div class="st-row-end">
+              <button class="toggle" id="tog-quiet-hours" onclick="toggleQuietHours(event)"></button>
+            </div>
           </div>
           <div class="st-row" onclick="enableSiri()">
             <div class="st-row-ic" style="background:color-mix(in srgb,var(--accent) 13%,transparent)">
@@ -4045,7 +4061,7 @@
     </div>
   </div>
 
-  <div class="toast" id="toast"></div>
+  <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
   <!-- Edit Repeating Task Dialog -->
   <div class="modal-bg" id="repeat-edit-modal-bg" style="z-index:750">
     <div class="modal-sheet" style="max-width:320px;padding:20px 24px 24px">
@@ -4259,6 +4275,8 @@
     let calRefDate = new Date(), calSelectedDate = new Date(), calView = 'month';
     let searchQuery = '', currentProjectFilter = null;
     let showArchived = false;
+    let _archiveSelected = new Set();
+    let _renderLimit = 50;
     let activeFilters = { priority: null, due: null, tag: null }; // smart filters
     var inboxSort = localStorage.getItem('inbox_sort') || 'created';
 
@@ -4443,6 +4461,7 @@
       if (stl) stl.textContent = isLight ? 'Dark Mode' : 'Light Mode';
       renderSettingsAccentPicker();
       loadSettingsConfirmDelete();
+      initQuietHoursUI();
       toggleMenu(false);
       show('screen-settings');
     }
@@ -4915,7 +4934,8 @@
           var isChecked = _msIds.has(t.id);
           chkBtn = '<button class="ms-chk' + (isChecked ? ' checked' : '') + '" onclick="event.stopPropagation();toggleMsRow(\'' + t.id + '\',event)">' + (isChecked ? '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>' : '') + '</button>';
         } else if (showArchived) {
-          chkBtn = '<button class="chk p-high" style="border-color:var(--green);background:var(--green-dim)" onclick="event.stopPropagation();unarchiveTask(\'' + t.id + '\')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></button>';
+          var _archSel = _archiveSelected.has(t.id);
+          chkBtn = '<button class="chk' + (_archSel ? ' p-high' : '') + '" style="' + (_archSel ? 'border-color:var(--accent);background:var(--accent-dim)' : '') + '" onclick="event.stopPropagation();toggleArchiveRow(\'' + t.id + '\')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="' + (_archSel ? 'var(--accent)' : 'var(--green)') + '" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></button>';
         } else {
           chkBtn = '<button class="chk ' + pc + '" onclick="event.stopPropagation();completeTask(\'' + t.id + '\')"></button>';
         }
@@ -4925,13 +4945,12 @@
         var _rowClick = _msMode ? 'toggleMsRow(\'' + t.id + '\',event)' : 'openTaskDetail(\'' + t.id + '\')';
         return '<div class="task-row clickable' + archCls + msSel + '" id="task-' + t.id + '" data-sort="' + i + '" style="' + _accent + 'animation-delay:' + Math.min(i * 0.03, 0.3) + 's" onclick="' + _rowClick + '" oncontextmenu="event.preventDefault();showCtxMenu(event,\'' + t.id + '\')" data-longpress="' + t.id + '">' + dragH + chkBtn + '<div class="task-body"><div class="task-name">' + esc(t.title) + '</div>' + (chips ? '<div class="task-chips">' + chips + '</div>' : '') + '</div>' + _todayBtn + _trashBtn + '</div>';
       }
-      var _rHtml = '';
-      if (_overdue.length) {
-        _rHtml += '<div class="section-header overdue-header"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg> Overdue (' + _overdue.length + ')</div>';
-        _rHtml += _overdue.map(function (t, i) { return _mkRow(t, i); }).join('');
-        _rHtml += '<div class="section-header">' + tab.label + '</div>';
-      }
-      _rHtml += _reg.map(function (t, i) { return _mkRow(t, i + _overdue.length); }).join('');
+      var _allRows = [];
+      if (_overdue.length) { _allRows.push({ type: 'header', label: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg> Overdue (' + _overdue.length + ')', cls: 'overdue-header' }); _overdue.forEach(function(t,i){ _allRows.push({type:'task',t,i}); }); _allRows.push({ type: 'header', label: tab.label, cls: '' }); }
+      _reg.forEach(function(t,i){ _allRows.push({type:'task',t,i:i+_overdue.length}); });
+      var _limited = _allRows.slice(0, _renderLimit), _hasMore = _allRows.length > _renderLimit;
+      var _rHtml = _limited.map(function(r){ return r.type === 'header' ? '<div class="section-header ' + r.cls + '">' + r.label + '</div>' : _mkRow(r.t, r.i); }).join('');
+      if (_hasMore) _rHtml += '<div id="vscroll-sentinel" style="height:40px;display:flex;align-items:center;justify-content:center"><button onclick="_renderLimit+=50;render()" style="background:var(--surface2);color:var(--text2);border:1px solid var(--border);border-radius:8px;padding:6px 16px;font-size:13px;cursor:pointer">Load more (' + (_allRows.length - _renderLimit) + ' remaining)</button></div>';
       if (currentTab === 'calendar') {
         var _dsk = window.matchMedia('(min-width: 768px)').matches;
         var _selLabel = calSelectedDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
@@ -4944,7 +4963,22 @@
           area.innerHTML = getCalHTML() + _rHtml;
         }
         setTimeout(bindCalTouch, 100);
-      } else { area.innerHTML = _rHtml; }
+      } else {
+        if (showArchived) {
+          var _archBar = '<div style="display:flex;align-items:center;gap:8px;padding:8px 12px 4px;flex-wrap:wrap">';
+          if (_archiveSelected.size > 0) {
+            _archBar += '<button onclick="restoreArchiveSelected()" style="background:var(--green-dim);color:var(--green);border:none;border-radius:8px;padding:5px 12px;font-size:12px;font-weight:600;cursor:pointer">Restore ' + _archiveSelected.size + '</button>';
+            _archBar += '<button onclick="deleteArchiveSelected()" style="background:var(--red-dim);color:var(--red);border:none;border-radius:8px;padding:5px 12px;font-size:12px;font-weight:600;cursor:pointer">Delete ' + _archiveSelected.size + '</button>';
+            _archBar += '<button onclick="_archiveSelected.clear();render()" style="background:var(--surface2);color:var(--text2);border:none;border-radius:8px;padding:5px 12px;font-size:12px;cursor:pointer">Clear</button>';
+          }
+          if (v.length > 0) {
+            var _allSel = v.every(function(t) { return _archiveSelected.has(t.id); });
+            _archBar += '<button onclick="' + (_allSel ? '_archiveSelected.clear()' : 'v.forEach(function(t){_archiveSelected.add(t.id)})') + ';render()" style="margin-left:auto;background:none;color:var(--text3);border:1px solid var(--border);border-radius:8px;padding:5px 12px;font-size:12px;cursor:pointer">' + (_allSel ? 'Deselect all' : 'Select all') + '</button>';
+          }
+          _archBar += '</div>';
+          area.innerHTML = _archBar + _rHtml;
+        } else { area.innerHTML = _rHtml; }
+      }
     } // end render()
 
 
@@ -5104,7 +5138,7 @@
     }
 
     // ─── Add Task Modal ───────────────────────────────────────────────────────────
-    function switchTab(tab) { currentTab = tab; if (tab !== 'projects') currentProjectFilter = null; if (showArchived) { showArchived = false; document.getElementById('archive-label').textContent = 'View Archive'; } render(); }
+    function switchTab(tab) { currentTab = tab; if (tab !== 'projects') currentProjectFilter = null; if (showArchived) { showArchived = false; document.getElementById('archive-label').textContent = 'View Archive'; } _renderLimit = 50; render(); }
     function updateTitleCount(inp) {
       var rem = 255 - inp.value.length;
       var el = document.getElementById('i-title-count');
@@ -5672,6 +5706,26 @@
       });
     }
 
+    // ─── Quiet Hours ─────────────────────────────────────────────────────────────
+    var _qh = (function() { try { return JSON.parse(localStorage.getItem('orbiter_quiet_hours') || '{}'); } catch { return {}; } })();
+    function _syncQuietHoursToSW() {
+      var enabled = !!_qh.enabled, start = _qh.start || '22:00', end = _qh.end || '07:00';
+      navigator.serviceWorker?.ready.then(function(reg) { reg.active?.postMessage({ type: 'SET_QUIET_HOURS', enabled, start, end }); });
+    }
+    function initQuietHoursUI() {
+      var tog = document.getElementById('tog-quiet-hours'), s = document.getElementById('qh-start'), e = document.getElementById('qh-end');
+      if (tog) tog.classList.toggle('on', !!_qh.enabled);
+      if (s && _qh.start) s.value = _qh.start;
+      if (e && _qh.end) e.value = _qh.end;
+    }
+    function toggleQuietHours(ev) { ev.stopPropagation(); _qh.enabled = !_qh.enabled; document.getElementById('tog-quiet-hours').classList.toggle('on', _qh.enabled); saveQuietHours(); }
+    function saveQuietHours() {
+      _qh.start = document.getElementById('qh-start')?.value || '22:00';
+      _qh.end = document.getElementById('qh-end')?.value || '07:00';
+      try { localStorage.setItem('orbiter_quiet_hours', JSON.stringify(_qh)); } catch { }
+      _syncQuietHoursToSW();
+    }
+
     // ORB-117: Subscribe to web push notifications
     async function subscribeToPush() {
       if (!VAPID_PUBLIC_KEY) return; // not configured yet
@@ -6094,10 +6148,28 @@
       if (isOpen) { panel.classList.remove('open'); btn.classList.remove('active-btn'); clearFilters(); }
       else { panel.classList.add('open'); btn.classList.add('active-btn'); }
     }
+    var _savedFilters = (function() { try { return JSON.parse(localStorage.getItem('orbiter_saved_filters') || '[]'); } catch { return []; } })();
+    function _persistSavedFilters() { try { localStorage.setItem('orbiter_saved_filters', JSON.stringify(_savedFilters)); } catch { } }
+    function saveFilterSet() {
+      if (!hasActiveFilters()) return;
+      var name = prompt('Name this filter set:'); if (!name || !name.trim()) return; name = name.trim();
+      _savedFilters = _savedFilters.filter(function (f) { return f.name !== name; });
+      _savedFilters.push({ name: name, filters: Object.assign({}, activeFilters) });
+      _persistSavedFilters(); render(); toast('Filter saved: ' + name);
+    }
+    function applySavedFilter(name) {
+      var fs = _savedFilters.find(function (f) { return f.name === name; });
+      if (!fs) return;
+      activeFilters = Object.assign({}, fs.filters); render(); renderActiveFilterBadge();
+    }
+    function deleteSavedFilter(name) {
+      _savedFilters = _savedFilters.filter(function (f) { return f.name !== name; });
+      _persistSavedFilters(); render(); toast('Filter deleted');
+    }
     function clearFilters() { activeFilters = { priority: null, due: null, tag: null }; render(); renderActiveFilterBadge(); }
     function setFilter(type, val) {
       if (activeFilters[type] === val) activeFilters[type] = null; else activeFilters[type] = val;
-      render();
+      _renderLimit = 50; render();
     }
     function renderFilterChips() {
       var c = document.getElementById('filter-chips');
@@ -6131,6 +6203,15 @@
           h += '<div class="filter-chip' + (inboxSort === s[0] ? ' active' : '') + '" onclick="setInboxSort(\'' + s[0] + '\')">' + s[1] + '</div>';
         });
       }
+      // Saved filter sets
+      if (_savedFilters.length > 0 || hasActiveFilters()) {
+        h += '<div style="width:100%"></div>';
+        h += '<div style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;color:var(--text2)">Saved:</div>';
+        _savedFilters.forEach(function (fs) {
+          h += '<div class="filter-chip" style="background:var(--accent-dim);color:var(--accent);border-color:var(--accent)" onclick="applySavedFilter(' + JSON.stringify(fs.name) + ')">' + esc(fs.name) + '<span onclick="event.stopPropagation();deleteSavedFilter(' + JSON.stringify(fs.name) + ')" style="margin-left:4px;opacity:.6;cursor:pointer">×</span></div>';
+        });
+        if (hasActiveFilters()) h += '<div class="filter-chip" onclick="saveFilterSet()" style="border-style:dashed">+ Save</div>';
+      }
       c.innerHTML = h;
     }
     function hasActiveFilters() { return activeFilters.priority || activeFilters.due || activeFilters.tag; }
@@ -6138,6 +6219,7 @@
     // ─── Archive ────────────────────────────────────────────────────────────
     function toggleArchiveView() {
       showArchived = !showArchived;
+      _archiveSelected.clear();
       document.getElementById('archive-label').textContent = showArchived ? 'Back to Tasks' : 'View Archive';
       render();
     }
@@ -6156,6 +6238,22 @@
           toast('Archived ✓');
         });
       } catch (e) { toast('Failed to sync'); }
+    }
+
+    function toggleArchiveRow(id) { if (_archiveSelected.has(id)) _archiveSelected.delete(id); else _archiveSelected.add(id); render(); }
+    async function restoreArchiveSelected() {
+      if (!_archiveSelected.size) return;
+      var ids = Array.from(_archiveSelected); var now = new Date().toISOString();
+      ids.forEach(function (id) { var t = tasks.find(function (x) { return x.id === id; }); if (t) { t.is_completed = false; t.completed_at = null; t.updated_at = now; } });
+      _archiveSelected.clear(); render(); toast('Restored ' + ids.length + ' task' + (ids.length > 1 ? 's' : ''));
+      for (var _i = 0; _i < ids.length; _i++) { var _t = tasks.find(function (x) { return x.id === ids[_i]; }); if (_t) await upsert(_t).catch(function () { }); }
+    }
+    async function deleteArchiveSelected() {
+      if (!_archiveSelected.size) return;
+      var ids = Array.from(_archiveSelected); var count = ids.length;
+      tasks = tasks.filter(function (t) { return !_archiveSelected.has(t.id); });
+      _archiveSelected.clear(); render(); toast('Deleted ' + count + ' task' + (count > 1 ? 's' : '') + ' permanently');
+      for (var _i = 0; _i < ids.length; _i++) { await deleteTask(ids[_i]).catch(function () { }); }
     }
 
     // ─── Keyboard Shortcuts ──────────────────────────────────────────────────
@@ -6308,6 +6406,7 @@
     }
     if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').then(function (reg) {
       reg.update();
+      setTimeout(_syncQuietHoursToSW, 1000);
       // ORB-116: detect new SW waiting and show update banner
       reg.addEventListener('updatefound', function () {
         var newSW = reg.installing;
