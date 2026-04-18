@@ -4699,7 +4699,7 @@
       }
       area.innerHTML = html;
     }
-    async function syncTasks() { if (syncing) return; syncing = true; var _sb = document.getElementById('sync-btn'); if (_sb) _sb.classList.add('spinning'); var _us = document.getElementById('um-sync'); if (_us) _us.style.opacity = '.4'; showSkeleton(); try { tasks = await fetchAll(); await fetchProjects(); populateProjectSelects(); render(); scheduleNotifications(); } catch (e) { if (e.message !== 'Unauthorized') toast('Sync failed'); } finally { syncing = false; if (_sb) _sb.classList.remove('spinning'); if (_us) _us.style.opacity = ''; } }
+    async function syncTasks() { if (syncing) return; syncing = true; var _sb = document.getElementById('sync-btn'); if (_sb) _sb.classList.add('spinning'); var _us = document.getElementById('um-sync'); if (_us) _us.style.opacity = '.4'; showSkeleton(); try { tasks = await fetchAll(); await fetchProjects(); populateProjectSelects(); render(); } catch (e) { if (e.message !== 'Unauthorized') toast('Sync failed'); } finally { syncing = false; if (_sb) _sb.classList.remove('spinning'); if (_us) _us.style.opacity = ''; } }
 
     // ─── ORB-37: Supabase Realtime subscription ──────────────────────────────────
     var _realtimeChannel = null;
@@ -5294,24 +5294,11 @@
     // ─── Notifications ────────────────────────────────────────────────────────────
     function requestNotifPermission() {
       if (!('Notification' in window)) { toast('Notifications not supported on this device'); return; }
-      if (Notification.permission === 'granted') { toast('Notifications already enabled ✓'); scheduleNotifications(); return; }
+      if (Notification.permission === 'granted') { toast('Notifications already enabled ✓'); subscribeToPush(); return; }
       Notification.requestPermission().then(function (p) {
-        if (p === 'granted') { toast('Notifications enabled!'); haptic('success'); scheduleNotifications(); subscribeToPush(); }
+        if (p === 'granted') { toast('Notifications enabled!'); haptic('success'); subscribeToPush(); }
         else toast('Notifications blocked — check browser settings');
       });
-    }
-    function scheduleNotifications() {
-      if (!('Notification' in window) || Notification.permission !== 'granted') return;
-      clearTimeout(window._notifTimer);
-      var t = new Date(); t.setHours(0, 0, 0, 0);
-      var today = tasks.filter(function (x) { if (x.is_completed) return false; if (x.is_today_task) return true; if (!x.due_date) return false; var d = new Date(x.due_date); return d >= t && d < new Date(t.getTime() + 864e5); });
-      if (!today.length) return;
-      var now = new Date(), remind = new Date(); remind.setHours(9, 0, 0, 0);
-      if (remind <= now) remind = new Date(now.getTime() + 10000);
-      var delay = Math.max(0, Math.min(remind - now, 30 * 60 * 1000));
-      window._notifTimer = setTimeout(function () {
-        if (document.hidden) { new Notification('Orbiter – ' + today.length + ' task' + (today.length !== 1 ? 's' : '') + ' due today', { body: today.slice(0, 3).map(function (x) { return '• ' + x.title; }).join('\n') + (today.length > 3 ? '\n…and ' + (today.length - 3) + ' more' : ''), icon: 'icon.svg', tag: 'orbiter-daily', silent: false }); }
-      }, delay);
     }
 
     // ORB-117: Subscribe to web push notifications
