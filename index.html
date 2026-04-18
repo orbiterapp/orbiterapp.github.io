@@ -3586,6 +3586,10 @@
           <div class="app-header-sub" id="persp-count">Loading…</div>
         </div>
         <div class="header-right">
+          <div id="sync-indicator" title="Sync status" style="display:none;align-items:center;gap:4px;font-size:11px;font-weight:600;color:var(--muted);padding:4px 8px;border-radius:20px;background:var(--surface2)">
+            <svg id="sync-spinner" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="animation:spin 0.8s linear infinite;display:none"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+            <span id="sync-status-text"></span>
+          </div>
           <button class="hdr-btn" id="filter-btn" onclick="toggleFilters()" title="Filters"><svg width="20" height="20"
               viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
               stroke-linejoin="round">
@@ -3850,9 +3854,9 @@
       <div class="modal-head">
         <div class="modal-title">New Task</div><button class="modal-cancel" onclick="closeModal()">Cancel</button>
       </div>
-      <div class="m-field"><label>Title</label><input type="text" id="i-title" placeholder="What needs to be done?" autocomplete="off"></div>
+      <div class="m-field"><label style="display:flex;justify-content:space-between;align-items:center">Title<span id="i-title-count" style="font-size:10px;color:var(--red);display:none"></span></label><input type="text" id="i-title" placeholder="What needs to be done?" autocomplete="off" maxlength="255" oninput="updateTitleCount(this)"></div>
       <div id="i-nlp-strip" style="display:none;align-items:center;gap:6px;flex-wrap:wrap;margin:-6px 0 8px;padding:6px 10px;background:var(--surface2);border-radius:10px;font-size:11px"></div>
-      <div class="m-field"><label>Notes</label><textarea id="i-notes" placeholder="Add notes…"></textarea></div>
+      <div class="m-field"><label style="display:flex;justify-content:space-between;align-items:center">Notes<span id="i-notes-count" style="font-size:10px;color:var(--muted);display:none"></span></label><textarea id="i-notes" placeholder="Add notes…" oninput="updateNotesCount(this)"></textarea></div>
       <div style="display:flex;gap:10px">
         <div class="m-field" style="flex:1"><label>Priority</label><select id="i-priority">
             <option value="None">None</option>
@@ -4042,6 +4046,20 @@
   </div>
 
   <div class="toast" id="toast"></div>
+  <!-- Edit Repeating Task Dialog -->
+  <div class="modal-bg" id="repeat-edit-modal-bg" style="z-index:750">
+    <div class="modal-sheet" style="max-width:320px;padding:20px 24px 24px">
+      <div class="modal-head" style="margin-bottom:12px">
+        <div class="modal-title">Edit Repeating Task</div>
+      </div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:16px">This is a repeating task. Which instances do you want to edit?</div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <button class="clone-opt-btn" style="font-weight:700" onclick="confirmRepeatEdit('one')">This task only</button>
+        <button class="clone-opt-btn" onclick="confirmRepeatEdit('all')">All future instances</button>
+        <button class="clone-opt-btn" style="color:var(--muted)" onclick="cancelRepeatEdit()">Cancel</button>
+      </div>
+    </div>
+  </div>
   <!-- Clone Task Modal -->
   <div class="modal-bg" id="clone-modal-bg" onclick="if(event.target.id==='clone-modal-bg')hideCloneModal()" style="z-index:700">
     <div class="modal-sheet" style="max-width:340px;padding:20px 24px 24px">
@@ -4331,19 +4349,48 @@
         extra || {}
       );
     }
+    var _syncActive = 0;
+    var _syncOfflineTimer = null;
+    function _syncShow(spinning, text) {
+      var el = document.getElementById('sync-indicator');
+      var sp = document.getElementById('sync-spinner');
+      var tx = document.getElementById('sync-status-text');
+      if (!el) return;
+      if (!text) { el.style.display = 'none'; return; }
+      el.style.display = 'inline-flex';
+      sp.style.display = spinning ? 'block' : 'none';
+      tx.textContent = text;
+    }
+    function _syncStart() {
+      _syncActive++;
+      if (_syncActive === 1) _syncShow(true, 'Syncing');
+    }
+    function _syncEnd(ok) {
+      _syncActive = Math.max(0, _syncActive - 1);
+      if (_syncActive > 0) return;
+      if (ok) { _syncShow(false, 'Synced'); setTimeout(function(){ if (_syncActive === 0) _syncShow(false, null); }, 1500); }
+      else { _syncShow(false, 'Sync failed'); setTimeout(function(){ if (_syncActive === 0) _syncShow(false, null); }, 3000); }
+    }
+    window.addEventListener('offline', function() { _syncShow(false, 'Offline'); });
+    window.addEventListener('online', function() { if (_syncActive === 0) _syncShow(false, null); });
+
     async function api(path, opts) {
       opts = opts || {};
       // Merge caller headers with auth headers — do NOT let opts.headers overwrite auth
       var mergedHeaders = Object.assign(hdrs(), opts.headers || {});
       var fetchOpts = Object.assign({}, opts, { headers: mergedHeaders });
-      var r = await fetch(SB_URL + '/rest/v1/' + path, fetchOpts);
-      if (r.status === 401) {
-        var s = await refresh();
-        if (s) { session = s; updateAvatar(); mergedHeaders = Object.assign(hdrs(), opts.headers || {}); fetchOpts = Object.assign({}, opts, { headers: mergedHeaders }); r = await fetch(SB_URL + '/rest/v1/' + path, fetchOpts); }
-        if (r.status === 401) { signOut(); throw new Error('Unauthorized'); }
-      }
-      if (!r.ok) throw new Error('API ' + r.status);
-      return r;
+      _syncStart();
+      try {
+        var r = await fetch(SB_URL + '/rest/v1/' + path, fetchOpts);
+        if (r.status === 401) {
+          var s = await refresh();
+          if (s) { session = s; updateAvatar(); mergedHeaders = Object.assign(hdrs(), opts.headers || {}); fetchOpts = Object.assign({}, opts, { headers: mergedHeaders }); r = await fetch(SB_URL + '/rest/v1/' + path, fetchOpts); }
+          if (r.status === 401) { _syncEnd(false); signOut(); throw new Error('Unauthorized'); }
+        }
+        if (!r.ok) { _syncEnd(false); throw new Error('API ' + r.status); }
+        _syncEnd(true);
+        return r;
+      } catch(e) { _syncEnd(false); throw e; }
     }
     async function fetchAll() { return (await api('tasks?order=created_at.asc')).json(); }
     // ORB-23: Offline queue helpers
@@ -5043,9 +5090,24 @@
 
     // ─── Add Task Modal ───────────────────────────────────────────────────────────
     function switchTab(tab) { currentTab = tab; if (tab !== 'projects') currentProjectFilter = null; if (showArchived) { showArchived = false; document.getElementById('archive-label').textContent = 'View Archive'; } render(); }
+    function updateTitleCount(inp) {
+      var rem = 255 - inp.value.length;
+      var el = document.getElementById('i-title-count');
+      if (el) { el.style.display = rem <= 20 ? 'inline' : 'none'; el.textContent = rem + ' left'; el.style.color = rem <= 5 ? 'var(--red)' : 'var(--muted)'; }
+    }
+    function updateNotesCount(inp) {
+      var len = inp.value.length;
+      var el = document.getElementById('i-notes-count');
+      if (!el) return;
+      if (len >= 1000) { el.style.display = 'inline'; el.textContent = len.toLocaleString() + ' chars'; el.style.color = len >= 2000 ? 'var(--red)' : 'var(--muted)'; }
+      else { el.style.display = 'none'; }
+    }
+
     function openModal() {
       flagged = false; addModalTags = [];
       ['i-title', 'i-notes'].forEach(function (id) { document.getElementById(id).value = ''; });
+      var tc = document.getElementById('i-title-count'); if (tc) tc.style.display = 'none';
+      var nc = document.getElementById('i-notes-count'); if (nc) nc.style.display = 'none';
       document.getElementById('i-priority').value = 'None';
       document.getElementById('i-due').value = '';
       document.getElementById('i-due-time').value = '';
@@ -5144,33 +5206,65 @@
     function toggleDetailFlag() { flagged = !flagged; document.getElementById('d-tog-flag').classList.toggle('on', flagged); }
     function toggleDetailToday() { detailToday = !detailToday; document.getElementById('d-tog-today').classList.toggle('on', detailToday); }
 
+    var _repeatEditPending = null;
     function saveTaskDetails() {
       var task = tasks.find(function (t) { return t.id === currentTaskId; });
       if (!task) return;
       var title = document.getElementById('d-title').value.trim();
       if (!title) { toast('Title required'); return; }
-      // ORB-82: Capture all edited fields into a patch payload
+      // Show dialog if editing a repeating task
+      var newRepeat = document.getElementById('d-repeat').value || 'None';
+      if (task.repeat_rule && task.repeat_rule !== 'None') {
+        _repeatEditPending = currentTaskId;
+        document.getElementById('repeat-edit-modal-bg').classList.add('open');
+        return;
+      }
+      _doSaveDetails(task);
+    }
+    function confirmRepeatEdit(mode) {
+      document.getElementById('repeat-edit-modal-bg').classList.remove('open');
+      var task = tasks.find(function (t) { return t.id === _repeatEditPending; });
+      _repeatEditPending = null;
+      if (!task) return;
+      if (mode === 'one') {
+        // Detach: create standalone copy with edits, complete original's current cycle
+        var now = new Date().toISOString();
+        var copy = Object.assign({}, task, { id: uuid(), created_at: now, updated_at: now, repeat_rule: 'None', notified_at: null });
+        _applyFormToTask(copy);
+        copy.repeat_rule = 'None';
+        tasks.push(copy);
+        render();
+        upsert(copy).then(function(){ toast('Saved as one-time task'); }).catch(function(){ toast('Sync failed'); });
+        closeDetailModal();
+      } else {
+        _doSaveDetails(task);
+      }
+    }
+    function cancelRepeatEdit() {
+      document.getElementById('repeat-edit-modal-bg').classList.remove('open');
+      _repeatEditPending = null;
+    }
+    function _applyFormToTask(task) {
       var dueVal = document.getElementById('d-due').value;
       var dueTimeVal = document.getElementById('d-due-time').value;
-      var dueISO = dueVal ? (dueTimeVal ? new Date(dueVal + 'T' + dueTimeVal).toISOString() : new Date(dueVal + 'T00:00:00').toISOString()) : null;
       var deferVal = document.getElementById('d-defer').value;
-      var deferISO = deferVal ? new Date(deferVal + 'T00:00:00').toISOString() : null;
-      var tagIds = JSON.stringify(detailModalTags.map(function (tn) { return { name: tn, color: getTagColor(tn) }; }));
       var now = new Date().toISOString();
-      // Mutate local task object so render() shows changes immediately
-      task.title = title;
+      task.title = document.getElementById('d-title').value.trim();
       task.notes = document.getElementById('d-notes').value.trim();
       task.priority = document.getElementById('d-priority').value;
-      task.due_date = dueISO;
-      task.defer_date = deferISO;
+      task.due_date = dueVal ? (dueTimeVal ? new Date(dueVal+'T'+dueTimeVal).toISOString() : new Date(dueVal+'T00:00:00').toISOString()) : null;
+      task.defer_date = deferVal ? new Date(deferVal+'T00:00:00').toISOString() : null;
       task.repeat_rule = document.getElementById('d-repeat').value || 'None';
       task.project_id = document.getElementById('d-project').value || null;
-      task.tag_ids = tagIds;
+      task.tag_ids = JSON.stringify(detailModalTags.map(function(tn){ return {name:tn,color:getTagColor(tn)}; }));
       task.is_flagged = flagged;
       task.is_today_task = detailToday;
       task.notify_before_minutes = parseInt(document.getElementById('d-notify-before').value) || 30;
       task.notified_at = null;
       task.updated_at = now;
+    }
+    function _doSaveDetails(task) {
+      _applyFormToTask(task);
       closeDetailModal();
       render();
       // ORB-82: Use PATCH (targeted update) instead of upsert POST so edits always save
@@ -5187,7 +5281,7 @@
         is_today_task: task.is_today_task,
         notify_before_minutes: task.notify_before_minutes,
         notified_at: null,
-        updated_at: now
+        updated_at: task.updated_at
       }).then(function () { toast('Task updated'); }).catch(function () { toast('Failed to sync'); });
     }
 
