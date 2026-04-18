@@ -953,6 +953,34 @@
       color: var(--red)
     }
 
+    .ms-toolbar {
+      position: fixed;
+      bottom: calc(var(--safe-bottom) + 72px);
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: var(--card2);
+      border: 1px solid var(--border2);
+      border-radius: 20px;
+      padding: 8px 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      z-index: 400;
+      box-shadow: 0 12px 40px rgba(0,0,0,.5);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .2s, transform .2s;
+      white-space: nowrap
+    }
+    .ms-toolbar.show { opacity: 1; transform: translateX(-50%) translateY(0); pointer-events: auto }
+    .ms-btn { background: none; border: 1px solid var(--border2); color: var(--text); font-family: inherit; font-size: 13px; font-weight: 600; padding: 7px 14px; border-radius: 12px; cursor: pointer }
+    .ms-btn.danger { color: var(--red); border-color: var(--red-dim) }
+    .ms-btn.primary { background: var(--accent); color: #fff; border-color: transparent }
+    .ms-count { font-size: 13px; font-weight: 700; color: var(--text2); padding: 0 4px }
+    .task-row.ms-selected { background: var(--accent-dim, var(--surface2)); outline: 2px solid var(--accent); outline-offset: -2px; border-radius: 12px }
+    .ms-chk { width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--border2); background: none; cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; margin-right: 4px }
+    .ms-chk.checked { background: var(--accent); border-color: var(--accent) }
+
     .chip-today {
       background: var(--cyan-dim);
       color: var(--cyan)
@@ -3810,8 +3838,8 @@
       <div class="modal-head">
         <div class="modal-title">New Task</div><button class="modal-cancel" onclick="closeModal()">Cancel</button>
       </div>
-      <div class="m-field"><label>Title</label><input type="text" id="i-title" placeholder="What needs to be done?"
-          autocomplete="off"></div>
+      <div class="m-field"><label>Title</label><input type="text" id="i-title" placeholder="What needs to be done?" autocomplete="off"></div>
+      <div id="i-nlp-strip" style="display:none;align-items:center;gap:6px;flex-wrap:wrap;margin:-6px 0 8px;padding:6px 10px;background:var(--surface2);border-radius:10px;font-size:11px"></div>
       <div class="m-field"><label>Notes</label><textarea id="i-notes" placeholder="Add notes…"></textarea></div>
       <div style="display:flex;gap:10px">
         <div class="m-field" style="flex:1"><label>Priority</label><select id="i-priority">
@@ -3998,6 +4026,12 @@
   </div>
 
   <div class="toast" id="toast"></div>
+  <div class="ms-toolbar" id="ms-toolbar">
+    <span class="ms-count" id="ms-count">0 selected</span>
+    <button class="ms-btn primary" onclick="bulkComplete()">Complete</button>
+    <button class="ms-btn danger" onclick="bulkDelete()">Delete</button>
+    <button class="ms-btn" onclick="exitMsMode()">Cancel</button>
+  </div>
 
   <!-- ORB-121: Tag Manager Modal -->
   <div class="modal-bg" id="tag-manager-bg" onclick="if(event.target.id==='tag-manager-bg')closeTagManager()" style="display:none;z-index:130">
@@ -4369,6 +4403,77 @@
       render();
     }
 
+    // ─── NLP Parser (web quick-add) ───────────────────────────────────────────────
+    function _nlpParseTime(s) { var l = s.toLowerCase(), pm = l.endsWith('pm'), am = l.endsWith('am'), st = (pm || am) ? l.slice(0, -2) : l; if (!st) return null; var p = st.split(':'); var h = parseInt(p[0]); if (isNaN(h)) return null; var m = p.length > 1 ? parseInt(p[1]) || 0 : 0; if (pm && h < 12) h += 12; if (am && h === 12) h = 0; return (h >= 0 && h <= 23 && m >= 0 && m <= 59) ? [h, m] : null; }
+    function _nlpNamedDay(w) { var d = { today: 0, tomorrow: 1 }; if (w in d) return d[w]; var m = { sunday: 0, monday: 1, tuesday: 2, wednesday: 3, thursday: 4, friday: 5, saturday: 6 }; if (w in m) { var c = new Date().getDay(), df = (m[w] - c + 7) % 7; return df === 0 ? 7 : df; } return null; }
+    function _nlpMonthNum(s) { var m = { jan: 1, feb: 2, mar: 3, apr: 4, may: 5, jun: 6, jul: 7, aug: 8, sep: 9, oct: 10, nov: 11, dec: 12 }; return m[s.toLowerCase().substring(0, 3)] || null; }
+    function parseNLPWeb(input) {
+      var words = input.split(/\s+/).filter(Boolean), pri = 'None', flag = false, energy = 'None', estMin = null, rm = new Set();
+      words.forEach(function (w, i) {
+        switch (w.toLowerCase()) {
+          case '!high': pri = 'High'; rm.add(i); break; case '!medium': pri = 'Medium'; rm.add(i); break; case '!low': pri = 'Low'; rm.add(i); break;
+          case '!flag': case '!flagged': flag = true; rm.add(i); break;
+          default:
+            if (w.startsWith('~') && (w.endsWith('m') || w.endsWith('h'))) { var n = parseInt(w.slice(1, -1)); if (!isNaN(n)) { estMin = w.endsWith('h') ? n * 60 : n; rm.add(i); } }
+        }
+      });
+      words = words.filter(function (_, i) { return !rm.has(i); }); rm = new Set();
+      var due = null, timeH = null, timeM = 0;
+      var today = new Date(); today.setHours(0, 0, 0, 0);
+      for (var i = 0; i < words.length; i++) {
+        var w = words[i].toLowerCase();
+        if (w === 'at' && i + 1 < words.length) { var t = _nlpParseTime(words[i + 1]); if (t) { timeH = t[0]; timeM = t[1]; rm.add(i); rm.add(i + 1); i++; continue; } }
+        var t2 = _nlpParseTime(w); if (t2) { timeH = t2[0]; timeM = t2[1]; rm.add(i); continue; }
+        var off = _nlpNamedDay(w); if (off !== null) { if (!due) { due = new Date(today); due.setDate(due.getDate() + off); } rm.add(i); continue; }
+        if (w === 'next' && i + 1 < words.length && words[i + 1].toLowerCase() === 'week') { due = new Date(today); due.setDate(due.getDate() + 7); rm.add(i); rm.add(i + 1); i++; continue; }
+        var mon = _nlpMonthNum(w); if (mon !== null && i + 1 < words.length) { var day = parseInt(words[i + 1]); if (day) { due = new Date(today.getFullYear(), mon - 1, day); if (due < today) due.setFullYear(due.getFullYear() + 1); rm.add(i); rm.add(i + 1); i++; continue; } }
+      }
+      if (timeH !== null) { if (!due) due = new Date(today); due.setHours(timeH, timeM, 0, 0); }
+      var remaining = words.filter(function (_, i) { return !rm.has(i); }).join(' ').trim();
+      var pad = function (n) { return String(n).padStart(2, '0'); };
+      var dueISO = due ? due.getFullYear() + '-' + pad(due.getMonth() + 1) + '-' + pad(due.getDate()) + 'T' + pad(due.getHours()) + ':' + pad(due.getMinutes()) : null;
+      if (!dueISO && pri === 'None' && !flag && estMin === null) return null;
+      return { title: remaining || input, dueDate: dueISO, priority: pri, isFlagged: flag, estimatedMinutes: estMin };
+    }
+    var _nlpTimer = null;
+    function _bindNLPInput() {
+      var inp = document.getElementById('i-title');
+      if (!inp || inp._nlpBound) return;
+      inp._nlpBound = true;
+      inp.addEventListener('input', function () {
+        clearTimeout(_nlpTimer);
+        _nlpTimer = setTimeout(function () {
+          var strip = document.getElementById('i-nlp-strip');
+          if (!strip) return;
+          var parsed = parseNLPWeb(inp.value);
+          if (!parsed) { strip.style.display = 'none'; strip.innerHTML = ''; return; }
+          var h = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" style="flex-shrink:0;margin-right:4px"><path d="M15 4V2"/><path d="M15 16v-2"/><path d="M8 9h2"/><path d="M20 9h2"/><path d="M17.8 11.8L19 13"/><path d="M15 9h0"/><path d="M17.8 6.2L19 5"/><path d="M3 21l9-9"/><path d="M12.2 6.2L11 5"/></svg>';
+          if (parsed.dueDate) { var dd = new Date(parsed.dueDate); h += '<span style="background:var(--blue-dim);color:var(--blue);padding:2px 7px;border-radius:12px;font-size:11px;font-weight:600">' + dd.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + (dd.getHours() ? ' ' + dd.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) : '') + '</span>'; }
+          if (parsed.priority !== 'None') h += '<span style="background:var(--red-dim);color:var(--red);padding:2px 7px;border-radius:12px;font-size:11px;font-weight:600">' + parsed.priority + '</span>';
+          if (parsed.isFlagged) h += '<span style="background:var(--pink-dim);color:var(--pink);padding:2px 7px;border-radius:12px;font-size:11px;font-weight:600">Flagged</span>';
+          h += '<button onclick="applyNLPWeb()" style="margin-left:auto;background:var(--accent);color:#fff;border:none;padding:2px 10px;border-radius:12px;font-size:11px;font-weight:600;cursor:pointer">Apply</button>';
+          strip.innerHTML = h; strip.style.display = 'flex';
+        }, 150);
+      });
+    }
+    function applyNLPWeb() {
+      var inp = document.getElementById('i-title');
+      var strip = document.getElementById('i-nlp-strip');
+      if (!inp) return;
+      var parsed = parseNLPWeb(inp.value);
+      if (!parsed) return;
+      inp.value = parsed.title;
+      if (parsed.dueDate) {
+        var d = new Date(parsed.dueDate);
+        var pad = function (n) { return String(n).padStart(2, '0'); };
+        document.getElementById('i-due').value = d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+        if (d.getHours() || d.getMinutes()) document.getElementById('i-due-time').value = pad(d.getHours()) + ':' + pad(d.getMinutes());
+      }
+      if (parsed.priority !== 'None') document.getElementById('i-priority').value = parsed.priority;
+      if (parsed.isFlagged) { var tog = document.getElementById('tog-flag'); if (tog && !tog.classList.contains('on')) tog.click(); }
+      if (strip) { strip.style.display = 'none'; strip.innerHTML = ''; }
+    }
+
     // ─── Helpers ──────────────────────────────────────────────────────────────────
     function uuid() { return crypto.randomUUID ? crypto.randomUUID() : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => { const r = Math.random() * 16 | 0; return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16); }); }
     function pClass(p) { return { High: 'p-high', Medium: 'p-medium', Low: 'p-low' }[p] || ''; }
@@ -4376,28 +4481,38 @@
     function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
     // ORB-84: Toast with working Undo button.
     // undoFn must be a real Function (not a string) so closure variables are captured.
+    var _toastQueue = [];
+    var _toastBusy = false;
     function toast(msg, ms, undoFn) {
-      ms = ms || 2200;
+      _toastQueue.push({ msg: msg, ms: ms || 2200, undoFn: undoFn });
+      if (!_toastBusy) _nextToast();
+    }
+    function _nextToast() {
+      if (!_toastQueue.length) { _toastBusy = false; return; }
+      _toastBusy = true;
+      var item = _toastQueue.shift();
       var el = document.getElementById('toast');
-      el.innerHTML = msg + (undoFn ? '<button class="toast-undo" id="toast-undo-btn">Undo</button>' : '');
+      el.innerHTML = item.msg + (item.undoFn ? '<button class="toast-undo" id="toast-undo-btn">Undo</button>' : '');
       el.classList.add('show');
       clearTimeout(window._toastTimer);
-      // Wire up undo button immediately after DOM update
-      if (undoFn) {
-        window._toastUndoFn = typeof undoFn === 'function' ? undoFn : null;
+      if (item.undoFn) {
+        window._toastUndoFn = typeof item.undoFn === 'function' ? item.undoFn : null;
         var undoBtn = document.getElementById('toast-undo-btn');
         if (undoBtn) {
-          // touch-action:manipulation on the button already kills the 300ms delay,
-          // so click is reliable and avoids iOS pointerdown/preventDefault quirks.
           undoBtn.addEventListener('click', function (e) {
             e.stopPropagation();
             clearTimeout(window._toastTimer);
             el.classList.remove('show');
             if (window._toastUndoFn) { window._toastUndoFn(); window._toastUndoFn = null; }
+            setTimeout(_nextToast, 150);
           });
         }
       }
-      window._toastTimer = setTimeout(function () { el.classList.remove('show'); window._toastUndoFn = null; }, ms);
+      window._toastTimer = setTimeout(function () {
+        el.classList.remove('show');
+        window._toastUndoFn = null;
+        setTimeout(_nextToast, 150);
+      }, item.ms);
     }
     function getTagArr(t) { try { var a = JSON.parse(t.tag_ids || '[]'); return Array.isArray(a) ? a.map(function (item) { return typeof item === 'string' ? item : (item && item.name ? item.name : String(item)); }) : []; } catch (e) { return []; } }
     let localCustomTags = JSON.parse(localStorage.getItem('pwa_custom_tags') || '[]');
@@ -4629,6 +4744,14 @@
       if (currentTab === 'today' || currentTab === 'inbox') {
         v.forEach(function (t) { if (t.due_date && new Date(t.due_date) < _nowDay && !t.is_completed) _overdue.push(t); else _reg.push(t); });
       } else { _reg = v; }
+      if (currentTab === 'today') {
+        _reg.sort(function (a, b) {
+          if (!a.due_date && !b.due_date) return 0;
+          if (!a.due_date) return 1;
+          if (!b.due_date) return -1;
+          return new Date(a.due_date) - new Date(b.due_date);
+        });
+      }
       function _mkRow(t, i) {
         var due = fmtDue(t.due_date), pc = pClass(t.priority), chips = '';
         var tags = getTagArr(t);
@@ -4645,12 +4768,22 @@
         tags.forEach(function (tag) { var color = getTagColor(tag); chips += '<span class="chip chip-tag" style="background:' + color + '22;color:' + color + '">' + esc(tag) + '</span>'; });
         if (t.notes) chips += '<span class="chip chip-note">Note</span>';
         var archCls = showArchived ? ' archived-row' : '';
-        var dragH = showArchived ? '' : '<div class="drag-handle" draggable="true" data-id="' + t.id + '" ontouchstart="event.stopPropagation()"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="6" r="1.5"/><circle cx="15" cy="6" r="1.5"/><circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/><circle cx="9" cy="18" r="1.5"/><circle cx="15" cy="18" r="1.5"/></svg></div>';
-        var chkBtn = showArchived ? '<button class="chk p-high" style="border-color:var(--green);background:var(--green-dim)" onclick="event.stopPropagation();unarchiveTask(\'' + t.id + '\')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></button>' : '<button class="chk ' + pc + '" onclick="event.stopPropagation();completeTask(\'' + t.id + '\')"></button>';
+        var msSel = _msMode && _msIds.has(t.id) ? ' ms-selected' : '';
+        var dragH = (showArchived || _msMode) ? '' : '<div class="drag-handle" draggable="true" data-id="' + t.id + '" ontouchstart="event.stopPropagation()"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="6" r="1.5"/><circle cx="15" cy="6" r="1.5"/><circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/><circle cx="9" cy="18" r="1.5"/><circle cx="15" cy="18" r="1.5"/></svg></div>';
+        var chkBtn;
+        if (_msMode) {
+          var isChecked = _msIds.has(t.id);
+          chkBtn = '<button class="ms-chk' + (isChecked ? ' checked' : '') + '" onclick="event.stopPropagation();toggleMsRow(\'' + t.id + '\',event)">' + (isChecked ? '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>' : '') + '</button>';
+        } else if (showArchived) {
+          chkBtn = '<button class="chk p-high" style="border-color:var(--green);background:var(--green-dim)" onclick="event.stopPropagation();unarchiveTask(\'' + t.id + '\')"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></button>';
+        } else {
+          chkBtn = '<button class="chk ' + pc + '" onclick="event.stopPropagation();completeTask(\'' + t.id + '\')"></button>';
+        }
         var _accent = fTagColor ? 'border-left:3px solid ' + fTagColor + ';padding-left:10px;' : '';
-        var _todayBtn = showArchived ? '' : (t.is_today_task ? '<span class="row-today-indicator" title="In Today">☀</span>' : '<button class="row-today-btn" onclick="event.stopPropagation();markAsToday(\'' + t.id + '\')" title="Add to Today">☀</button>');
-        var _trashBtn = showArchived ? '' : '<button class="row-del-btn" onclick="event.stopPropagation();quickDeleteTask(\'' + t.id + '\')" title="Delete"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>';
-        return '<div class="task-row clickable' + archCls + '" id="task-' + t.id + '" data-sort="' + i + '" style="' + _accent + 'animation-delay:' + Math.min(i * 0.03, 0.3) + 's" onclick="openTaskDetail(\'' + t.id + '\')" oncontextmenu="event.preventDefault();showCtxMenu(event,\'' + t.id + '\')" data-longpress="' + t.id + '">' + dragH + chkBtn + '<div class="task-body"><div class="task-name">' + esc(t.title) + '</div>' + (chips ? '<div class="task-chips">' + chips + '</div>' : '') + '</div>' + _todayBtn + _trashBtn + '</div>';
+        var _todayBtn = (showArchived || _msMode) ? '' : (t.is_today_task ? '<span class="row-today-indicator" title="In Today">☀</span>' : '<button class="row-today-btn" onclick="event.stopPropagation();markAsToday(\'' + t.id + '\')" title="Add to Today">☀</button>');
+        var _trashBtn = (showArchived || _msMode) ? '' : '<button class="row-del-btn" onclick="event.stopPropagation();quickDeleteTask(\'' + t.id + '\')" title="Delete"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>';
+        var _rowClick = _msMode ? 'toggleMsRow(\'' + t.id + '\',event)' : 'openTaskDetail(\'' + t.id + '\')';
+        return '<div class="task-row clickable' + archCls + msSel + '" id="task-' + t.id + '" data-sort="' + i + '" style="' + _accent + 'animation-delay:' + Math.min(i * 0.03, 0.3) + 's" onclick="' + _rowClick + '" oncontextmenu="event.preventDefault();showCtxMenu(event,\'' + t.id + '\')" data-longpress="' + t.id + '">' + dragH + chkBtn + '<div class="task-body"><div class="task-name">' + esc(t.title) + '</div>' + (chips ? '<div class="task-chips">' + chips + '</div>' : '') + '</div>' + _todayBtn + _trashBtn + '</div>';
       }
       var _rHtml = '';
       if (_overdue.length) {
@@ -4837,9 +4970,10 @@
       document.getElementById('tog-flag').classList.remove('on');
       populateProjectSelects();
       buildTagsPicker('i-tags-picker', addModalTags);
+      var strip = document.getElementById('i-nlp-strip'); if (strip) { strip.style.display = 'none'; strip.innerHTML = ''; }
       document.getElementById('modal-bg').classList.add('open');
       var p = document.getElementById('add-more-opts'), b = document.getElementById('add-more-opts-btn'); if (p && p.classList.contains('open')) { p.classList.remove('open'); if (b) b.classList.remove('open'); }
-      setTimeout(function () { document.getElementById('i-title').focus(); }, 350);
+      setTimeout(function () { document.getElementById('i-title').focus(); _bindNLPInput(); }, 350);
     }
     function toggleAddMoreOpts() { var p = document.getElementById('add-more-opts'), b = document.getElementById('add-more-opts-btn'); if (p.classList.contains('open')) { p.classList.remove('open'); b.classList.remove('open'); } else { p.classList.add('open'); b.classList.add('open'); } }
     function closeModal() { document.getElementById('modal-bg').classList.remove('open'); }
@@ -5322,11 +5456,23 @@
       } catch (e) { /* push subscription failed silently */ }
     }
 
-    // Listen for COMPLETE_TASK message from sw notificationclick
+    // Listen for messages from sw notificationclick
     navigator.serviceWorker?.addEventListener('message', function (e) {
       if (e.data?.type === 'COMPLETE_TASK') {
         var t = tasks.find(function (x) { return x.id === e.data.taskId; });
         if (t) completeTask(t);
+      } else if (e.data?.type === 'SNOOZE_TASK') {
+        var tk = tasks.find(function (x) { return x.id === e.data.taskId; });
+        if (tk) {
+          var base = tk.due_date ? new Date(tk.due_date) : new Date();
+          base.setHours(base.getHours() + 1);
+          var newDue = base.toISOString();
+          tk.due_date = newDue;
+          tk.notified_at = null;
+          patch(tk.id, { due_date: newDue, notified_at: null });
+          render();
+          toast('Snoozed 1 hour');
+        }
       }
     });
 
@@ -5483,7 +5629,7 @@
       document.body.appendChild(menu);
       function closeCtx() { menu.classList.remove('open'); _tid = null; }
       document.addEventListener('click', function (e) { if (!e.target.closest('#ctx-menu')) closeCtx(); });
-      document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeCtx(); });
+      document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { closeCtx(); if (_msMode) exitMsMode(); } });
       window.showCtxMenu = function (e, id) {
         _tid = id;
         var task = tasks.find(function (t) { return t.id === id; });
@@ -5512,15 +5658,106 @@
       var area = document.getElementById('task-area');
       area.addEventListener('touchstart', function (e) {
         var row = e.target.closest('.task-row');
-        if (!row || e.target.closest('.chk') || e.target.closest('.drag-handle')) return;
+        if (!row || e.target.closest('.chk') || e.target.closest('.drag-handle') || e.target.closest('.ms-chk')) return;
         var tid = row.id.replace('task-', '');
-        _lpTimer = setTimeout(function () { haptic('medium'); var touch = e.touches[0]; showCtxMenu({ clientX: touch.clientX, clientY: touch.clientY }, tid); }, 600);
+        _lpTimer = setTimeout(function () {
+          if (_msMode) {
+            toggleMsRow(tid, null);
+          } else {
+            enterMsMode(tid);
+          }
+        }, 600);
       }, { passive: true });
       area.addEventListener('touchend', function () { clearTimeout(_lpTimer); }, { passive: true });
       area.addEventListener('touchmove', function () { clearTimeout(_lpTimer); }, { passive: true });
     })();
 
+    // ─── Multi-select ──────────────────────────────────────────────────────────
+    var _msMode = false;
+    var _msIds = new Set();
+    function enterMsMode(id) {
+      _msMode = true; _msIds.clear(); _msIds.add(id);
+      haptic('medium');
+      render(); _updateMsToolbar();
+    }
+    function exitMsMode() {
+      _msMode = false; _msIds.clear();
+      document.getElementById('ms-toolbar').classList.remove('show');
+      render();
+    }
+    function toggleMsRow(id, e) {
+      e && e.stopPropagation();
+      if (_msIds.has(id)) _msIds.delete(id); else _msIds.add(id);
+      if (_msIds.size === 0) { exitMsMode(); return; }
+      var row = document.getElementById('task-' + id);
+      if (row) row.classList.toggle('ms-selected', _msIds.has(id));
+      var chk = row && row.querySelector('.ms-chk');
+      if (chk) chk.classList.toggle('checked', _msIds.has(id));
+      _updateMsToolbar();
+    }
+    function _updateMsToolbar() {
+      var tb = document.getElementById('ms-toolbar');
+      var ct = document.getElementById('ms-count');
+      var n = _msIds.size;
+      if (ct) ct.textContent = n + ' selected';
+      if (tb) tb.classList.toggle('show', n > 0);
+    }
+    async function bulkComplete() {
+      var ids = Array.from(_msIds);
+      var toComplete = tasks.filter(function (t) { return ids.includes(t.id) && !t.is_completed; });
+      var now = new Date().toISOString();
+      toComplete.forEach(function (t) { t.is_completed = true; t.completed_at = now; t.updated_at = now; });
+      exitMsMode();
+      render();
+      toast('Completed ' + toComplete.length + ' task' + (toComplete.length !== 1 ? 's' : ''));
+      await Promise.all(toComplete.map(function (t) { return upsert(t).catch(function () {}); }));
+    }
+    function bulkDelete() {
+      var ids = Array.from(_msIds);
+      var n = ids.length;
+      var doDelete = function () {
+        ids.forEach(function (id) {
+          tasks = tasks.filter(function (t) { return t.id !== id; });
+          deleteTask(id).catch(function () {});
+        });
+        exitMsMode();
+        render();
+        toast('Deleted ' + n + ' task' + (n !== 1 ? 's' : ''));
+      };
+      if (localStorage.getItem('confirm_before_delete') === 'true') {
+        if (!confirm('Delete ' + n + ' task' + (n !== 1 ? 's' : '') + '?')) return;
+      }
+      doDelete();
+    }
+
     // ─── Dark / Light Mode ───────────────────────────────────────────────────
+    // ─── ORB-196: User Preferences (server-side sync) ────────────────────────────
+    async function loadUserPreferences() {
+      if (!session) return;
+      try {
+        var res = await api('user_preferences?user_id=eq.' + session.user.id + '&select=preferences', { method: 'GET' });
+        if (res && res.length) {
+          var prefs = res[0].preferences || {};
+          if (prefs.theme) { localStorage.setItem('theme', prefs.theme); loadTheme(); }
+          if (prefs.accent_color) { localStorage.setItem('accent_color', prefs.accent_color); loadAccentColor(); }
+          if (prefs.confirm_before_delete !== undefined) localStorage.setItem('confirm_before_delete', prefs.confirm_before_delete);
+        }
+      } catch (e) { }
+    }
+    function saveUserPreferences() {
+      if (!session) return;
+      var prefs = {
+        theme: localStorage.getItem('theme') || 'dark',
+        accent_color: localStorage.getItem('accent_color') || '',
+        confirm_before_delete: localStorage.getItem('confirm_before_delete') || 'false'
+      };
+      api('user_preferences', {
+        method: 'POST',
+        headers: { 'Prefer': 'resolution=merge-duplicates,return=minimal' },
+        body: JSON.stringify({ user_id: session.user.id, preferences: prefs, updated_at: new Date().toISOString() })
+      }).catch(function () {});
+    }
+
     function toggleTheme() {
       var isLight = document.body.classList.toggle('light');
       localStorage.setItem('theme', isLight ? 'light' : 'dark');
@@ -5530,6 +5767,7 @@
       var mc = document.querySelector('meta[name="theme-color"]');
       if (!mc) { mc = document.createElement('meta'); mc.name = 'theme-color'; document.head.appendChild(mc); }
       mc.content = isLight ? '#f5f5f7' : '#0c0c0e';
+      saveUserPreferences();
     }
     function loadTheme() {
       var t = localStorage.getItem('theme');
@@ -5560,6 +5798,7 @@
       document.documentElement.style.setProperty('--accent', value);
       renderAccentPicker();
       renderSettingsAccentPicker();
+      saveUserPreferences();
     }
     function renderAccentPicker() {
       var container = document.getElementById('accent-picker');
@@ -5799,7 +6038,7 @@
         // ORB-69: Show onboarding on first sign-in
         if (!localStorage.getItem('orbiter_onboarded')) { show('screen-onboard'); }
         else { show('screen-app'); }
-        render(); syncTasks(); loadConfirmDeleteSetting(); setTimeout(initRealtime, 2000);
+        render(); syncTasks(); loadConfirmDeleteSetting(); loadUserPreferences(); setTimeout(initRealtime, 2000);
         if ('Notification' in window && Notification.permission === 'default') { setTimeout(requestNotifPermission, 3000); }
       }
       else show('screen-login');

@@ -1,5 +1,5 @@
 // ORB-116: bump CACHE_VERSION on each release to invalidate old caches
-const CACHE_VERSION = 'v9';
+const CACHE_VERSION = 'v10';
 const CACHE = `orbiter-${CACHE_VERSION}`;
 const SHELL  = ['./index.html', './quick.html', './manifest.json', './iconbg.png', './auth.js', './shader-background.js'];
 
@@ -65,19 +65,35 @@ self.addEventListener('push', event => {
 });
 
 self.addEventListener('notificationclick', event => {
+  const taskId = event.notification.data?.taskId;
   event.notification.close();
-  if (event.action === 'complete' && event.notification.data?.taskId) {
+  if (event.action === 'complete' && taskId) {
     event.waitUntil(
       self.clients.matchAll({ type: 'window' }).then(clients => {
         if (clients.length) {
-          clients[0].postMessage({ type: 'COMPLETE_TASK', taskId: event.notification.data.taskId });
+          clients[0].postMessage({ type: 'COMPLETE_TASK', taskId });
+          return clients[0].focus();
+        }
+        return self.clients.openWindow('/');
+      })
+    );
+  } else if (event.action === 'snooze' && taskId) {
+    event.waitUntil(
+      self.clients.matchAll({ type: 'window' }).then(clients => {
+        if (clients.length) {
+          clients[0].postMessage({ type: 'SNOOZE_TASK', taskId });
           return clients[0].focus();
         }
         return self.clients.openWindow('/');
       })
     );
   } else {
-    event.waitUntil(self.clients.openWindow('/'));
+    event.waitUntil(
+      self.clients.matchAll({ type: 'window' }).then(clients => {
+        if (clients.length) return clients[0].focus();
+        return self.clients.openWindow('/');
+      })
+    );
   }
 });
 
