@@ -1,10 +1,11 @@
 // ORB-116: bump CACHE_VERSION on each release to invalidate old caches
-const CACHE_VERSION = 'v8';
+const CACHE_VERSION = 'v9';
 const CACHE = `orbiter-${CACHE_VERSION}`;
 const SHELL  = ['./index.html', './quick.html', './manifest.json', './iconbg.png', './auth.js', './shader-background.js'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)));
+  self.skipWaiting();
 });
 
 // ORB-116: allow clients to trigger immediate activation on update
