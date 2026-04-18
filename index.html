@@ -4115,6 +4115,8 @@
     const SHORTCUT_LINK = 'https://www.icloud.com/shortcuts/f0bbdc15ecc8497b954b3956b2148528';
     const SB_URL = 'https://kmfymwtarvvmzuwwspwy.supabase.co';
     const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImttZnltd3RhcnZ2bXp1d3dzcHd5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3NTI2NzcsImV4cCI6MjA5MTMyODY3N30.9aBPLgECyFtj12sknviOhi4aR4p-tG1FBT0v9tbU5J4';
+    // ORB-117: VAPID public key for web push — generate with: npx web-push generate-vapid-keys
+    const VAPID_PUBLIC_KEY = '';
 
     // ─── State ───────────────────────────────────────────────────────────────────
     let session = null, tasks = [], currentTab = 'inbox', flagged = false, detailToday = false, syncing = false;
@@ -4655,7 +4657,7 @@
         var r = await api('projects?order=name.asc');
         var data = await r.json();
         if (Array.isArray(data)) {
-          projects = data.map(function (p) { return { id: p.id, name: p.name, color: p.color || '#8b5cf6' }; });
+          projects = data.map(function (p) { return { id: p.id, name: p.name, color: p.color || '#8b5cf6', is_completed: !!p.is_completed, completed_at: p.completed_at || null }; });
           // ORB-30: persist to localStorage so quick.html can read project list
           localStorage.setItem('pwa_projects', JSON.stringify(projects));
         }
@@ -5260,7 +5262,7 @@
       if (!('Notification' in window)) { toast('Notifications not supported on this device'); return; }
       if (Notification.permission === 'granted') { toast('Notifications already enabled ✓'); scheduleNotifications(); return; }
       Notification.requestPermission().then(function (p) {
-        if (p === 'granted') { toast('Notifications enabled!'); haptic('success'); scheduleNotifications(); }
+        if (p === 'granted') { toast('Notifications enabled!'); haptic('success'); scheduleNotifications(); subscribeToPush(); }
         else toast('Notifications blocked — check browser settings');
       });
     }
@@ -5277,6 +5279,35 @@
         if (document.hidden) { new Notification('Orbiter – ' + today.length + ' task' + (today.length !== 1 ? 's' : '') + ' due today', { body: today.slice(0, 3).map(function (x) { return '• ' + x.title; }).join('\n') + (today.length > 3 ? '\n…and ' + (today.length - 3) + ' more' : ''), icon: 'icon.svg', tag: 'orbiter-daily', silent: false }); }
       }, delay);
     }
+
+    // ORB-117: Subscribe to web push notifications
+    async function subscribeToPush() {
+      if (!VAPID_PUBLIC_KEY) return; // not configured yet
+      if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+      try {
+        const reg = await navigator.serviceWorker.ready;
+        let sub = await reg.pushManager.getSubscription();
+        if (!sub) {
+          sub = await reg.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: VAPID_PUBLIC_KEY
+          });
+        }
+        await api('push_subscriptions', {
+          method: 'POST',
+          headers: { 'Prefer': 'resolution=merge-duplicates,return=minimal' },
+          body: JSON.stringify({ user_id: session.user.id, subscription: JSON.stringify(sub) })
+        });
+      } catch (e) { /* push subscription failed silently */ }
+    }
+
+    // Listen for COMPLETE_TASK message from sw notificationclick
+    navigator.serviceWorker?.addEventListener('message', function (e) {
+      if (e.data?.type === 'COMPLETE_TASK') {
+        var t = tasks.find(function (x) { return x.id === e.data.taskId; });
+        if (t) completeTask(t);
+      }
+    });
 
     // ─── PWA Install Banner ───────────────────────────────────────────────────────
     var _installPrompt = null;

@@ -20,6 +20,40 @@ self.addEventListener('activate', e =>
   )
 );
 
+// ORB-117: Push notification handler for due-date reminders
+self.addEventListener('push', event => {
+  const data = event.data?.json() ?? {};
+  event.waitUntil(
+    self.registration.showNotification(data.title || 'Task Due', {
+      body: data.body || '',
+      icon: '/iconbg.png',
+      badge: '/iconbg.png',
+      data: { taskId: data.taskId },
+      actions: [
+        { action: 'complete', title: 'Mark Complete' },
+        { action: 'snooze', title: 'Snooze 1 hr' }
+      ]
+    })
+  );
+});
+
+self.addEventListener('notificationclick', event => {
+  event.notification.close();
+  if (event.action === 'complete' && event.notification.data?.taskId) {
+    event.waitUntil(
+      self.clients.matchAll({ type: 'window' }).then(clients => {
+        if (clients.length) {
+          clients[0].postMessage({ type: 'COMPLETE_TASK', taskId: event.notification.data.taskId });
+          return clients[0].focus();
+        }
+        return self.clients.openWindow('/');
+      })
+    );
+  } else {
+    event.waitUntil(self.clients.openWindow('/'));
+  }
+});
+
 // Network first, fall back to cache (so tasks are always fresh when online)
 self.addEventListener('fetch', e => {
   if (!e.request.url.startsWith(self.location.origin)) return;
