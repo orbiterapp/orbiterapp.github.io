@@ -4515,19 +4515,24 @@
     function _nlpMonthNum(s) { var m = { jan: 1, feb: 2, mar: 3, apr: 4, may: 5, jun: 6, jul: 7, aug: 8, sep: 9, oct: 10, nov: 11, dec: 12 }; return m[s.toLowerCase().substring(0, 3)] || null; }
     function parseNLPWeb(input) {
       var words = input.split(/\s+/).filter(Boolean), pri = 'None', flag = false, energy = 'None', estMin = null, rm = new Set();
+      var projectMatch = null, tagMatches = [];
       words.forEach(function (w, i) {
         switch (w.toLowerCase()) {
           case '!high': pri = 'High'; rm.add(i); break; case '!medium': pri = 'Medium'; rm.add(i); break; case '!low': pri = 'Low'; rm.add(i); break;
           case '!flag': case '!flagged': flag = true; rm.add(i); break;
+          case '~high': energy = 'High'; rm.add(i); break; case '~medium': energy = 'Medium'; rm.add(i); break; case '~low': energy = 'Low'; rm.add(i); break;
           default:
-            if (w.startsWith('~') && (w.endsWith('m') || w.endsWith('h'))) { var n = parseInt(w.slice(1, -1)); if (!isNaN(n)) { estMin = w.endsWith('h') ? n * 60 : n; rm.add(i); } }
+            if (w.startsWith('~') && (w.endsWith('m') || w.endsWith('h'))) { var n = parseInt(w.slice(1, -1)); if (!isNaN(n) && n > 0) { estMin = w.endsWith('h') ? n * 60 : n; rm.add(i); } }
+            if (w.startsWith('#') && w.length > 1) { var pq = w.slice(1).toLowerCase(); var pm2 = projects.find(function (p) { return p.name.toLowerCase().startsWith(pq); }); if (pm2) { projectMatch = pm2; rm.add(i); } }
+            if (w.startsWith('@') && w.length > 1) { var tq = w.slice(1).toLowerCase(); var allT = getAllTags(); var tm = allT.find(function (t) { return t.name.toLowerCase().startsWith(tq); }); if (tm && !tagMatches.find(function (x) { return x.name === tm.name; })) { tagMatches.push(tm); rm.add(i); } }
         }
       });
       words = words.filter(function (_, i) { return !rm.has(i); }); rm = new Set();
-      var due = null, timeH = null, timeM = 0;
+      var due = null, defer = null, timeH = null, timeM = 0;
       var today = new Date(); today.setHours(0, 0, 0, 0);
       for (var i = 0; i < words.length; i++) {
         var w = words[i].toLowerCase();
+        if ((w === 'defer' || w === 'start') && i + 1 < words.length) { var doff = _nlpNamedDay(words[i + 1].toLowerCase()); if (doff !== null) { defer = new Date(today); defer.setDate(defer.getDate() + doff); rm.add(i); rm.add(i + 1); i++; continue; } }
         if (w === 'at' && i + 1 < words.length) { var t = _nlpParseTime(words[i + 1]); if (t) { timeH = t[0]; timeM = t[1]; rm.add(i); rm.add(i + 1); i++; continue; } }
         var t2 = _nlpParseTime(w); if (t2) { timeH = t2[0]; timeM = t2[1]; rm.add(i); continue; }
         var off = _nlpNamedDay(w); if (off !== null) { if (!due) { due = new Date(today); due.setDate(due.getDate() + off); } rm.add(i); continue; }
@@ -4538,8 +4543,10 @@
       var remaining = words.filter(function (_, i) { return !rm.has(i); }).join(' ').trim();
       var pad = function (n) { return String(n).padStart(2, '0'); };
       var dueISO = due ? due.getFullYear() + '-' + pad(due.getMonth() + 1) + '-' + pad(due.getDate()) + 'T' + pad(due.getHours()) + ':' + pad(due.getMinutes()) : null;
-      if (!dueISO && pri === 'None' && !flag && estMin === null) return null;
-      return { title: remaining || input, dueDate: dueISO, priority: pri, isFlagged: flag, estimatedMinutes: estMin };
+      var deferISO = defer ? defer.getFullYear() + '-' + pad(defer.getMonth() + 1) + '-' + pad(defer.getDate()) : null;
+      var hasMatch = dueISO || pri !== 'None' || flag || estMin !== null || energy !== 'None' || deferISO || projectMatch || tagMatches.length;
+      if (!hasMatch) return null;
+      return { title: remaining || input, dueDate: dueISO, deferDate: deferISO, priority: pri, isFlagged: flag, estimatedMinutes: estMin, energy: energy, projectId: projectMatch ? projectMatch.id : null, projectName: projectMatch ? projectMatch.name : null, projectColor: projectMatch ? projectMatch.color : null, tagNames: tagMatches.map(function (t) { return t.name; }), tagColors: tagMatches.map(function (t) { return t.color; }) };
     }
     var _nlpTimer = null;
     function _bindNLPInput() {
@@ -4553,10 +4560,16 @@
           if (!strip) return;
           var parsed = parseNLPWeb(inp.value);
           if (!parsed) { strip.style.display = 'none'; strip.innerHTML = ''; return; }
-          var h = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" style="flex-shrink:0;margin-right:4px"><path d="M15 4V2"/><path d="M15 16v-2"/><path d="M8 9h2"/><path d="M20 9h2"/><path d="M17.8 11.8L19 13"/><path d="M15 9h0"/><path d="M17.8 6.2L19 5"/><path d="M3 21l9-9"/><path d="M12.2 6.2L11 5"/></svg>';
-          if (parsed.dueDate) { var dd = new Date(parsed.dueDate); h += '<span style="background:var(--blue-dim);color:var(--blue);padding:2px 7px;border-radius:12px;font-size:11px;font-weight:600">' + dd.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + (dd.getHours() ? ' ' + dd.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) : '') + '</span>'; }
-          if (parsed.priority !== 'None') h += '<span style="background:var(--red-dim);color:var(--red);padding:2px 7px;border-radius:12px;font-size:11px;font-weight:600">' + parsed.priority + '</span>';
-          if (parsed.isFlagged) h += '<span style="background:var(--pink-dim);color:var(--pink);padding:2px 7px;border-radius:12px;font-size:11px;font-weight:600">Flagged</span>';
+          var chip = function (label, bg, fg) { return '<span style="background:' + bg + ';color:' + fg + ';padding:2px 7px;border-radius:12px;font-size:11px;font-weight:600">' + label + '</span>'; };
+          var h = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" style="flex-shrink:0;margin-right:2px"><path d="M15 4V2"/><path d="M15 16v-2"/><path d="M8 9h2"/><path d="M20 9h2"/><path d="M17.8 11.8L19 13"/><path d="M15 9h0"/><path d="M17.8 6.2L19 5"/><path d="M3 21l9-9"/><path d="M12.2 6.2L11 5"/></svg>';
+          if (parsed.dueDate) { var dd = new Date(parsed.dueDate); h += chip((dd.getHours() ? dd.toLocaleDateString('en-US',{month:'short',day:'numeric'}) + ' ' + dd.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}) : dd.toLocaleDateString('en-US',{month:'short',day:'numeric'})), 'var(--blue-dim)', 'var(--blue)'); }
+          if (parsed.deferDate) { var df = new Date(parsed.deferDate + 'T00:00:00'); h += chip('Defer: ' + df.toLocaleDateString('en-US',{month:'short',day:'numeric'}), 'var(--accent-dim)', 'var(--accent)'); }
+          if (parsed.priority !== 'None') { var pc = {High:'var(--red)',Medium:'var(--amber)',Low:'var(--cyan)'}[parsed.priority]; h += chip('!' + parsed.priority, pc + '22', pc); }
+          if (parsed.isFlagged) h += chip('Flagged', 'var(--pink-dim)', 'var(--pink)');
+          if (parsed.energy !== 'None') { var ec = {High:'var(--red)',Medium:'var(--amber)',Low:'var(--green)'}[parsed.energy]; h += chip('~' + parsed.energy, ec + '22', ec); }
+          if (parsed.estimatedMinutes) { var em = parsed.estimatedMinutes; h += chip((em >= 60 ? Math.round(em/60) + 'h' : em + 'm'), 'var(--green-dim)', 'var(--green)'); }
+          if (parsed.projectName) h += chip('↗ ' + parsed.projectName, (parsed.projectColor || '#8C59F2') + '22', parsed.projectColor || '#8C59F2');
+          if (parsed.tagNames && parsed.tagNames.length) { parsed.tagNames.forEach(function (tn, ti) { var tc2 = parsed.tagColors[ti] || 'var(--text2)'; h += chip('#' + tn, tc2 + '22', tc2); }); }
           h += '<button onclick="applyNLPWeb()" style="margin-left:auto;background:var(--accent);color:#fff;border:none;padding:2px 10px;border-radius:12px;font-size:11px;font-weight:600;cursor:pointer">Apply</button>';
           strip.innerHTML = h; strip.style.display = 'flex';
         }, 150);
@@ -4569,14 +4582,16 @@
       var parsed = parseNLPWeb(inp.value);
       if (!parsed) return;
       inp.value = parsed.title;
+      var pad = function (n) { return String(n).padStart(2, '0'); };
       if (parsed.dueDate) {
         var d = new Date(parsed.dueDate);
-        var pad = function (n) { return String(n).padStart(2, '0'); };
         document.getElementById('i-due').value = d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
         if (d.getHours() || d.getMinutes()) document.getElementById('i-due-time').value = pad(d.getHours()) + ':' + pad(d.getMinutes());
       }
       if (parsed.priority !== 'None') document.getElementById('i-priority').value = parsed.priority;
       if (parsed.isFlagged) { var tog = document.getElementById('tog-flag'); if (tog && !tog.classList.contains('on')) tog.click(); }
+      if (parsed.projectId) { var ps = document.getElementById('i-project'); if (ps) ps.value = parsed.projectId; }
+      if (parsed.tagNames && parsed.tagNames.length) { parsed.tagNames.forEach(function (tn) { if (!addModalTags.includes(tn)) addModalTags.push(tn); }); buildTagsPicker('i-tags-picker', addModalTags); }
       if (strip) { strip.style.display = 'none'; strip.innerHTML = ''; }
     }
 
@@ -5127,12 +5142,24 @@
     function toggleFlag() { flagged = !flagged; document.getElementById('tog-flag').classList.toggle('on', flagged); }
 
     async function addTask() {
-      var title = document.getElementById('i-title').value.trim();
-      if (!title) { document.getElementById('i-title').focus(); return; }
+      var rawTitle = document.getElementById('i-title').value.trim();
+      if (!rawTitle) { document.getElementById('i-title').focus(); return; }
+      var nlp = parseNLPWeb(rawTitle);
+      var title = nlp ? nlp.title : rawTitle;
       var now = new Date().toISOString();
+      var pad = function (n) { return String(n).padStart(2, '0'); };
       var dueDate = document.getElementById('i-due').value, dueTime = document.getElementById('i-due-time').value;
       var dueISO = dueDate ? (dueTime ? new Date(dueDate + 'T' + dueTime).toISOString() : new Date(dueDate + 'T00:00:00').toISOString()) : null;
-      var task = { id: uuid(), user_id: session.user.id, title: title, notes: document.getElementById('i-notes').value.trim(), due_date: dueISO, defer_date: null, is_completed: false, is_flagged: flagged, priority: document.getElementById('i-priority').value, project_id: document.getElementById('i-project').value || null, tag_ids: JSON.stringify(addModalTags.map(function (tn) { return { name: tn, color: getTagColor(tn) }; })), created_at: now, completed_at: null, repeat_rule: document.getElementById('i-repeat').value || 'None', parent_id: null, sort_order: tasks.length, last_reviewed: null, next_review_date: null, review_frequency_num: null, review_frequency_unit: null, is_in_review: false, is_today_task: false, notify_before_minutes: parseInt(document.getElementById('i-notify-before').value) || 30, notified_at: null, updated_at: now };
+      if (nlp && nlp.dueDate) { var nd = new Date(nlp.dueDate); dueISO = nd.toISOString(); }
+      var pri = document.getElementById('i-priority').value;
+      if (nlp && nlp.priority !== 'None') pri = nlp.priority;
+      var isFlag = flagged; if (nlp && nlp.isFlagged) isFlag = true;
+      var projId = document.getElementById('i-project').value || null; if (nlp && nlp.projectId) projId = nlp.projectId;
+      var taskTags = addModalTags.slice(); if (nlp && nlp.tagNames) nlp.tagNames.forEach(function (tn) { if (!taskTags.includes(tn)) taskTags.push(tn); });
+      var deferISO = null; if (nlp && nlp.deferDate) deferISO = nlp.deferDate;
+      var energyLevel = (nlp && nlp.energy !== 'None') ? nlp.energy : null;
+      var estMins = (nlp && nlp.estimatedMinutes) ? nlp.estimatedMinutes : null;
+      var task = { id: uuid(), user_id: session.user.id, title: title, notes: document.getElementById('i-notes').value.trim(), due_date: dueISO, defer_date: deferISO, is_completed: false, is_flagged: isFlag, priority: pri, project_id: projId, tag_ids: JSON.stringify(taskTags.map(function (tn) { return { name: tn, color: getTagColor(tn) }; })), energy_level: energyLevel, estimated_minutes: estMins, created_at: now, completed_at: null, repeat_rule: document.getElementById('i-repeat').value || 'None', parent_id: null, sort_order: tasks.length, last_reviewed: null, next_review_date: null, review_frequency_num: null, review_frequency_unit: null, is_in_review: false, is_today_task: false, notify_before_minutes: parseInt(document.getElementById('i-notify-before').value) || 30, notified_at: null, updated_at: now };
       tasks.push(task); render(); haptic('medium');
       var addAnother = document.getElementById('tog-add-another')?.classList.contains('on');
       if (addAnother) {
