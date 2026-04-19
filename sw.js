@@ -1,5 +1,5 @@
 // ORB-116: bump CACHE_VERSION on each release to invalidate old caches
-const CACHE_VERSION = 'v13';
+const CACHE_VERSION = 'v14';
 // Quiet hours state — updated via message from client page
 let _qhEnabled = false, _qhStart = '22:00', _qhEnd = '07:00';
 function _isQuietHours() {
@@ -10,7 +10,7 @@ function _isQuietHours() {
   return s <= e ? (hm >= s && hm < e) : (hm >= s || hm < e);
 }
 const CACHE = `orbiter-${CACHE_VERSION}`;
-const SHELL  = ['./index.html', './quick.html', './manifest.json', './iconbg.png', './iconnobg.png', './favicon.ico', './auth.js', './shader-background.js'];
+const SHELL  = ['./index.html', './quick.html', './manifest.json', './iconbg.png', './favicon.ico', './auth.js', './shader-background.js'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)));
