@@ -2614,6 +2614,14 @@
 
     .cal-dot.p-urgent { background: #ef4444 }
     .cal-dot.p-high { background: #f97316 }
+    /* Sort bar */
+    .sort-bar{display:flex;align-items:center;justify-content:flex-end;padding:0 2px 10px;position:relative}
+    .sort-btn{display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:9px;background:var(--surface);border:1px solid var(--border);color:var(--text2);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s}
+    .sort-btn:active{transform:scale(.95)}
+    .sort-drop{position:absolute;top:100%;right:0;background:var(--card);border:1px solid var(--border2);border-radius:12px;padding:6px;z-index:50;min-width:150px;box-shadow:0 8px 24px rgba(0,0,0,.4)}
+    .sort-drop-item{display:block;width:100%;padding:8px 12px;border-radius:8px;font-size:13px;font-weight:600;color:var(--text2);cursor:pointer;background:none;border:none;font-family:inherit;text-align:left;transition:background .1s}
+    .sort-drop-item:hover{background:var(--surface2)}
+    .sort-drop-item.active{color:var(--purple);background:var(--purple-dim)}
     .cal-dot.p-medium { background: #eab308 }
     .cal-dot.p-low { background: var(--cyan) }
 
@@ -4710,7 +4718,7 @@
         else if (activeFilters.due === 'week') base = base.filter(function (x) { if (!x.due_date) return false; var d = new Date(x.due_date); return d >= t && d < new Date(t.getTime() + 7 * 864e5); });
         else if (activeFilters.due === 'nodate') base = base.filter(function (x) { return !x.due_date; });
       }
-      if (currentTab === 'inbox' && inboxSort !== 'created') {
+      if (currentTab !== 'calendar' && inboxSort !== 'created') {
         var _priOrder = { High: 0, Medium: 1, Low: 2, None: 3 };
         base = base.slice().sort(function (a, b) {
           if (inboxSort === 'due') { if (!a.due_date && !b.due_date) return 0; if (!a.due_date) return 1; if (!b.due_date) return -1; return new Date(a.due_date) - new Date(b.due_date); }
@@ -4721,7 +4729,13 @@
       }
       return base;
     }
-    function setInboxSort(val) { inboxSort = val; localStorage.setItem('inbox_sort', val); render(); }
+    function setInboxSort(val) { inboxSort = val; localStorage.setItem('inbox_sort', val); _sortOpen = false; render(); }
+    var _sortOpen = false;
+    var _SORT_NAMES = {created:'Date Added',due:'Due Date',priority:'Priority',title:'A–Z'};
+    var _SORT_ITEMS = [['created','Date Added'],['due','Due Date'],['priority','Priority'],['title','A–Z']];
+    window.toggleSortDrop = function(e) { e.stopPropagation(); _sortOpen = !_sortOpen; var d = document.getElementById('sort-drop'); if (d) d.style.display = _sortOpen ? 'block' : 'none'; };
+    window.setSortAndClose = function(val) { setInboxSort(val); };
+    document.addEventListener('click', function() { if (_sortOpen) { _sortOpen = false; var d = document.getElementById('sort-drop'); if (d) d.style.display = 'none'; } });
 
 
     // --- Calendar UI ---
@@ -4818,11 +4832,11 @@
         if (isS) cls += ' selected';
 
         var dotsHtml = '';
-        if (dayPriorities.length) {
-          var seen = {};
-          var dotOrder = ['urgent','high','medium','low'];
-          var dots = dotOrder.filter(function(p){ return dayPriorities.indexOf(p) !== -1; }).slice(0,3);
-          dotsHtml = '<div class="cal-dots">' + dots.map(function(p){ return '<div class="cal-dot p-'+p+'"></div>'; }).join('') + '</div>';
+        var _dc = dayPriorities.length;
+        if (_dc > 0) {
+          var _nd = Math.min(_dc, 3), _dh = '';
+          for (var _di = 0; _di < _nd; _di++) _dh += '<div class="cal-dot"></div>';
+          dotsHtml = '<div class="cal-dots">' + _dh + '</div>';
         }
 
         grid += '<div class="cal-cell"><button class="' + cls + '" onclick="setCalSelDate(' + dyY + ',' + dyM + ',' + dy.d + ')">' + dy.d + '</button>' + dotsHtml + '</div>';
@@ -4979,7 +4993,10 @@
           }
           _archBar += '</div>';
           area.innerHTML = _archBar + _rHtml;
-        } else { area.innerHTML = _rHtml; }
+        } else {
+          var _sBarHtml = '<div class="sort-bar"><div style="position:relative"><button class="sort-btn" onclick="toggleSortDrop(event)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="6" y1="12" x2="18" y2="12"/><line x1="9" y1="18" x2="15" y2="18"/></svg>' + (_SORT_NAMES[inboxSort]||'Sort') + '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></button><div id="sort-drop" class="sort-drop" style="display:none">' + _SORT_ITEMS.map(function(s){return'<button class="sort-drop-item'+(inboxSort===s[0]?' active':'')+'" onclick="setSortAndClose(\''+s[0]+'\')">'+s[1]+'</button>';}).join('') + '</div></div></div>';
+          area.innerHTML = _sBarHtml + _rHtml;
+        }
       }
     } // end render()
 
@@ -6195,14 +6212,6 @@
         PRESET_TAGS.forEach(function (tag) {
           var sel = activeFilters.tag === tag.name;
           h += '<div class="filter-chip' + (sel ? ' active' : '') + '" onclick="setFilter(\'tag\',\'' + tag.name + '\')" style="' + (sel ? 'border-color:' + tag.color + ';color:' + tag.color + ';background:' + tag.color + '18' : '') + '"><span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:' + tag.color + '"></span>' + tag.name + '</div>';
-        });
-      }
-      if (currentTab === 'inbox') {
-        var sorts = [['created', 'Date Added'], ['due', 'Due Date'], ['priority', 'Priority'], ['title', 'A–Z']];
-        h += '<div style="width:1px;height:20px;background:var(--border);margin:0 2px"></div>';
-        h += '<div style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;color:var(--text2)">Sort:</div>';
-        sorts.forEach(function (s) {
-          h += '<div class="filter-chip' + (inboxSort === s[0] ? ' active' : '') + '" onclick="setInboxSort(\'' + s[0] + '\')">' + s[1] + '</div>';
         });
       }
       // Saved filter sets
