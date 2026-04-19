@@ -153,8 +153,24 @@
     .rv{opacity:0;transform:translateY(24px);transition:opacity .8s cubic-bezier(.22,1,.36,1),transform .8s cubic-bezier(.22,1,.36,1)}
     .rv.in{opacity:1;transform:translateY(0)}
     .rv.d1{transition-delay:.07s}.rv.d2{transition-delay:.14s}.rv.d3{transition-delay:.21s}
-    @media(max-width:720px){nav{padding:0 20px}.cards{grid-template-columns:1fr}.features-strip{grid-template-columns:1fr 1fr}.web-strip{flex-direction:column}footer{padding:28px 20px;flex-direction:column;text-align:center}.footer-links{justify-content:center}}
-    @media(max-width:480px){.features-strip{grid-template-columns:1fr}}
+    @media(max-width:720px){
+      nav{padding:0 16px;height:56px}
+      .nav-logo{font-size:16px}
+      .nav-back{padding:6px 12px;font-size:12px}
+      .page{padding:56px 16px 80px}
+      .page-title{letter-spacing:-1.8px}
+      .cards{grid-template-columns:1fr}
+      .dl-card{padding:28px 24px}
+      .features-strip{grid-template-columns:1fr 1fr}
+      .web-strip{flex-direction:column;padding:24px}
+      footer{padding:28px 16px;flex-direction:column;text-align:center}
+      .footer-links{justify-content:center;flex-wrap:wrap;gap:14px}
+    }
+    @media(max-width:480px){
+      .features-strip{grid-template-columns:1fr}
+      .dl-btn{padding:14px 20px;font-size:14px}
+      .page-sub{font-size:15px}
+    }
   </style>
 </head>
 <body>
@@ -268,12 +284,12 @@
   <div class="footer-links">
     <a href="landing.html">Home</a>
     <a href="privacy.html">Privacy</a>
-    <a href="mailto:support@orbiterapp.com">Support</a>
+    <a href="/cdn-cgi/l/email-protection#62111712120d1016220d10000b1607100312124c010d0f">Support</a>
   </div>
   <span class="footer-copy">© 2026 Orbiter</span>
 </footer>
 
-<script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js" defer></script><script>
 (function(){
   const box = document.getElementById('stars');
   const frag = document.createDocumentFragment();
