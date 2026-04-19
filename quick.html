@@ -67,7 +67,6 @@
   </div>
   <div class="input-card">
     <input class="title-input" id="q-title" type="text" placeholder="What needs to be done?" autocomplete="off" autofocus>
-    <div class="nlp-strip" id="nlp-strip" style="display:none"></div>
     <textarea class="notes-input" id="q-notes" placeholder="Notes (optional)"></textarea>
     <div class="options">
       <div class="opt" id="chip-pri" onclick="cyclePri()"><div class="pdot" id="pdot" style="background:var(--text3)"></div><span id="plbl">None</span></div>
@@ -103,7 +102,7 @@ const SB_URL='https://kmfymwtarvvmzuwwspwy.supabase.co',SB_KEY='eyJhbGciOiJIUzI1
 <!-- ORB-21: shared auth module -->
 <script src="auth.js"></script>
 <script>
-let session=null,qP='None',qF=false,qD=null,qProj=null,qE='None',qTagIds=[];
+let session=null,qP='None',qF=false,qD=null,qProj=null,qE='None',qTagIds=[],qDeferDate=null,_nlpState=null;
 // NLP helpers
 function _nlpParseTime(s){var m=s.match(/^(\d{1,2})(?::(\d{2}))(am|pm)?$/i)||s.match(/^(\d{1,2})(am|pm)$/i);if(!m)return null;var h=parseInt(m[1]),mn=m[2]&&!/(am|pm)/i.test(m[2])?parseInt(m[2]):0,mer=(m[3]||(/am|pm/i.test(m[2])?m[2]:null));if(mer)mer=mer.toLowerCase();if(h>23||mn>59)return null;if(mer==='pm'&&h<12)h+=12;if(mer==='am'&&h===12)h=0;return[h,mn];}
 function _nlpNamedDay(w){var n={'today':0,'tod':0,'tmr':1,'tomorrow':1,'tmrw':1,'sun':function(){var d=new Date();var t=d.getDay();return t===0?7:7-t;}(),'mon':function(){var d=new Date();var t=d.getDay();return t===1?7:(8-t)%7||7;}(),'tue':function(){var d=new Date();var t=d.getDay();return t===2?7:(9-t)%7||7;}(),'wed':function(){var d=new Date();var t=d.getDay();return t===3?7:(10-t)%7||7;}(),'thu':function(){var d=new Date();var t=d.getDay();return t===4?7:(11-t)%7||7;}(),'fri':function(){var d=new Date();var t=d.getDay();return t===5?7:(12-t)%7||7;}(),'sat':function(){var d=new Date();var t=d.getDay();return t===6?7:(13-t)%7||7;}(),'sunday':0,'monday':0,'tuesday':0,'wednesday':0,'thursday':0,'friday':0,'saturday':0};if(w in n){var v=n[w];if(typeof v==='function')return v();return v;}var full={'sunday':0,'monday':1,'tuesday':2,'wednesday':3,'thursday':4,'friday':5,'saturday':6};if(w in full){var today=new Date().getDay(),tgt=full[w];var diff=((tgt-today)+7)%7;return diff===0?7:diff;}return null;}
@@ -145,21 +144,28 @@ function parseNLPQuick(input){
   if(!hasMatch)return null;
   return{title:remaining||input,dueDate:dueISO,deferDate:deferISO,priority:pri,isFlagged:flag,estimatedMinutes:estMin,energy:energy,projectMatch:projectMatch,tagMatches:tagMatches};
 }
-function renderNLPStrip(nlp){
-  var strip=document.getElementById('nlp-strip');
-  if(!nlp){strip.style.display='none';strip.innerHTML='';return;}
-  var chips=[];
-  var PCOL2={High:'var(--high)',Medium:'var(--medium)',Low:'var(--low)'};
-  var ECOL2={High:'var(--pink)',Medium:'var(--amber)',Low:'var(--cyan)'};
-  if(nlp.priority!=='None')chips.push('<span class="nlp-chip" style="color:'+PCOL2[nlp.priority]+';border-color:'+PCOL2[nlp.priority]+'40">'+nlp.priority+' priority</span>');
-  if(nlp.isFlagged)chips.push('<span class="nlp-chip" style="color:var(--pink);border-color:rgba(244,63,122,.3)">Flagged</span>');
-  if(nlp.dueDate){var d=new Date(nlp.dueDate);var lbl=d.toLocaleDateString('en-US',{month:'short',day:'numeric'})+(d.getHours()!==0||d.getMinutes()!==0?' '+d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}):'');chips.push('<span class="nlp-chip" style="color:var(--green);border-color:rgba(52,211,153,.3)">'+lbl+'</span>');}
-  if(nlp.deferDate){var dd=new Date(nlp.deferDate+'T00:00:00');chips.push('<span class="nlp-chip" style="color:var(--cyan);border-color:rgba(34,211,238,.3)">Defer '+dd.toLocaleDateString('en-US',{month:'short',day:'numeric'})+'</span>');}
-  if(nlp.energy!=='None')chips.push('<span class="nlp-chip" style="color:'+ECOL2[nlp.energy]+';border-color:'+ECOL2[nlp.energy]+'40">'+nlp.energy+' energy</span>');
-  if(nlp.estimatedMinutes){var em=nlp.estimatedMinutes>=60?Math.round(nlp.estimatedMinutes/60)+'h':nlp.estimatedMinutes+'m';chips.push('<span class="nlp-chip">'+em+'</span>');}
-  if(nlp.projectMatch)chips.push('<span class="nlp-chip" style="color:'+(nlp.projectMatch.color||'var(--purple)')+';border-color:'+(nlp.projectMatch.color||'var(--purple)')+'40">'+nlp.projectMatch.name+'</span>');
-  nlp.tagMatches.forEach(function(t){chips.push('<span class="nlp-chip" style="color:'+(t.color||'var(--text2)')+';border-color:'+(t.color||'var(--text2)')+'40">'+t.name+'</span>');});
-  if(chips.length){strip.innerHTML=chips.join('');strip.style.display='flex';}else{strip.style.display='none';strip.innerHTML='';}
+function _resetNLPChips(prev){
+  if(!prev)return;
+  if(prev.priority!=='None'){qP='None';document.getElementById('plbl').textContent='None';document.getElementById('pdot').style.background=PCOL['None'];const c=document.getElementById('chip-pri');c.classList.remove('active');c.style.borderColor='';}
+  if(prev.isFlagged){qF=false;document.getElementById('chip-flag').classList.remove('flag-on');}
+  if(prev.dueDate){qD=null;document.getElementById('dlbl').textContent='Due date';document.getElementById('chip-due').classList.remove('active');document.getElementById('dsel').value='';}
+  if(prev.energy!=='None'){qE='None';document.getElementById('elbl').textContent='Energy';const ec=document.getElementById('chip-energy');ec.classList.remove('active');ec.style.borderColor='';}
+  if(prev.projectMatch){qProj=null;document.getElementById('pjlbl').textContent='Project';document.getElementById('chip-proj').classList.remove('active');document.getElementById('pjsel').value='';}
+  if(prev.tagMatches&&prev.tagMatches.length)qTagIds=[];
+  if(prev.deferDate)qDeferDate=null;
+}
+function applyNLPChips(input){
+  var nlp=null;try{nlp=input?parseNLPQuick(input):null;}catch(e){}
+  _resetNLPChips(_nlpState);
+  _nlpState=nlp;
+  if(!nlp)return;
+  if(nlp.priority!=='None'){qP=nlp.priority;document.getElementById('plbl').textContent=qP;document.getElementById('pdot').style.background=PCOL[qP];const c=document.getElementById('chip-pri');c.classList.add('active');c.style.borderColor=PCOL[qP];}
+  if(nlp.isFlagged){qF=true;document.getElementById('chip-flag').classList.add('flag-on');}
+  if(nlp.dueDate){qD=nlp.dueDate;const d=new Date(nlp.dueDate);const lbl=d.toLocaleDateString('en-US',{month:'short',day:'numeric'})+(d.getHours()!==0||d.getMinutes()!==0?' '+d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}):'');document.getElementById('dlbl').textContent=lbl;document.getElementById('chip-due').classList.add('active');}
+  if(nlp.deferDate){qDeferDate=nlp.deferDate;}
+  if(nlp.energy!=='None'){qE=nlp.energy;document.getElementById('elbl').textContent=qE;const ec=document.getElementById('chip-energy');ec.classList.add('active');ec.style.borderColor=ECOL[qE];}
+  if(nlp.projectMatch){qProj=nlp.projectMatch.id;document.getElementById('pjlbl').textContent=nlp.projectMatch.name;document.getElementById('chip-proj').classList.add('active');document.getElementById('pjsel').value=nlp.projectMatch.id;}
+  if(nlp.tagMatches&&nlp.tagMatches.length)qTagIds=nlp.tagMatches.map(function(t){return t.id;});
 }
 // ORB-119: energy level chip
 const ENERGY=['None','Low','Medium','High'],ECOL={None:'var(--text3)',Low:'var(--cyan)',Medium:'var(--amber)',High:'var(--pink)'};
@@ -194,19 +200,11 @@ function toggleF(){qF=!qF;document.getElementById('chip-flag').classList.toggle(
 async function submitTask(){
   const rawTitle=document.getElementById('q-title').value.trim();
   if(!rawTitle){document.getElementById('q-title').focus();return}
-  let nlp=null;try{nlp=parseNLPQuick(rawTitle);}catch(e){}
-  const title=(nlp&&nlp.title)?nlp.title:rawTitle;
-  if(nlp){
-    if(nlp.priority!=='None')qP=nlp.priority;
-    if(nlp.isFlagged)qF=true;
-    if(nlp.dueDate)qD=nlp.dueDate;
-    if(nlp.energy!=='None')qE=nlp.energy;
-    if(nlp.projectMatch)qProj=nlp.projectMatch.id;
-    if(nlp.tagMatches.length)qTagIds=nlp.tagMatches.map(function(t){return t.id;});
-  }
+  let _nlp=null;try{_nlp=parseNLPQuick(rawTitle);}catch(e){}
+  const title=(_nlp&&_nlp.title)?_nlp.title:rawTitle;
   const btn=document.getElementById('sbtn');btn.disabled=true;btn.textContent='Adding…';
   const now=new Date().toISOString();
-  const task={id:crypto.randomUUID?crypto.randomUUID():([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g,c=>(c^crypto.getRandomValues(new Uint8Array(1))[0]&15>>c/4).toString(16)),user_id:session.user.id,title,notes:document.getElementById('q-notes').value.trim(),due_date:qD,defer_date:nlp&&nlp.deferDate?nlp.deferDate:null,is_completed:false,is_flagged:qF,priority:qP,project_id:qProj,tag_ids:qTagIds.length?JSON.stringify(qTagIds):'[]',energy_level:qE,estimated_minutes:nlp&&nlp.estimatedMinutes?nlp.estimatedMinutes:null,created_at:now,completed_at:null,repeat_rule:'None',parent_id:null,sort_order:0,last_reviewed:null,next_review_date:null,review_frequency_num:null,review_frequency_unit:null,is_in_review:false,is_today_task:false,updated_at:now};
+  const task={id:crypto.randomUUID?crypto.randomUUID():([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g,c=>(c^crypto.getRandomValues(new Uint8Array(1))[0]&15>>c/4).toString(16)),user_id:session.user.id,title,notes:document.getElementById('q-notes').value.trim(),due_date:qD,defer_date:qDeferDate,is_completed:false,is_flagged:qF,priority:qP,project_id:qProj,tag_ids:qTagIds.length?JSON.stringify(qTagIds):'[]',energy_level:qE,created_at:now,completed_at:null,repeat_rule:'None',parent_id:null,sort_order:0,last_reviewed:null,next_review_date:null,review_frequency_num:null,review_frequency_unit:null,is_in_review:false,is_today_task:false,updated_at:now};
   // ORB-23: Offline queue
   if(!navigator.onLine){
     try{const outbox=JSON.parse(localStorage.getItem('orbiter_outbox')||'[]');outbox.push(task);localStorage.setItem('orbiter_outbox',JSON.stringify(outbox));showOKOffline();}
@@ -241,7 +239,7 @@ window.addEventListener('online',async function flushOutbox(){
 function reset(){
   document.getElementById('q-title').value='';
   document.getElementById('q-notes').value='';
-  qP='None';qF=false;qD=null;qE='None';qTagIds=[];
+  qP='None';qF=false;qD=null;qE='None';qTagIds=[];qDeferDate=null;_nlpState=null;
   document.getElementById('plbl').textContent='None';
   document.getElementById('pdot').style.background='var(--text3)';
   document.getElementById('chip-pri').classList.remove('active');
@@ -260,7 +258,7 @@ function reset(){
 }
 function showToast(msg){const t=document.createElement('div');t.textContent=msg;t.style.cssText='position:fixed;bottom:calc(env(safe-area-inset-bottom)+20px);left:50%;transform:translateX(-50%);background:rgba(30,30,38,0.95);color:#f0f0f5;padding:10px 18px;border-radius:10px;font-size:13px;font-weight:600;z-index:200;border:1px solid rgba(255,255,255,0.12)';document.body.appendChild(t);setTimeout(()=>t.remove(),3000);}
 document.getElementById('q-title').addEventListener('keydown',e=>{if(e.key==='Enter')submitTask();});
-document.getElementById('q-title').addEventListener('input',function(){renderNLPStrip(parseNLPQuick(this.value.trim()));});
+document.getElementById('q-title').addEventListener('input',function(){applyNLPChips(this.value.trim());});
 async function init(){
   // ORB-21: use shared bootstrapSession from auth.js
   session=await bootstrapSession();
