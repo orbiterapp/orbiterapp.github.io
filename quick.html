@@ -105,7 +105,7 @@ const SB_URL='https://kmfymwtarvvmzuwwspwy.supabase.co',SB_KEY='eyJhbGciOiJIUzI1
 <script>
 let session=null,qP='None',qF=false,qD=null,qProj=null,qE='None',qTagIds=[];
 // NLP helpers
-function _nlpParseTime(s){var m=s.match(/^(\d{1,2})(?::(\d{2}))?(am|pm)?$/i);if(!m)return null;var h=parseInt(m[1]),mn=m[2]?parseInt(m[2]):0,mer=m[3]?m[3].toLowerCase():null;if(h>23||mn>59)return null;if(mer==='pm'&&h<12)h+=12;if(mer==='am'&&h===12)h=0;if(!mer&&h<7)h+=12;return[h,mn];}
+function _nlpParseTime(s){var m=s.match(/^(\d{1,2})(?::(\d{2}))(am|pm)?$/i)||s.match(/^(\d{1,2})(am|pm)$/i);if(!m)return null;var h=parseInt(m[1]),mn=m[2]&&!/(am|pm)/i.test(m[2])?parseInt(m[2]):0,mer=(m[3]||(/am|pm/i.test(m[2])?m[2]:null));if(mer)mer=mer.toLowerCase();if(h>23||mn>59)return null;if(mer==='pm'&&h<12)h+=12;if(mer==='am'&&h===12)h=0;return[h,mn];}
 function _nlpNamedDay(w){var n={'today':0,'tod':0,'tmr':1,'tomorrow':1,'tmrw':1,'sun':function(){var d=new Date();var t=d.getDay();return t===0?7:7-t;}(),'mon':function(){var d=new Date();var t=d.getDay();return t===1?7:(8-t)%7||7;}(),'tue':function(){var d=new Date();var t=d.getDay();return t===2?7:(9-t)%7||7;}(),'wed':function(){var d=new Date();var t=d.getDay();return t===3?7:(10-t)%7||7;}(),'thu':function(){var d=new Date();var t=d.getDay();return t===4?7:(11-t)%7||7;}(),'fri':function(){var d=new Date();var t=d.getDay();return t===5?7:(12-t)%7||7;}(),'sat':function(){var d=new Date();var t=d.getDay();return t===6?7:(13-t)%7||7;}(),'sunday':0,'monday':0,'tuesday':0,'wednesday':0,'thursday':0,'friday':0,'saturday':0};if(w in n){var v=n[w];if(typeof v==='function')return v();return v;}var full={'sunday':0,'monday':1,'tuesday':2,'wednesday':3,'thursday':4,'friday':5,'saturday':6};if(w in full){var today=new Date().getDay(),tgt=full[w];var diff=((tgt-today)+7)%7;return diff===0?7:diff;}return null;}
 function _nlpMonthNum(w){var m={jan:1,feb:2,mar:3,apr:4,may:5,jun:6,jul:7,aug:8,sep:9,oct:10,nov:11,dec:12,january:1,february:2,march:3,april:4,june:6,july:7,august:8,september:9,october:10,november:11,december:12};return m[w]||null;}
 let qAllTags=[];try{qAllTags=JSON.parse(localStorage.getItem('pwa_tags')||'[]');}catch(e){}
@@ -194,8 +194,8 @@ function toggleF(){qF=!qF;document.getElementById('chip-flag').classList.toggle(
 async function submitTask(){
   const rawTitle=document.getElementById('q-title').value.trim();
   if(!rawTitle){document.getElementById('q-title').focus();return}
-  const nlp=parseNLPQuick(rawTitle);
-  const title=nlp?nlp.title:rawTitle;
+  let nlp=null;try{nlp=parseNLPQuick(rawTitle);}catch(e){}
+  const title=(nlp&&nlp.title)?nlp.title:rawTitle;
   if(nlp){
     if(nlp.priority!=='None')qP=nlp.priority;
     if(nlp.isFlagged)qF=true;
@@ -218,7 +218,7 @@ async function submitTask(){
     if(r.status===401){const s=await refresh();if(s){session=s;r=await fetch(SB_URL+'/rest/v1/tasks',{method:'POST',headers:{'apikey':SB_KEY,'Authorization':'Bearer '+session.access_token,'Content-Type':'application/json','Prefer':'resolution=merge-duplicates'},body:JSON.stringify(task)})}}
     if(!r.ok)throw new Error('fail');
     showOK();
-  }catch{btn.disabled=false;btn.innerHTML='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add Task';}
+  }catch(err){btn.disabled=false;btn.innerHTML='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add Task';showToast('Failed to add task — try again');}
 }
 function showOK(){const o=document.getElementById('sov');o.classList.add('show');o.onclick=()=>{o.classList.remove('show');reset()};setTimeout(()=>{if(o.classList.contains('show')){o.classList.remove('show');reset()}},2500)}
 function showOKOffline(){const o=document.getElementById('sov');if(o){const orig=o.textContent;o.textContent='Saved offline — syncs when connected';o.classList.add('show');o.onclick=()=>{o.classList.remove('show');o.textContent=orig;reset()};setTimeout(()=>{if(o.classList.contains('show')){o.classList.remove('show');o.textContent=orig;reset()}},3000)}else reset();}
