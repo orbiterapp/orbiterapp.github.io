@@ -17,6 +17,8 @@
     (function redirectRootToLanding() {
       const path = window.location.pathname || '';
       const isRootPath = path.endsWith('/');
+      // ORB-124: Don't redirect if explicitly loading index.html
+      if (path.includes('index.html')) return;
       if (!isRootPath) return;
       window.location.replace(path + 'landing.html');
     })();
