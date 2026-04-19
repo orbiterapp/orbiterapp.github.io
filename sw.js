@@ -1,5 +1,5 @@
 // ORB-116: bump CACHE_VERSION on each release to invalidate old caches
-const CACHE_VERSION = 'v11';
+const CACHE_VERSION = 'v12';
 // Quiet hours state — updated via message from client page
 let _qhEnabled = false, _qhStart = '22:00', _qhEnd = '07:00';
 function _isQuietHours() {
