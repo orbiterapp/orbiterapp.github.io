@@ -4540,6 +4540,11 @@
       render();
     }
 
+    function padLocalPart(n) { return String(n).padStart(2, '0'); }
+    function toLocalDateValue(date) { return date.getFullYear() + '-' + padLocalPart(date.getMonth() + 1) + '-' + padLocalPart(date.getDate()); }
+    function toLocalDateTimeValue(date) { return toLocalDateValue(date) + 'T' + padLocalPart(date.getHours()) + ':' + padLocalPart(date.getMinutes()); }
+    function combineLocalDateTime(dateValue, timeValue) { return dateValue ? (dateValue + 'T' + (timeValue || '00:00')) : null; }
+
     // ─── NLP Parser (web quick-add) ───────────────────────────────────────────────
     function _nlpParseTime(s) { var l = s.toLowerCase(), pm = l.endsWith('pm'), am = l.endsWith('am'), st = (pm || am) ? l.slice(0, -2) : l; if (!st) return null; var p = st.split(':'); var h = parseInt(p[0]); if (isNaN(h)) return null; var m = p.length > 1 ? parseInt(p[1]) || 0 : 0; if (pm && h < 12) h += 12; if (am && h === 12) h = 0; return (h >= 0 && h <= 23 && m >= 0 && m <= 59) ? [h, m] : null; }
     function _nlpNamedDay(w) { var d = { today: 0, tomorrow: 1 }; if (w in d) return d[w]; var m = { sunday: 0, monday: 1, tuesday: 2, wednesday: 3, thursday: 4, friday: 5, saturday: 6 }; if (w in m) { var c = new Date().getDay(), df = (m[w] - c + 7) % 7; return df === 0 ? 7 : df; } return null; }
@@ -4573,9 +4578,8 @@
       }
       if (timeH !== null) { if (!due) due = new Date(today); due.setHours(timeH, timeM, 0, 0); }
       var remaining = words.filter(function (_, i) { return !rm.has(i); }).join(' ').trim();
-      var pad = function (n) { return String(n).padStart(2, '0'); };
-      var dueISO = due ? due.getFullYear() + '-' + pad(due.getMonth() + 1) + '-' + pad(due.getDate()) + 'T' + pad(due.getHours()) + ':' + pad(due.getMinutes()) : null;
-      var deferISO = defer ? defer.getFullYear() + '-' + pad(defer.getMonth() + 1) + '-' + pad(defer.getDate()) : null;
+      var dueISO = due ? toLocalDateTimeValue(due) : null;
+      var deferISO = defer ? toLocalDateValue(defer) : null;
       var hasMatch = dueISO || pri !== 'None' || flag || estMin !== null || energy !== 'None' || deferISO || projectMatch || tagMatches.length;
       if (!hasMatch) return null;
       return { title: remaining || input, dueDate: dueISO, deferDate: deferISO, priority: pri, isFlagged: flag, estimatedMinutes: estMin, energy: energy, projectId: projectMatch ? projectMatch.id : null, projectName: projectMatch ? projectMatch.name : null, projectColor: projectMatch ? projectMatch.color : null, tagNames: tagMatches.map(function (t) { return t.name; }), tagColors: tagMatches.map(function (t) { return t.color; }) };
@@ -4614,11 +4618,10 @@
       var parsed = parseNLPWeb(inp.value);
       if (!parsed) return;
       inp.value = parsed.title;
-      var pad = function (n) { return String(n).padStart(2, '0'); };
       if (parsed.dueDate) {
         var d = new Date(parsed.dueDate);
-        document.getElementById('i-due').value = d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
-        if (d.getHours() || d.getMinutes()) document.getElementById('i-due-time').value = pad(d.getHours()) + ':' + pad(d.getMinutes());
+        document.getElementById('i-due').value = toLocalDateValue(d);
+        if (d.getHours() || d.getMinutes()) document.getElementById('i-due-time').value = padLocalPart(d.getHours()) + ':' + padLocalPart(d.getMinutes());
       }
       if (parsed.priority !== 'None') document.getElementById('i-priority').value = parsed.priority;
       if (parsed.isFlagged) { var tog = document.getElementById('tog-flag'); if (tog && !tog.classList.contains('on')) tog.click(); }
@@ -5081,7 +5084,7 @@
         case 'Yearly': base.setFullYear(base.getFullYear() + 1); break;
         default: break;
       }
-      return base.toISOString();
+      return toLocalDateTimeValue(base);
     }
 
     async function completeTask(id) {
@@ -5107,7 +5110,7 @@
       window._completeDelay = setTimeout(function () {
         task.is_completed = true; task.completed_at = new Date().toISOString(); task.updated_at = new Date().toISOString();
         if (task.repeat_rule && task.repeat_rule !== 'None') {
-          var anchorISO = task.due_date || new Date().toISOString();
+          var anchorISO = task.due_date || toLocalDateTimeValue(new Date());
           var nextDue = calculateNextDueDate(anchorISO, task.repeat_rule);
           var now = new Date().toISOString();
           var nextTask = Object.assign({}, _snapshot, {
@@ -5203,10 +5206,9 @@
       var nlp = parseNLPWeb(rawTitle);
       var title = nlp ? nlp.title : rawTitle;
       var now = new Date().toISOString();
-      var pad = function (n) { return String(n).padStart(2, '0'); };
       var dueDate = document.getElementById('i-due').value, dueTime = document.getElementById('i-due-time').value;
-      var dueISO = dueDate ? (dueTime ? new Date(dueDate + 'T' + dueTime).toISOString() : new Date(dueDate + 'T00:00:00').toISOString()) : null;
-      if (nlp && nlp.dueDate) { var nd = new Date(nlp.dueDate); dueISO = nd.toISOString(); }
+      var dueISO = combineLocalDateTime(dueDate, dueTime);
+      if (nlp && nlp.dueDate) dueISO = nlp.dueDate;
       var pri = document.getElementById('i-priority').value;
       if (nlp && nlp.priority !== 'None') pri = nlp.priority;
       var isFlag = flagged; if (nlp && nlp.isFlagged) isFlag = true;
@@ -5274,11 +5276,11 @@
       if (!src) { hideCloneModal(); return; }
       var newDue = null;
       if (mode === 'same') { newDue = src.due_date || null; }
-      else if (mode === 'today') { var d = new Date(); d.setHours(9,0,0,0); newDue = d.toISOString(); }
-      else if (mode === 'tomorrow') { var d = new Date(); d.setDate(d.getDate()+1); d.setHours(9,0,0,0); newDue = d.toISOString(); }
-      else if (mode === 'week') { var d = src.due_date ? new Date(src.due_date) : new Date(); d.setDate(d.getDate()+7); newDue = d.toISOString(); }
+      else if (mode === 'today') { var d = new Date(); d.setHours(9,0,0,0); newDue = toLocalDateTimeValue(d); }
+      else if (mode === 'tomorrow') { var d = new Date(); d.setDate(d.getDate()+1); d.setHours(9,0,0,0); newDue = toLocalDateTimeValue(d); }
+      else if (mode === 'week') { var d = src.due_date ? new Date(src.due_date) : new Date(); d.setDate(d.getDate()+7); newDue = toLocalDateTimeValue(d); }
       else if (mode === 'none') { newDue = null; }
-      else if (mode === 'custom') { var v = document.getElementById('clone-custom-date').value; newDue = v ? new Date(v+'T09:00:00').toISOString() : null; }
+      else if (mode === 'custom') { var v = document.getElementById('clone-custom-date').value; newDue = v ? combineLocalDateTime(v, '09:00') : null; }
       var now = new Date().toISOString();
       var dup = Object.assign({}, src, { id: uuid(), created_at: now, updated_at: now, due_date: newDue, notified_at: null });
       hideCloneModal();
@@ -5335,8 +5337,8 @@
       task.title = document.getElementById('d-title').value.trim();
       task.notes = document.getElementById('d-notes').value.trim();
       task.priority = document.getElementById('d-priority').value;
-      task.due_date = dueVal ? (dueTimeVal ? new Date(dueVal+'T'+dueTimeVal).toISOString() : new Date(dueVal+'T00:00:00').toISOString()) : null;
-      task.defer_date = deferVal ? new Date(deferVal+'T00:00:00').toISOString() : null;
+      task.due_date = combineLocalDateTime(dueVal, dueTimeVal);
+      task.defer_date = deferVal || null;
       task.repeat_rule = document.getElementById('d-repeat').value || 'None';
       task.project_id = document.getElementById('d-project').value || null;
       task.tag_ids = JSON.stringify(detailModalTags.map(function(tn){ return {name:tn,color:getTagColor(tn)}; }));
@@ -5406,7 +5408,7 @@
       if (!title) { toast('Title required'); return; }
       var dueVal = document.getElementById('ddp-due').value;
       var dueTimeVal = document.getElementById('ddp-due-time').value;
-      var dueISO = dueVal ? (dueTimeVal ? new Date(dueVal+'T'+dueTimeVal).toISOString() : new Date(dueVal+'T00:00:00').toISOString()) : null;
+      var dueISO = combineLocalDateTime(dueVal, dueTimeVal);
       var now = new Date().toISOString();
       task.title = title;
       task.notes = document.getElementById('ddp-notes').value.trim();
@@ -5779,7 +5781,7 @@
         if (tk) {
           var base = tk.due_date ? new Date(tk.due_date) : new Date();
           base.setHours(base.getHours() + 1);
-          var newDue = base.toISOString();
+          var newDue = toLocalDateTimeValue(base);
           tk.due_date = newDue;
           tk.notified_at = null;
           patch(tk.id, { due_date: newDue, notified_at: null });
