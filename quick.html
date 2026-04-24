@@ -35,13 +35,6 @@
     .opt.flag-on{border-color:var(--pink);color:var(--pink);background:var(--pink-dim)}
     .opt select,.opt input[type="time"]{position:absolute;inset:0;opacity:0;cursor:pointer;font-size:16px}
     .pdot{width:7px;height:7px;border-radius:50%}
-    .due-pop{display:none;gap:10px;align-items:end;margin:-4px 0 16px;padding:12px;border-radius:14px;background:rgba(255,255,255,0.03);border:1px solid var(--border)}
-    .due-pop.open{display:flex}
-    .due-pop-field{flex:1;display:flex;flex-direction:column;gap:6px}
-    .due-pop-field label{font-size:11px;font-weight:700;letter-spacing:.2px;color:var(--text3);text-transform:uppercase}
-    .due-pop-field input{width:100%;min-height:42px;padding:0 12px;border-radius:10px;border:1px solid var(--border2);background:rgba(255,255,255,0.04);color:var(--text);font:600 14px 'Outfit',-apple-system,sans-serif}
-    .due-pop-actions{display:flex;gap:8px}
-    .due-pop-btn{min-height:42px;padding:0 14px;border-radius:10px;border:1px solid var(--border2);background:rgba(255,255,255,0.04);color:var(--text);font:700 13px 'Outfit',-apple-system,sans-serif;cursor:pointer}
     .submit{width:100%;padding:14px;border:none;background:var(--purple);color:white;font-family:inherit;font-size:16px;font-weight:700;border-radius:12px;cursor:pointer;box-shadow:0 4px 16px rgba(139,92,246,.3),inset 0 1px 0 rgba(255,255,255,.15);transition:all .15s;display:flex;align-items:center;justify-content:center;gap:8px}
     .submit:active{transform:scale(.97);opacity:.85}
     .submit:disabled{opacity:.4;pointer-events:none}
@@ -80,25 +73,12 @@
       <div class="opt" id="chip-pri" onclick="cyclePri()"><div class="pdot" id="pdot" style="background:var(--text3)"></div><span id="plbl">None</span></div>
       <div class="opt" id="chip-due"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span id="dlbl">Due date</span><select id="dsel" onchange="handleDue(this.value)"><option value="">No date</option><option value="today">Today</option><option value="tomorrow">Tomorrow</option><option value="week">Next week</option><option value="custom">Pick…</option></select></div>
       <div class="opt" id="chip-time"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg><span id="tlbl">Time</span><input type="time" id="tcustom" onchange="handleTime(this.value)"></div>
+      <input type="date" id="dcustom" style="position:absolute;opacity:0;pointer-events:none" onchange="handleCustom(this.value)">
       <!-- ORB-30: Project chip (retained after reset) -->
       <div class="opt" id="chip-proj"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg><span id="pjlbl">Project</span><select id="pjsel" onchange="handleProject(this.value)"><option value="">No Project</option></select></div>
       <div class="opt" id="chip-flag" onclick="toggleF()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg><span>Flag</span></div>
       <!-- ORB-119: energy level chip -->
       <div class="opt" id="chip-energy" onclick="cycleEnergy()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg><span id="elbl">Energy</span></div>
-    </div>
-    <div class="due-pop" id="due-pop">
-      <div class="due-pop-field">
-        <label for="dcustom">Date</label>
-        <input type="date" id="dcustom" onchange="handleCustom(this.value)">
-      </div>
-      <div class="due-pop-field">
-        <label for="dtime-pop">Time</label>
-        <input type="time" id="dtime-pop" onchange="handlePopTime(this.value)">
-      </div>
-      <div class="due-pop-actions">
-        <button class="due-pop-btn" type="button" onclick="clearDuePopover()">Clear</button>
-        <button class="due-pop-btn" type="button" onclick="closeDuePopover()">Done</button>
-      </div>
     </div>
     <button class="submit" id="sbtn" onclick="submitTask()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add Task</button>
   </div>
@@ -137,7 +117,6 @@ function _syncDueUi(){
   var dueChip=document.getElementById('chip-due'),timeChip=document.getElementById('chip-time');
   var dueLabel=document.getElementById('dlbl'),timeLabel=document.getElementById('tlbl');
   document.getElementById('dcustom').value=dueDate;
-  document.getElementById('dtime-pop').value=dueTime;
   document.getElementById('tcustom').value=dueTime;
   document.getElementById('dsel').value=dueDate?(qDuePreset||'custom'):'';
   if(!qD){
@@ -159,13 +138,11 @@ function _syncDueUi(){
   }
 }
 function openDuePopover(){
-  var pop=document.getElementById('due-pop');
-  pop.classList.add('open');
   var input=document.getElementById('dcustom');
-  setTimeout(function(){input.focus();input.showPicker?.();},0);
+  setTimeout(function(){input.focus();if(input.showPicker) input.showPicker(); else input.click();},0);
 }
-function closeDuePopover(){document.getElementById('due-pop').classList.remove('open');}
-function clearDuePopover(){qD=null;qDuePreset='';document.getElementById('dsel').value='';_syncDueUi();closeDuePopover();}
+function closeDuePopover(){}
+function clearDuePopover(){qD=null;qDuePreset='';document.getElementById('dsel').value='';_syncDueUi();}
 // NLP helpers
 function _nlpParseTime(s){var m=s.match(/^(\d{1,2})(?::(\d{2}))(am|pm)?$/i)||s.match(/^(\d{1,2})(am|pm)$/i);if(!m)return null;var h=parseInt(m[1]),mn=m[2]&&!/(am|pm)/i.test(m[2])?parseInt(m[2]):0,mer=(m[3]||(/am|pm/i.test(m[2])?m[2]:null));if(mer)mer=mer.toLowerCase();if(h>23||mn>59)return null;if(mer==='pm'&&h<12)h+=12;if(mer==='am'&&h===12)h=0;return[h,mn];}
 function _nlpNamedDay(w){var n={'today':0,'tod':0,'tmr':1,'tomorrow':1,'tmrw':1,'sun':function(){var d=new Date();var t=d.getDay();return t===0?7:7-t;}(),'mon':function(){var d=new Date();var t=d.getDay();return t===1?7:(8-t)%7||7;}(),'tue':function(){var d=new Date();var t=d.getDay();return t===2?7:(9-t)%7||7;}(),'wed':function(){var d=new Date();var t=d.getDay();return t===3?7:(10-t)%7||7;}(),'thu':function(){var d=new Date();var t=d.getDay();return t===4?7:(11-t)%7||7;}(),'fri':function(){var d=new Date();var t=d.getDay();return t===5?7:(12-t)%7||7;}(),'sat':function(){var d=new Date();var t=d.getDay();return t===6?7:(13-t)%7||7;}(),'sunday':0,'monday':0,'tuesday':0,'wednesday':0,'thursday':0,'friday':0,'saturday':0};if(w in n){var v=n[w];if(typeof v==='function')return v();return v;}var full={'sunday':0,'monday':1,'tuesday':2,'wednesday':3,'thursday':4,'friday':5,'saturday':6};if(w in full){var today=new Date().getDay(),tgt=full[w];var diff=((tgt-today)+7)%7;return diff===0?7:diff;}return null;}
@@ -271,7 +248,7 @@ function handleDue(v){
 }
 function handleCustom(v){
   if(!v)return;
-  var currentTime=_hasExplicitTime(qD)?qD.split('T')[1].substring(0,5):(document.getElementById('dtime-pop').value||'');
+  var currentTime=_hasExplicitTime(qD)?qD.split('T')[1].substring(0,5):(document.getElementById('tcustom').value||'');
   qDuePreset='custom';
   qD=_composeDue(v,currentTime);
   document.getElementById('dsel').value='custom';
@@ -283,7 +260,6 @@ function handleTime(v){
   qD=_composeDue(dateValue,v);
   _syncDueUi();
 }
-function handlePopTime(v){handleTime(v);}
 function toggleF(){qF=!qF;document.getElementById('chip-flag').classList.toggle('flag-on',qF)}
 async function submitTask(){
   const rawTitle=document.getElementById('q-title').value.trim();
