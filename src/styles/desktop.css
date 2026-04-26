@@ -1,0 +1,722 @@
+﻿       â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+    @media (min-width: 768px) {
+
+      /* â”€â”€ Performance: remove heavy GPU effects â”€â”€ */
+      body::before {
+        display: none !important
+      }
+
+      .menu-overlay,
+      .modal-bg,
+      #qc-modal,
+      #ctx-backdrop {
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important
+      }
+
+      .task-row {
+        animation: none !important
+      }
+
+      /* â”€â”€ Sidebar â”€â”€ */
+      :root {
+        --sidebar-w: 252px
+      }
+
+      .desktop-sidebar {
+        position: fixed;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: var(--sidebar-w);
+        background: var(--bg2);
+        border-right: 1px solid var(--border);
+        display: flex;
+        flex-direction: column;
+        z-index: 30;
+        padding: 20px 14px 16px;
+        overflow-y: auto;
+        scrollbar-width: none
+      }
+
+      .desktop-sidebar::-webkit-scrollbar {
+        display: none
+      }
+
+      .ds-brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 2px 6px 18px;
+        border-bottom: 1px solid var(--border);
+        margin-bottom: 14px
+      }
+
+      .ds-brand-logo {
+        width: 32px;
+        height: 32px;
+        border-radius: 9px;
+        object-fit: contain
+      }
+
+      .ds-brand-name {
+        font-size: 17px;
+        font-weight: 800;
+        letter-spacing: -.5px;
+        color: var(--text)
+      }
+
+      .ds-nav {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 2px
+      }
+
+      .ds-tab {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        padding: 9px 12px;
+        border-radius: 10px;
+        font-size: 13.5px;
+        font-weight: 600;
+        color: var(--text2);
+        cursor: pointer;
+        border: none;
+        background: none;
+        width: 100%;
+        text-align: left;
+        font-family: inherit;
+        transition: background .12s, color .12s;
+        position: relative
+      }
+
+      .ds-tab:hover {
+        background: var(--surface2);
+        color: var(--text)
+      }
+
+      .ds-tab.active {
+        background: var(--surface2);
+        color: var(--text);
+        font-weight: 700
+      }
+
+      .ds-tab .ds-icon {
+        width: 20px;
+        height: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0
+      }
+
+      .ds-tab .ds-badge {
+        margin-left: auto;
+        background: var(--red);
+        color: #fff;
+        font-size: 10px;
+        font-weight: 800;
+        min-width: 18px;
+        height: 18px;
+        border-radius: 9px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 5px
+      }
+
+      .ds-section-label {
+        font-size: 10px;
+        font-weight: 700;
+        color: var(--text3);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        padding: 14px 12px 6px;
+        user-select: none
+      }
+
+      .ds-new-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 11px 16px;
+        background: var(--purple);
+        color: white;
+        border: none;
+        border-radius: 11px;
+        font-family: inherit;
+        font-size: 13.5px;
+        font-weight: 700;
+        cursor: pointer;
+        margin-top: 10px;
+        box-shadow: 0 4px 14px color-mix(in srgb, var(--accent) 35%, transparent), inset 0 1px 0 rgba(255, 255, 255, .18);
+        transition: transform .12s, box-shadow .12s
+      }
+
+      .ds-new-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 20px color-mix(in srgb, var(--accent) 45%, transparent), inset 0 1px 0 rgba(255, 255, 255, .18)
+      }
+
+      .ds-new-btn:active {
+        transform: scale(.97);
+        box-shadow: 0 2px 8px color-mix(in srgb, var(--accent) 30%, transparent)
+      }
+
+      .ds-footer {
+        border-top: 1px solid var(--border);
+        padding-top: 12px;
+        margin-top: 10px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        cursor: pointer;
+        padding-left: 6px;
+        padding-right: 6px;
+        border-radius: 10px;
+        padding-bottom: 4px;
+        transition: background .12s
+      }
+
+      .ds-footer:hover {
+        background: var(--surface)
+      }
+
+      .ds-footer-avatar {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        border: 2px solid var(--border2);
+        background: var(--card);
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--text2);
+        flex-shrink: 0
+      }
+
+      .ds-footer-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover
+      }
+
+      .ds-footer-info {
+        flex: 1;
+        min-width: 0
+      }
+
+      .ds-footer-name {
+        font-size: 12.5px;
+        font-weight: 700;
+        color: var(--text);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis
+      }
+
+      .ds-footer-email {
+        font-size: 10.5px;
+        color: var(--text3);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis
+      }
+
+      /* â”€â”€ Hide mobile bottom bar on desktop â”€â”€ */
+      .bottom-bar {
+        display: none !important
+      }
+
+      /* â”€â”€ App screen shifts right â”€â”€ */
+      #screen-app {
+        margin-left: var(--sidebar-w)
+      }
+
+      /* â”€â”€ Header adjustments â”€â”€ */
+      .app-header {
+        padding-top: 20px;
+        padding-left: 32px;
+        padding-right: 32px
+      }
+
+      /* â”€â”€ Task area: smooth scroll, custom scrollbar â”€â”€ */
+      .task-area {
+        padding: 4px 32px 40px;
+        scroll-behavior: smooth;
+        scrollbar-width: thin;
+        scrollbar-color: var(--border2) transparent
+      }
+
+      .task-area::-webkit-scrollbar {
+        width: 6px
+      }
+
+      .task-area::-webkit-scrollbar-track {
+        background: transparent
+      }
+
+      .task-area::-webkit-scrollbar-thumb {
+        background: var(--border2);
+        border-radius: 3px
+      }
+
+      .task-area::-webkit-scrollbar-thumb:hover {
+        background: var(--text3)
+      }
+
+      /* â”€â”€ Empty state: proper centering â”€â”€ */
+      .empty-state {
+        height: 50vh;
+        min-height: 300px
+      }
+
+      /* â”€â”€ Task row: hover effects â”€â”€ */
+      .task-row {
+        border-radius: 10px;
+        padding: 12px 12px;
+        margin: 0 -8px;
+        transition: background .12s, opacity .35s, transform .35s
+      }
+
+      .task-row:hover {
+        background: var(--surface)
+      }
+
+      .task-row+.task-row {
+        border-top: none;
+        border-top: 1px solid var(--border)
+      }
+
+      .chk {
+        transition: all .14s;
+      }
+
+      .chk:hover {
+        transform: scale(1.12);
+        border-color: var(--text2)
+      }
+
+      /* â”€â”€ Calendar: split panel layout (calendar left, tasks right) â”€â”€ */
+      .cal-split-layout {
+        display: flex;
+        gap: 32px;
+        align-items: flex-start;
+        min-height: calc(100vh - 160px)
+      }
+
+      .cal-split-left {
+        flex: 2;
+        min-width: 380px;
+        max-width: 640px;
+        position: sticky;
+        top: 0
+      }
+
+      .cal-split-right {
+        flex: 1;
+        min-width: 260px
+      }
+
+      .cal-split-right .empty-state {
+        height: auto;
+        min-height: 200px;
+        padding: 40px 0
+      }
+
+      .cal-split-right-title {
+        font-size: 16px;
+        font-weight: 700;
+        color: var(--text);
+        margin-bottom: 14px;
+        padding-left: 4px
+      }
+
+      /* â”€â”€ Today focus card (desktop only) â”€â”€ */
+      .today-focus-card {
+        background: var(--surface);
+        border-radius: 20px;
+        border: 1px solid var(--border);
+        padding: 36px 32px;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px
+      }
+
+      .today-focus-weekday {
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--cyan);
+        text-transform: uppercase;
+        letter-spacing: 2px
+      }
+
+      .today-focus-day {
+        font-size: 84px;
+        font-weight: 900;
+        line-height: 1;
+        color: var(--text);
+        letter-spacing: -3px
+      }
+
+      .today-focus-month {
+        font-size: 18px;
+        font-weight: 600;
+        color: var(--text2);
+        margin-top: 4px
+      }
+
+      .today-focus-year {
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--text3)
+      }
+
+      .today-focus-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--cyan);
+        margin: 10px 0 0;
+        box-shadow: 0 0 12px rgba(34, 211, 238, .4)
+      }
+
+      .cal-wrap {
+        max-width: none;
+        margin: 0;
+        padding: 20px 18px
+      }
+
+      .cal-cell {
+        aspect-ratio: 1;
+        max-width: 48px
+      }
+
+      .cal-day-btn {
+        width: 42px;
+        height: 42px;
+        font-size: 14px
+      }
+
+      .cal-grid {
+        row-gap: 6px;
+        column-gap: 6px
+      }
+
+      .cal-title {
+        font-size: 18px
+      }
+
+      .cal-mode-tabs {
+        margin-bottom: 18px
+      }
+
+      .cal-mode-tab {
+        padding: 8px;
+        font-size: 13px
+      }
+
+      .cal-dw {
+        font-size: 12px;
+        margin-bottom: 8px
+      }
+
+      /* Selected date info for split view */
+      .cal-selected-info {
+        margin-top: 16px;
+        padding: 12px 16px;
+        background: var(--surface);
+        border-radius: 12px;
+        border: 1px solid var(--border)
+      }
+
+      .cal-selected-date {
+        font-size: 15px;
+        font-weight: 700;
+        color: var(--text)
+      }
+
+      .cal-selected-count {
+        font-size: 12px;
+        color: var(--text3);
+        margin-top: 2px
+      }
+
+      /* â”€â”€ Modals: centered dialog instead of bottom sheet â”€â”€ */
+      .modal-bg {
+        align-items: center;
+        justify-content: center
+      }
+
+      .modal-sheet {
+        max-width: 520px;
+        border-radius: 18px !important;
+        transform: scale(.95) translateY(0);
+        box-shadow: 0 24px 80px rgba(0, 0, 0, .5);
+        max-height: 85vh;
+        overflow-y: auto
+      }
+
+      .modal-bg.open .modal-sheet {
+        transform: scale(1) translateY(0)
+      }
+
+      .modal-handle {
+        display: none
+      }
+
+      /* â”€â”€ QC Modal: centered â”€â”€ */
+      #qc-modal {
+        align-items: center;
+        justify-content: center
+      }
+
+      #qc-sheet {
+        max-width: 480px;
+        border-radius: 18px !important;
+        transform: scale(.95);
+        max-height: 85vh
+      }
+
+      #qc-modal.open #qc-sheet {
+        transform: scale(1)
+      }
+
+      /* â”€â”€ User menu: positioned in sidebar area â”€â”€ */
+      .menu-overlay {
+        background: rgba(0, 0, 0, .35)
+      }
+
+      .user-menu {
+        position: fixed;
+        bottom: 16px;
+        left: 14px;
+        top: auto;
+        right: auto;
+        width: 224px;
+        transform-origin: bottom left;
+        transform: scale(.9) translateY(10px)
+      }
+
+      .menu-overlay.open .user-menu {
+        transform: scale(1) translateY(0)
+      }
+
+      /* â”€â”€ Context menu: more refined â”€â”€ */
+      #ctx-menu {
+        left: auto;
+        right: auto;
+        bottom: auto;
+        min-width: 200px;
+        max-width: 240px;
+        border-radius: 12px
+      }
+
+      /* â”€â”€ Toast: centered bottom, clear of sidebar â”€â”€ */
+      .toast {
+        bottom: 28px;
+        left: calc(var(--sidebar-w) + (100vw - var(--sidebar-w)) / 2);
+        transform: translateX(-50%) translateY(12px)
+      }
+
+      .toast.show {
+        transform: translateX(-50%) translateY(0);
+        pointer-events: auto
+      }
+
+      /* â”€â”€ Install banner: shift right â”€â”€ */
+      #install-banner {
+        left: calc(var(--sidebar-w) + 20px);
+        right: 20px;
+        max-width: 420px
+      }
+
+      /* â”€â”€ Pull-to-refresh: hide on desktop (use sync button) â”€â”€ */
+      #ptr {
+        display: none !important
+      }
+
+      /* â”€â”€ Search bar: slightly wider feel â”€â”€ */
+      .search-input-wrap {
+        max-width: 480px
+      }
+
+      /* â”€â”€ Project filter pills: no overflow â”€â”€ */
+      .project-filter-bar {
+        flex-wrap: wrap;
+        overflow-x: visible
+      }
+
+      /* â”€â”€ Filter panel: wider â”€â”€ */
+      .filter-panel.open {
+        max-height: 200px
+      }
+
+      /* â”€â”€ Drag handle: always visible on hover â”€â”€ */
+      .drag-handle {
+        opacity: 0;
+        transition: opacity .12s
+      }
+
+      .task-row:hover .drag-handle {
+        opacity: 0.4
+      }
+
+      /* â”€â”€ Swipe actions: hide on desktop (use right-click) â”€â”€ */
+      .swipe-action {
+        display: none !important
+      }
+
+      /* â”€â”€ Login Screen: centered content, full-width background â”€â”€ */
+      #screen-login {
+        width: 100%
+      }
+
+      /* â”€â”€ Light mode desktop tweaks â”€â”€ */
+      body.light .desktop-sidebar {
+        background: #f0f0f4;
+        border-color: rgba(0, 0, 0, .06)
+      }
+
+      body.light .ds-tab:hover {
+        background: rgba(0, 0, 0, .05)
+      }
+
+      body.light .ds-tab.active {
+        background: rgba(0, 0, 0, .06)
+      }
+
+      body.light .menu-overlay {
+        background: rgba(0, 0, 0, .15)
+      }
+
+      body.light .user-menu {
+        background: #fff;
+        box-shadow: 0 16px 48px rgba(0, 0, 0, .12)
+      }
+
+      /* ORB-79: Right detail panel (3rd column) */
+      :root {
+        --detail-w: 340px;
+      }
+      .desktop-detail-panel {
+        position: fixed;
+        top: 0;
+        right: 0;
+        width: var(--detail-w);
+        bottom: 0;
+        background: var(--bg2);
+        border-left: 1px solid var(--border);
+        z-index: 25;
+        overflow-y: auto;
+        scrollbar-width: thin;
+        scrollbar-color: var(--border2) transparent;
+        transform: translateX(100%);
+        transition: transform .3s cubic-bezier(.32,.72,0,1);
+        padding: 20px 20px calc(20px + var(--safe-bottom));
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+      }
+      .desktop-detail-panel.open {
+        transform: translateX(0);
+      }
+      #screen-app.detail-open {
+        margin-right: var(--detail-w);
+      }
+      .ddp-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 20px;
+      }
+      .ddp-title {
+        font-size: 16px;
+        font-weight: 800;
+        letter-spacing: -.3px;
+      }
+      .ddp-close {
+        background: var(--surface2);
+        border: none;
+        color: var(--text2);
+        cursor: pointer;
+        width: 28px;
+        height: 28px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all .12s;
+      }
+      .ddp-close:hover {
+        background: var(--surface3);
+        color: var(--text);
+      }
+      body.light .desktop-detail-panel {
+        background: #f0f0f4;
+        border-color: rgba(0,0,0,.06);
+      }
+    }
+
+    /* â”€â”€ Extra-wide desktops â”€â”€ */
+    @media (min-width: 1200px) {
+      .task-area {
+        padding-left: 48px;
+        padding-right: 48px
+      }
+
+      .app-header {
+        padding-left: 48px;
+        padding-right: 48px
+      }
+    }
+
+    /* ORB-68: Reduce motion â€” disable all animations for users who prefer it */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: .01ms !important;
+      }
+
+      .tb-pill {
+        will-change: auto
+      }
+    }
+
+    /* ORB-73: Prevent iOS zoom on input focus â€” iOS zooms when font-size < 16px */
+    input, select, textarea { font-size: max(16px, 1em); }
+
+    /* ORB-79: Hide desktop panel on mobile â€” panel CSS only applies inside @media 768px */
+    .desktop-detail-panel { display: none; }
+    @media (min-width: 768px) { .desktop-detail-panel { display: flex; flex-direction: column; } }
+
+    /* ORB-74: Light mode static fallback for the shader */
+    @media (prefers-color-scheme: light) {
+      body:not(.dark) {
+        --bg: #f5f5f7;
+        --bg2: #ececf0;
+        --surface: rgba(0,0,0,0.04);
+        --surface2: rgba(0,0,0,0.06);
+        --surface3: rgba(0,0,0,0.09);
+        --card: #ffffff;
+        --card2: #f0f0f4;
+        --border: rgba(0,0,0,0.08);
+        --border2: rgba(0,0,0,0.13);
+        --text: #1a1a2e;
+        --text2: rgba(0,0,0,0.55);
+        --text3: rgba(0,0,0,0.38);
+      }
+      body:not(.dark) #login-shader-container {
+        background: linear-gradient(135deg, #e8e0ff 0%, #dce8ff 50%, #e0f0ff 100%);
+      }
+    }
+

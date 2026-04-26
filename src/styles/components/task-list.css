@@ -1,0 +1,215 @@
+﻿    .task-area {
+      flex: 1;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      padding: 4px 16px 118px
+    }
+
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 55%;
+      color: var(--text3);
+      gap: 10px
+    }
+
+    .empty-icon {
+      opacity: .18
+    }
+
+    .empty-label {
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--text2)
+    }
+
+    .empty-sub {
+      font-size: 13px
+    }
+
+    .task-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 13px 4px;
+      position: relative;
+      transition: opacity .35s, transform .35s;
+      /* ORB-81: Contain each row so the browser isolates its layout/paint */
+      contain: layout style;
+      will-change: transform, opacity;
+    }
+
+    .task-row+.task-row {
+      border-top: 1px solid var(--border)
+    }
+
+    .task-row.completing {
+      opacity: 0;
+      transform: translateX(30px)
+    }
+
+    .task-row.clickable {
+      cursor: pointer
+    }
+
+    .chk {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      margin-top: 1px;
+      border: 2px solid var(--border2);
+      background: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all .18s
+    }
+
+    .chk:active {
+      transform: scale(.8)
+    }
+
+    .chk.p-high {
+      border-color: var(--high)
+    }
+
+    .chk.p-medium {
+      border-color: var(--medium)
+    }
+
+    .chk.p-low {
+      border-color: var(--low)
+    }
+
+    .task-body {
+      flex: 1;
+      min-width: 0
+    }
+
+    .task-name {
+      font-size: 15px;
+      font-weight: 500;
+      line-height: 1.35
+    }
+
+    .task-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-top: 5px
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 7px;
+      border-radius: 6px
+    }
+
+    .chip-due {
+      background: var(--blue-dim);
+      color: var(--blue)
+    }
+
+    .chip-overdue {
+      background: var(--red-dim);
+      color: var(--red)
+    }
+
+    .ms-toolbar {
+      position: fixed;
+      bottom: calc(var(--safe-bottom) + 72px);
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: var(--card2);
+      border: 1px solid var(--border2);
+      border-radius: 20px;
+      padding: 8px 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      z-index: 400;
+      box-shadow: 0 12px 40px rgba(0,0,0,.5);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .2s, transform .2s;
+      white-space: nowrap
+    }
+    .ms-toolbar.show { opacity: 1; transform: translateX(-50%) translateY(0); pointer-events: auto }
+    .ms-btn { background: none; border: 1px solid var(--border2); color: var(--text); font-family: inherit; font-size: 13px; font-weight: 600; padding: 7px 14px; border-radius: 12px; cursor: pointer }
+    .clone-opt-btn { background: var(--surface2); border: 1px solid var(--border); color: var(--text); font-family: inherit; font-size: 14px; font-weight: 500; padding: 10px 14px; border-radius: 10px; cursor: pointer; text-align: left; transition: background 0.15s }
+    .clone-opt-btn:hover { background: var(--surface) }
+    .ms-btn.danger { color: var(--red); border-color: var(--red-dim) }
+    .ms-btn.primary { background: var(--accent); color: #fff; border-color: transparent }
+    .ms-count { font-size: 13px; font-weight: 700; color: var(--text2); padding: 0 4px }
+    .task-row.ms-selected { background: var(--accent-dim, var(--surface2)); outline: 2px solid var(--accent); outline-offset: -2px; border-radius: 12px }
+    .ms-chk { width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--border2); background: none; cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; margin-right: 4px }
+    .ms-chk.checked { background: var(--accent); border-color: var(--accent) }
+
+    .chip-today {
+      background: var(--cyan-dim);
+      color: var(--cyan)
+    }
+
+    .chip-flag {
+      background: var(--pink-dim);
+      color: var(--pink)
+    }
+
+    .chip-note {
+      background: var(--surface2);
+      color: var(--text2)
+    }
+
+    .chip-repeat {
+      background: var(--amber-dim);
+      color: var(--amber)
+    }
+
+    .chip-priority {
+      font-size: 10px;
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-weight: 700;
+      letter-spacing: .3px
+    }
+
+    .cp-high {
+      background: var(--red-dim);
+      color: var(--high)
+    }
+
+    .cp-medium {
+      background: var(--amber-dim);
+      color: var(--medium)
+    }
+
+    .cp-low {
+      background: var(--cyan-dim);
+      color: var(--low)
+    }
+
+    .chip-tag {
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 5px;
+      font-weight: 600
+    }
+
+    .chip-project {
+      background: var(--surface2);
+      color: var(--text2);
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 5px;
+      font-weight: 600
+    }
+
+    /* Subtasks */

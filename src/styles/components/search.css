@@ -1,0 +1,61 @@
+﻿    .search-bar {
+      overflow: hidden;
+      max-height: 0;
+      transition: max-height .25s cubic-bezier(.32, .72, 0, 1), margin .25s;
+      margin-bottom: 0
+    }
+
+    .search-bar.open {
+      max-height: 56px;
+      margin-bottom: 10px
+    }
+
+    .search-input-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--surface2);
+      border: 1px solid var(--border2);
+      border-radius: 12px;
+      padding: 0 14px;
+      height: 42px
+    }
+
+    .search-input-wrap svg {
+      color: var(--text3);
+      flex-shrink: 0
+    }
+
+    .search-input {
+      flex: 1;
+      background: none;
+      border: none;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 16px;
+      font-weight: 500;
+      outline: none
+    }
+
+    .search-input::placeholder {
+      color: var(--text3)
+    }
+
+    .search-clear {
+      background: none;
+      border: none;
+      color: var(--text3);
+      cursor: pointer;
+      padding: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 6px;
+      transition: all .12s
+    }
+
+    .search-clear:active {
+      background: var(--surface3)
+    }
+
+    /* Project filter pills */

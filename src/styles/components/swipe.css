@@ -1,0 +1,101 @@
+﻿    .swipe-action {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      display: flex;
+      align-items: center;
+      padding: 0 18px;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity .12s
+    }
+
+    .swipe-action.left {
+      left: 0;
+      background: linear-gradient(90deg, rgba(52, 211, 153, .18) 0%, transparent 100%);
+      border-radius: 10px 0 0 10px
+    }
+
+    .swipe-action.right {
+      right: 0;
+      background: linear-gradient(-90deg, rgba(239, 68, 68, .18) 0%, transparent 100%);
+      border-radius: 0 10px 10px 0
+    }
+
+    .swipe-action.active {
+      opacity: 1
+    }
+
+    .swipe-action svg {
+      transition: transform .15s cubic-bezier(.32, .72, 0, 1)
+    }
+
+    .swipe-action.triggered svg {
+      transform: scale(1.3)
+    }
+
+    /* â”€â”€ Inline delete button â”€â”€ */
+    .row-del-btn {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      width: 30px;
+      height: 30px;
+      border-radius: 8px;
+      border: none;
+      background: none;
+      color: var(--text3);
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: color .12s, background .12s;
+      margin-left: auto
+    }
+
+    .row-del-btn:hover {
+      color: var(--red);
+      background: rgba(239, 68, 68, .1)
+    }
+
+    @media (min-width: 768px) {
+      .row-del-btn {
+        display: flex;
+        opacity: 0;
+        transition: opacity .12s, color .12s, background .12s
+      }
+
+      .task-row:hover .row-del-btn {
+        opacity: 1
+      }
+    }
+
+    /* â”€â”€ Today quick-action button (ORB-86) â”€â”€ */
+    .row-today-btn {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      width: 30px;
+      height: 30px;
+      border-radius: 8px;
+      border: none;
+      background: none;
+      color: var(--text3);
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: color .12s, background .12s;
+      font-size: 14px;
+      line-height: 1;
+    }
+    .row-today-btn:hover {
+      color: var(--amber);
+      background: rgba(245, 158, 11, 0.12)
+    }
+    .row-today-indicator {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 30px;
+      height: 30px;
+      font-size: 14px;
+      color: var(--amber);
+      flex-shrink: 0;
+    }

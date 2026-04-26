@@ -1,0 +1,118 @@
+﻿    .hdr-btn {
+      position: relative
+    }
+
+    .hdr-btn.filter-active::after {
+      content: '';
+      position: absolute;
+      top: 7px;
+      right: 7px;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--purple);
+      pointer-events: none;
+      box-shadow: 0 0 6px color-mix(in srgb, var(--accent) 50%, transparent)
+    }
+
+    /* â”€â”€ Toast layout â”€â”€ */
+    .toast {
+      display: flex;
+      align-items: center;
+      gap: 10px
+    }
+
+    /* â”€â”€ Context menu â”€â”€ */
+    #ctx-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 230;
+      background: rgba(0, 0, 0, .35);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .2s;
+      backdrop-filter: blur(3px);
+      -webkit-backdrop-filter: blur(3px)
+    }
+
+    #ctx-backdrop.open {
+      opacity: 1;
+      pointer-events: all
+    }
+
+    #ctx-menu {
+      position: fixed;
+      left: 12px;
+      right: 12px;
+      bottom: calc(var(--safe-bottom) + 112px);
+      z-index: 240;
+      background: var(--card2);
+      border: 1px solid var(--border2);
+      border-radius: 18px;
+      overflow: hidden;
+      box-shadow: 0 12px 48px rgba(0, 0, 0, .6);
+      opacity: 0;
+      pointer-events: none;
+      transform: scale(.94) translateY(16px);
+      transition: transform .25s cubic-bezier(.32, .72, 0, 1), opacity .25s
+    }
+
+    #ctx-menu.open {
+      opacity: 1;
+      pointer-events: all;
+      transform: scale(1) translateY(0)
+    }
+
+    .ctx-item {
+      padding: 15px 18px;
+      font-size: 15px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background .1s;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: var(--text)
+    }
+
+    .ctx-item:active {
+      background: var(--surface2)
+    }
+
+    .ctx-danger {
+      color: var(--red)
+    }
+
+    .ctx-sep {
+      height: 1px;
+      background: var(--border);
+      margin: 2px 0
+    }
+
+    /* â”€â”€ Celebration empty state â”€â”€ */
+    @keyframes celebPop {
+      0% {
+        transform: scale(0) rotate(-10deg)
+      }
+
+      60% {
+        transform: scale(1.15) rotate(3deg)
+      }
+
+      100% {
+        transform: scale(1) rotate(0)
+      }
+    }
+
+    .celebrate-wrap {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      background: var(--green-dim);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 4px;
+      animation: celebPop .45s cubic-bezier(.32, .72, 0, 1)
+    }
+

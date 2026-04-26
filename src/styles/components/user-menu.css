@@ -1,0 +1,79 @@
+﻿    .menu-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 200;
+      background: rgba(0, 0, 0, .5);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .2s
+    }
+
+    .menu-overlay.open {
+      opacity: 1;
+      pointer-events: all
+    }
+
+    .user-menu {
+      position: absolute;
+      top: calc(var(--safe-top) + 60px);
+      right: 16px;
+      width: 250px;
+      background: var(--card2);
+      border: 1px solid var(--border2);
+      border-radius: var(--r);
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, .6);
+      transform: scale(.9) translateY(-10px);
+      transform-origin: top right;
+      transition: transform .2s cubic-bezier(.32, .72, 0, 1), opacity .2s;
+      opacity: 0
+    }
+
+    .menu-overlay.open .user-menu {
+      transform: scale(1) translateY(0);
+      opacity: 1
+    }
+
+    .um-header {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border)
+    }
+
+    .um-name {
+      font-size: 15px;
+      font-weight: 700
+    }
+
+    .um-email {
+      font-size: 11px;
+      color: var(--text3);
+      margin-top: 2px
+    }
+
+    .um-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 13px 16px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      transition: background .1s
+    }
+
+    .um-item:active {
+      background: var(--surface2)
+    }
+
+    .um-item.danger {
+      color: var(--red)
+    }
+
+    /* ORB-87: Toggle in um-item */
+    .um-item .toggle {
+      margin-left: auto
+    }
+
+    /* â”€â”€ Settings Screen â”€â”€ */

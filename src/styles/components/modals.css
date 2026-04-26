@@ -1,0 +1,385 @@
+﻿    .modal-bg {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, .6);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      display: flex;
+      align-items: flex-end;
+      z-index: 100;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .25s
+    }
+
+    .modal-bg.open {
+      opacity: 1;
+      pointer-events: all
+    }
+
+    .modal-sheet {
+      background: var(--card2);
+      border-radius: 22px 22px 0 0;
+      border-top: 1px solid var(--border2);
+      padding: 10px 20px calc(var(--safe-bottom) + 18px);
+      width: 100%;
+      transform: translateY(100%);
+      transition: transform .32s cubic-bezier(.32, .72, 0, 1)
+    }
+
+    .modal-bg.open .modal-sheet {
+      transform: translateY(0)
+    }
+
+    .modal-handle {
+      width: 34px;
+      height: 4px;
+      background: var(--border2);
+      border-radius: 2px;
+      margin: 0 auto 16px
+    }
+
+    .modal-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 18px
+    }
+
+    .modal-title {
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: -.4px
+    }
+
+    .modal-cancel {
+      background: none;
+      border: none;
+      color: var(--text2);
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      padding: 6px 12px;
+      border-radius: 8px;
+      transition: background .1s
+    }
+
+    .modal-cancel:active {
+      background: var(--surface2)
+    }
+
+    .m-field {
+      margin-bottom: 12px
+    }
+
+    .m-field label {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      display: block;
+      margin-bottom: 6px
+    }
+
+    .m-field input,
+    .m-field select,
+    .m-field textarea {
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 16px;
+      font-weight: 500;
+      padding: 12px 13px;
+      outline: none;
+      -webkit-appearance: none;
+      transition: border-color .15s, box-shadow .15s
+    }
+
+    .m-field textarea {
+      resize: none;
+      height: 64px;
+      line-height: 1.4
+    }
+
+    .m-field input:focus,
+    .m-field select:focus,
+    .m-field textarea:focus {
+      border-color: var(--purple);
+      box-shadow: 0 0 0 3px var(--purple-dim)
+    }
+
+    .m-field input[type="date"]::-webkit-calendar-picker-indicator {
+      filter: invert(1);
+      opacity: .4
+    }
+
+    .m-field select option {
+      background: var(--card2)
+    }
+
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 0;
+      border-top: 1px solid var(--border)
+    }
+
+    .toggle-label {
+      font-size: 14px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px
+    }
+
+    .toggle {
+      width: 46px;
+      height: 28px;
+      background: var(--surface3);
+      border-radius: 14px;
+      border: none;
+      cursor: pointer;
+      position: relative;
+      transition: background .25s
+    }
+
+    .toggle.on {
+      background: var(--green)
+    }
+
+    .toggle::after {
+      content: '';
+      position: absolute;
+      width: 24px;
+      height: 24px;
+      background: white;
+      border-radius: 50%;
+      top: 2px;
+      left: 2px;
+      transition: transform .22s cubic-bezier(.32, .72, 0, 1);
+      box-shadow: 0 1px 4px rgba(0, 0, 0, .3)
+    }
+
+    .toggle.on::after {
+      transform: translateX(18px)
+    }
+
+    .modal-submit {
+      width: 100%;
+      padding: 14px;
+      border: none;
+      background: var(--purple);
+      color: white;
+      font-family: inherit;
+      font-size: 15px;
+      font-weight: 700;
+      border-radius: 12px;
+      cursor: pointer;
+      margin-top: 14px;
+      box-shadow: 0 4px 16px color-mix(in srgb, var(--accent) 30%, transparent), inset 0 1px 0 rgba(255, 255, 255, .15);
+      transition: all .15s
+    }
+
+    .modal-submit:active {
+      transform: scale(.97);
+      opacity: .85
+    }
+
+    .delete-btn {
+      width: 100%;
+      padding: 14px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      color: var(--red);
+      font-family: inherit;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all .15s;
+      margin-top: 12px
+    }
+
+    .delete-btn:active {
+      background: var(--red-dim);
+      transform: scale(.98)
+    }
+
+    .cancel-btn {
+      padding: 14px;
+      background: var(--surface2);
+      border: none;
+      border-radius: 12px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all .15s
+    }
+
+    .cancel-btn:active {
+      transform: scale(.97)
+    }
+
+    .delete-confirm-btn {
+      padding: 14px;
+      background: var(--red);
+      border: none;
+      border-radius: 12px;
+      color: white;
+      font-family: inherit;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 4px 16px rgba(239, 68, 68, .3);
+      transition: all .15s
+    }
+
+    .delete-confirm-btn:active {
+      transform: scale(.97);
+      opacity: .85
+    }
+
+    /* Project management modal */
+    .proj-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 14px;
+      max-height: 240px;
+      overflow-y: auto
+    }
+
+    .proj-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px
+    }
+
+    .proj-color-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      flex-shrink: 0
+    }
+
+    .proj-row-name {
+      flex: 1;
+      font-size: 14px;
+      font-weight: 600
+    }
+
+    .proj-row-count {
+      font-size: 12px;
+      color: var(--text3)
+    }
+
+    .proj-del-btn {
+      background: none;
+      border: none;
+      color: var(--text3);
+      cursor: pointer;
+      padding: 6px;
+      border-radius: 6px;
+      display: flex;
+      transition: all .15s
+    }
+
+    .proj-del-btn:active {
+      background: var(--red-dim);
+      color: var(--red)
+    }
+
+    .color-picker {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 6px
+    }
+
+    .color-swatch {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: all .15s;
+      flex-shrink: 0
+    }
+
+    .color-swatch.selected {
+      border-color: white;
+      transform: scale(1.15)
+    }
+
+    .color-swatch:active {
+      transform: scale(.9)
+    }
+
+    /* ORB-88: Accent color presets */
+    :root {
+      --accent: #8b5cf6; /* default indigo/purple */
+    }
+    .color-picker {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 6px
+    }
+    .color-swatch {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: all .15s;
+      flex-shrink: 0
+    }
+    .color-swatch.selected {
+      border-color: white;
+      transform: scale(1.15)
+    }
+    .color-swatch:active {
+      transform: scale(.9)
+    }
+
+    .m-field input[type="time"] {
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 15px;
+      font-weight: 500;
+      padding: 12px 13px;
+      outline: none;
+      -webkit-appearance: none;
+      transition: border-color .15s, box-shadow .15s
+    }
+
+    .m-field input[type="time"]:focus {
+      border-color: var(--purple);
+      box-shadow: 0 0 0 3px var(--purple-dim)
+    }
+
+    .m-field input[type="time"]::-webkit-calendar-picker-indicator {
+      filter: invert(1);
+      opacity: .4
+    }
+
+    /* â”€â”€ Drag handle â”€â”€ */

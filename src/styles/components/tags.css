@@ -1,0 +1,97 @@
+﻿    .tags-picker {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      margin-top: 6px
+    }
+
+    .tag-opt {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 5px 10px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1.5px solid var(--border);
+      background: var(--surface);
+      transition: all .15s;
+      user-select: none
+    }
+
+    .tag-opt:active {
+      transform: scale(.95)
+    }
+
+    .tag-opt.selected {
+      border-color: currentColor
+    }
+
+    .tag-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%
+    }
+
+    /* Bottom bar */
+    /* â”€â”€ Custom tags â”€â”€ */
+    .custom-tag-form {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      margin-top: 8px;
+      padding: 9px 10px;
+      background: var(--surface);
+      border-radius: 10px;
+      border: 1px solid var(--border)
+    }
+
+    .tag-color-dot {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      cursor: pointer;
+      flex-shrink: 0;
+      border: 2px solid transparent;
+      transition: border-color .15s, transform .15s
+    }
+
+    .tag-color-dot.selected {
+      border-color: white;
+      transform: scale(1.15)
+    }
+
+    .tag-name-input {
+      flex: 1;
+      background: none;
+      border: none;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 13px;
+      outline: none;
+      min-width: 0
+    }
+
+    .tag-name-input::placeholder {
+      color: var(--text3)
+    }
+
+    .tag-add-btn {
+      background: var(--purple);
+      color: white;
+      border: none;
+      border-radius: 7px;
+      padding: 5px 10px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: all .15s
+    }
+
+    .tag-add-btn:active {
+      opacity: .8;
+      transform: scale(.95)
+    }
+

@@ -1,0 +1,50 @@
+﻿    .project-filter-bar {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 10px;
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+      margin: 0 -20px;
+      padding-left: 20px;
+      padding-right: 20px
+    }
+
+    .project-filter-bar::-webkit-scrollbar {
+      display: none
+    }
+
+    .proj-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1.5px solid var(--border2);
+      background: var(--surface);
+      color: var(--text2);
+      white-space: nowrap;
+      transition: all .15s;
+      flex-shrink: 0
+    }
+
+    .proj-pill.active {
+      border-color: currentColor;
+      background: var(--surface2)
+    }
+
+    .proj-pill:active {
+      transform: scale(.95)
+    }
+
+    .proj-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0
+    }
+
+    /* Menu overlay */

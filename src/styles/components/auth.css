@@ -1,0 +1,174 @@
+﻿    .login-glow {
+      position: absolute;
+      width: 360px;
+      height: 360px;
+      border-radius: 50%;
+      background: radial-gradient(circle, color-mix(in srgb, var(--accent) 20%, transparent) 0%, transparent 70%);
+      top: 6%;
+      left: 50%;
+      transform: translateX(-50%);
+      pointer-events: none;
+      filter: blur(30px)
+    }
+
+    .login-logo {
+      width: 80px;
+      height: 80px;
+      border-radius: 22px;
+      background: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 16px 48px color-mix(in srgb, var(--accent) 40%, transparent);
+      margin-bottom: 28px
+    }
+
+    .login-title {
+      font-size: 38px;
+      font-weight: 800;
+      letter-spacing: -1.5px;
+      margin-bottom: 8px
+    }
+
+    .login-sub {
+      font-size: 15px;
+      color: var(--text2);
+      text-align: center;
+      line-height: 1.55;
+      margin-bottom: 44px;
+      max-width: 240px;
+      font-weight: 400
+    }
+
+    .google-btn {
+      width: 100%;
+      max-width: 310px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      padding: 15px 24px;
+      background: var(--card2);
+      border: 1px solid var(--border2);
+      border-radius: var(--r);
+      color: var(--text);
+      font-family: inherit;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all .18s
+    }
+
+    .google-btn:active {
+      transform: scale(.96);
+      background: var(--surface3)
+    }
+
+    .google-logo {
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0
+    }
+
+    .login-footer {
+      position: absolute;
+      bottom: calc(var(--safe-bottom) + 22px);
+      font-size: 11px;
+      color: var(--text3);
+      text-align: center
+    }
+
+    /* ORB-71: Frosted glass login card */
+    .login-card {
+      position: relative;
+      z-index: 1;
+      width: 380px;
+      max-width: calc(100% - 40px);
+      background: rgba(8, 8, 12, 0.65);
+      backdrop-filter: blur(40px) saturate(180%);
+      -webkit-backdrop-filter: blur(40px) saturate(180%);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 24px;
+      box-shadow: 0 32px 80px rgba(0, 0, 0, 0.4);
+      padding: 36px 32px calc(var(--safe-bottom) + 32px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0;
+    }
+    .login-card .login-logo {
+      margin-bottom: 20px;
+      box-shadow: none;
+    }
+    .login-card .login-logo img {
+      animation: logoSpin 1.2s ease-out;
+    }
+    @keyframes logoSpin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    .login-card .login-title {
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: -0.8px;
+      margin-bottom: 6px;
+      text-align: center;
+    }
+    .login-card .login-sub {
+      margin-bottom: 20px;
+      font-size: 15px;
+      text-align: center;
+    }
+    .login-divider {
+      width: 100%;
+      height: 1px;
+      background: rgba(255, 255, 255, 0.08);
+      margin: 16px 0 20px;
+    }
+    .login-card .google-btn {
+      height: 48px;
+      padding: 0 20px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 12px;
+      max-width: none;
+    }
+    .login-platform-hint {
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.4);
+      margin-top: 16px;
+      text-align: center;
+    }
+    .login-terms {
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.25);
+      margin-top: 14px;
+      text-align: center;
+    }
+    .login-terms a {
+      color: rgba(255, 255, 255, 0.4);
+      text-decoration: none;
+    }
+    #login-vignette {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      background: radial-gradient(ellipse at center, transparent 30%, rgba(0,0,0,0.35) 100%);
+    }
+    body.light .login-card {
+      background: rgba(255, 255, 255, 0.75);
+      border-color: rgba(0, 0, 0, 0.08);
+    }
+    body.light .login-card .google-btn {
+      background: rgba(0, 0, 0, 0.05);
+      border-color: rgba(0, 0, 0, 0.12);
+    }
+    @media (max-width: 420px) {
+      .login-card {
+        width: calc(100% - 40px);
+        border-radius: 20px;
+        padding: 28px 20px calc(var(--safe-bottom) + 20px);
+      }
+    }
+

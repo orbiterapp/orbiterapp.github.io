@@ -1,0 +1,98 @@
+﻿    @media(hover:hover) {
+      .um-item .kbd-hint {
+        margin-left: auto;
+        font-size: 10px;
+        color: var(--text3);
+        font-weight: 600;
+        letter-spacing: .5px
+      }
+    }
+
+    @media(hover:none) {
+      .um-item .kbd-hint {
+        display: none
+      }
+    }
+
+    /* â”€â”€ Task accent line â”€â”€ */
+    .task-row::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 10px;
+      bottom: 10px;
+      width: 3px;
+      border-radius: 2px;
+      background: var(--task-accent, transparent);
+      box-shadow: 0 0 10px var(--task-accent, transparent);
+      opacity: .85;
+      pointer-events: none;
+      transition: background .2s, box-shadow .2s
+    }
+
+    /* â”€â”€ Overdue section â”€â”€ */
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 10px 4px 4px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .8px;
+      text-transform: uppercase
+    }
+
+    .overdue-header {
+      color: var(--red)
+    }
+
+    .section-divider {
+      height: 1px;
+      background: var(--border);
+      margin: 4px 0 2px
+    }
+
+    /* â”€â”€ More options toggle â”€â”€ */
+    .more-opts-panel {
+      overflow: hidden;
+      max-height: 0;
+      transition: max-height .4s cubic-bezier(.32, .72, 0, 1)
+    }
+
+    .more-opts-panel.open {
+      max-height: 700px
+    }
+
+    .more-opts-btn {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      padding: 10px 16px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text2);
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-bottom: 10px;
+      transition: all .15s
+    }
+
+    .more-opts-btn svg {
+      transition: transform .3s cubic-bezier(.32, .72, 0, 1);
+      flex-shrink: 0
+    }
+
+    .more-opts-btn.open svg {
+      transform: rotate(180deg)
+    }
+
+    .more-opts-btn:active {
+      background: var(--surface2)
+    }
+
+    /* â”€â”€ Filter active badge â”€â”€ */

@@ -1,0 +1,74 @@
+﻿    .drag-handle {
+      display: flex;
+      align-items: center;
+      padding: 6px 2px 6px 0;
+      cursor: grab;
+      color: var(--text3);
+      opacity: 0.3;
+      transition: opacity .15s;
+      touch-action: none;
+      flex-shrink: 0
+    }
+
+    .drag-handle:active {
+      cursor: grabbing;
+      opacity: 0.7
+    }
+
+    .task-row.dragging {
+      opacity: 0.4;
+      background: var(--surface2);
+      border-radius: 10px
+    }
+
+    .drag-placeholder {
+      border-top: 2px solid var(--purple);
+      margin: -1px 0
+    }
+
+    /* â”€â”€ Archive â”€â”€ */
+    .archive-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 4px 8px
+    }
+
+    .archive-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text3);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 6px
+    }
+
+    .archive-toggle-btn {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 4px 10px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text2);
+      cursor: pointer;
+      font-family: inherit;
+      transition: all .15s
+    }
+
+    .archive-toggle-btn:active {
+      transform: scale(.95)
+    }
+
+    .task-row.archived-row .task-name {
+      text-decoration: line-through;
+      color: var(--text3)
+    }
+
+    .task-row.archived-row .task-chips .chip {
+      opacity: 0.5
+    }
+
+    /* â”€â”€ Keyboard shortcut hints â”€â”€ */

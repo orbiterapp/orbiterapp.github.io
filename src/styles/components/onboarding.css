@@ -1,0 +1,105 @@
+﻿    /* ORB-69: First-run onboarding screen */
+    #screen-onboard {
+      align-items: center;
+      justify-content: center;
+      background: var(--bg);
+      position: relative;
+      overflow: hidden;
+    }
+    .onboard-wrap {
+      width: 100%;
+      max-width: 420px;
+      padding: 40px 28px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0;
+      position: relative;
+      z-index: 1;
+    }
+    .onboard-cards {
+      display: flex;
+      width: 100%;
+      overflow: hidden;
+      border-radius: 20px;
+    }
+    .onboard-track {
+      display: flex;
+      transition: transform .35s cubic-bezier(.32,.72,0,1);
+      width: 100%;
+    }
+    .onboard-card {
+      min-width: 100%;
+      background: var(--card2);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 36px 28px 32px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+      text-align: center;
+      box-sizing: border-box;
+    }
+    .onboard-icon {
+      width: 72px;
+      height: 72px;
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 4px;
+    }
+    .onboard-title {
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: -.5px;
+      color: var(--text);
+    }
+    .onboard-body {
+      font-size: 15px;
+      color: var(--text2);
+      line-height: 1.55;
+    }
+    .onboard-dots {
+      display: flex;
+      gap: 7px;
+      margin-top: 24px;
+    }
+    .onboard-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--border2);
+      transition: background .25s, width .25s;
+    }
+    .onboard-dot.active {
+      background: var(--purple);
+      width: 22px;
+      border-radius: 4px;
+    }
+    .onboard-btn {
+      margin-top: 28px;
+      width: 100%;
+      padding: 16px;
+      background: var(--purple);
+      border: none;
+      border-radius: 14px;
+      color: #fff;
+      font-family: inherit;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity .15s;
+    }
+    .onboard-btn:active { opacity: .8; }
+    .onboard-skip {
+      margin-top: 14px;
+      background: none;
+      border: none;
+      color: var(--text3);
+      font-family: inherit;
+      font-size: 14px;
+      cursor: pointer;
+      padding: 4px 8px;
+    }
