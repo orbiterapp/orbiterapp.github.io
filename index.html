@@ -1272,36 +1272,50 @@
       z-index: 2
     }
 
+    /* Outer chrome ring — matches LiquidButton shadow div (rounded-full) */
     .tb-pill {
       position: absolute;
-      border-radius: 20px;
+      border-radius: 100px;
       background: transparent;
-      box-shadow: 0 0 8px rgba(0,0,0,0.03), 0 2px 6px rgba(0,0,0,0.08), inset 3px 3px 0.5px -3.5px rgba(255,255,255,0.09), inset -3px -3px 0.5px -3.5px rgba(255,255,255,0.85), inset 1px 1px 1px -0.5px rgba(255,255,255,0.6), inset -1px -1px 1px -0.5px rgba(255,255,255,0.6), inset 0 0 6px 6px rgba(255,255,255,0.12), inset 0 0 2px 2px rgba(255,255,255,0.06), 0 0 12px rgba(0,0,0,0.15);
+      /* dark mode: white inset edges = glass rim light */
+      box-shadow:
+        0 0 8px rgba(0,0,0,0.03),
+        0 2px 6px rgba(0,0,0,0.08),
+        inset 3px 3px 0.5px -3.5px rgba(255,255,255,0.09),
+        inset -3px -3px 0.5px -3.5px rgba(255,255,255,0.85),
+        inset 1px 1px 1px -0.5px rgba(255,255,255,0.6),
+        inset -1px -1px 1px -0.5px rgba(255,255,255,0.6),
+        inset 0 0 6px 6px rgba(255,255,255,0.12),
+        inset 0 0 2px 2px rgba(255,255,255,0.06),
+        0 0 12px rgba(0,0,0,0.15);
       pointer-events: none;
       z-index: 0;
       overflow: hidden;
       transition: none
     }
 
+    /* Backdrop glass layer — matches LiquidButton -z-10 backdropFilter div (rounded-md) */
     .tb-pill::before {
       content: '';
       position: absolute;
       inset: 0;
-      border-radius: inherit;
-      backdrop-filter: url(#lg-glass-filter) blur(6px);
-      -webkit-backdrop-filter: blur(18px) saturate(200%);
+      border-radius: 14px;
+      overflow: hidden;
+      backdrop-filter: url(#lg-glass-filter) blur(4px);
+      -webkit-backdrop-filter: blur(16px) saturate(190%);
       pointer-events: none
     }
 
+    /* Top specular shimmer */
     .tb-pill::after {
       content: '';
       position: absolute;
-      top: 1px;
-      left: 10%;
-      right: 10%;
-      height: 35%;
-      background: linear-gradient(to bottom, rgba(255, 255, 255, 0.1), transparent);
-      border-radius: 8px 8px 50% 50%;
+      top: 0;
+      left: 8%;
+      right: 8%;
+      height: 42%;
+      background: linear-gradient(to bottom, rgba(255,255,255,0.13), transparent);
+      border-radius: 0 0 50% 50%;
       pointer-events: none;
       z-index: 1
     }
@@ -2085,7 +2099,17 @@
     }
 
     body.light .tb-pill {
-      box-shadow: 0 0 6px rgba(0,0,0,0.03), 0 2px 6px rgba(0,0,0,0.08), inset 3px 3px 0.5px -3px rgba(0,0,0,0.9), inset -3px -3px 0.5px -3px rgba(0,0,0,0.85), inset 1px 1px 1px -0.5px rgba(0,0,0,0.6), inset -1px -1px 1px -0.5px rgba(0,0,0,0.6), inset 0 0 6px 6px rgba(0,0,0,0.12), inset 0 0 2px 2px rgba(0,0,0,0.06), 0 0 12px rgba(255,255,255,0.15)
+      /* light mode: dark inset edges = glass rim shadow */
+      box-shadow:
+        0 0 6px rgba(0,0,0,0.03),
+        0 2px 6px rgba(0,0,0,0.08),
+        inset 3px 3px 0.5px -3px rgba(0,0,0,0.9),
+        inset -3px -3px 0.5px -3px rgba(0,0,0,0.85),
+        inset 1px 1px 1px -0.5px rgba(0,0,0,0.6),
+        inset -1px -1px 1px -0.5px rgba(0,0,0,0.6),
+        inset 0 0 6px 6px rgba(0,0,0,0.12),
+        inset 0 0 2px 2px rgba(0,0,0,0.06),
+        0 0 12px rgba(255,255,255,0.15)
     }
 
     body.light .modal-sheet {
@@ -3704,11 +3728,11 @@
     <div class="task-area" id="task-area"></div>
     <svg style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true">
       <defs>
-        <filter id="lg-glass-filter" x="-10%" y="-10%" width="120%" height="120%" color-interpolation-filters="sRGB">
-          <feTurbulence type="fractalNoise" baseFrequency="0.05 0.05" numOctaves="1" seed="2" result="turbulence"/>
+        <filter id="lg-glass-filter" x="0%" y="0%" width="100%" height="100%" color-interpolation-filters="sRGB">
+          <feTurbulence type="fractalNoise" baseFrequency="0.05 0.05" numOctaves="1" seed="1" result="turbulence"/>
           <feGaussianBlur in="turbulence" stdDeviation="2" result="blurredNoise"/>
-          <feDisplacementMap in="SourceGraphic" in2="blurredNoise" scale="60" xChannelSelector="R" yChannelSelector="B" result="displaced"/>
-          <feGaussianBlur in="displaced" stdDeviation="3.5" result="finalBlur"/>
+          <feDisplacementMap in="SourceGraphic" in2="blurredNoise" scale="70" xChannelSelector="R" yChannelSelector="B" result="displaced"/>
+          <feGaussianBlur in="displaced" stdDeviation="4" result="finalBlur"/>
           <feComposite in="finalBlur" in2="finalBlur" operator="over"/>
         </filter>
       </defs>
@@ -6677,7 +6701,7 @@
           if (_dragHandled) { _dragHandled = false; e.stopImmediatePropagation(); e.preventDefault(); }
         }, true);
 
-        // Capture pointerdown on whole toolbar so pill area (pointer-events:none) still works via parent
+        // Capture on whole toolbar — pill is pointer-events:none, bubbles up here
         toolbar.addEventListener('pointerdown', function (e) {
           if (e.target.closest('.tb-add')) return;
 
@@ -6687,39 +6711,41 @@
 
           var tr = toolbar.getBoundingClientRect();
           var baseW = sb.width;
-          var pillH = sb.height + 6;
-          var pillTop = sb.top - 3;
 
           var moved = false;
           var lastX = e.clientX;
-          var velocity = 0;
+          var lastT = performance.now();
+          var vel = 0;   // time-normalised px/ms, EMA-smoothed
           var dragTabId = startTabId;
 
           pill.style.transition = 'none';
 
           function onMove(ev) {
-            velocity = ev.clientX - lastX;
+            var now = performance.now();
+            var dt = now - lastT;
+            if (dt > 0) vel = vel * 0.55 + ((ev.clientX - lastX) / dt) * 0.45;
             lastX = ev.clientX;
+            lastT = now;
+
             if (!moved && Math.abs(ev.clientX - e.clientX) < 5) return;
             moved = true;
             ev.preventDefault();
 
-            // Pill center freely follows pointer — no anchor to start position
             var pointerLocal = ev.clientX - tr.left;
+            var velMag = Math.abs(vel);
 
-            // Velocity-based stretch: pill widens in direction of travel
-            var stretch = Math.min(Math.abs(velocity) * 2.8, 38);
+            // Narrow when slow (< 0.15 px/ms), linearly wider as speed rises, capped at +58px
+            var stretch = velMag < 0.15 ? 0 : Math.min((velMag - 0.15) * 42, 58);
             var stretchedW = baseW + stretch;
 
+            // Trailing edge anchors, leading edge extends (comet tail)
             var newLeft;
-            if (velocity > 0) {
-              // Moving right: left edge lags, right edge leads
-              newLeft = pointerLocal - baseW / 2;
-            } else if (velocity < 0) {
-              // Moving left: right edge lags, left edge leads
-              newLeft = pointerLocal - stretchedW + baseW / 2;
+            if (vel > 0.05) {
+              newLeft = pointerLocal - baseW / 2;               // left anchors, right leads
+            } else if (vel < -0.05) {
+              newLeft = pointerLocal - stretchedW + baseW / 2;  // right anchors, left leads
             } else {
-              newLeft = pointerLocal - stretchedW / 2;
+              newLeft = pointerLocal - stretchedW / 2;          // symmetric when still
             }
 
             newLeft = Math.max(3, Math.min(newLeft, tr.width - stretchedW - 3));
@@ -6728,7 +6754,7 @@
             pill.style.left = newLeft + 'px';
             pill.style.width = stretchedW + 'px';
 
-            // Snap highlight to nearest tab by pill center
+            // Nearest tab by pill center
             var pillCenter = newLeft + stretchedW / 2;
             var nearestId = dragTabId, nearestDist = Infinity;
             NON_FAB.forEach(function (tid) {
