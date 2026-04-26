@@ -53,7 +53,7 @@
       const sn = document.getElementById('settings-user-name'); if (sn) sn.textContent = n;
       const se = document.getElementById('settings-user-email'); if (se) se.textContent = e;
     }
-    function toggleMenu(f) { const el = document.getElementById('menu-overlay'); if (!el) return; const o = f !== undefined ? f : !el.classList.contains('open'); el.classList.toggle('open', o); }
+    function toggleMenu(f) { const el = document.getElementById('menu-overlay'); if (!el) return; const o = f !== undefined ? f : !el.classList.contains('open'); if (o && session) updateAvatar(); el.classList.toggle('open', o); }
     function handleMenuClick(e) { if (e.target.id === 'menu-overlay') toggleMenu(false); }
 
     // â”€â”€â”€ Search â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
