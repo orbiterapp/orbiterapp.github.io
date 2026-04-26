@@ -31,7 +31,7 @@
 
     async function api(path, opts) {
       opts = opts || {};
-      // Merge caller headers with auth headers â€” do NOT let opts.headers overwrite auth
+      // Merge caller headers with auth headers — do NOT let opts.headers overwrite auth
       var mergedHeaders = Object.assign(hdrs(), opts.headers || {});
       var fetchOpts = Object.assign({}, opts, { headers: mergedHeaders });
       _syncStart();

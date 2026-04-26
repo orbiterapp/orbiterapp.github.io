@@ -17,7 +17,7 @@
       if (Notification.permission === 'granted') { toast('Notifications already enabled âœ“'); subscribeToPush(); return; }
       Notification.requestPermission().then(function (p) {
         if (p === 'granted') { toast('Notifications enabled!'); haptic('success'); subscribeToPush(); }
-        else toast('Notifications blocked â€” check browser settings');
+        else toast('Notifications blocked — check browser settings');
       });
     }
 

@@ -28,7 +28,7 @@
         leftAction = null; rightAction = null;
       }
 
-      // Rubber-band easing â€” moves freely up to threshold, then dampens
+      // Rubber-band easing — moves freely up to threshold, then dampens
       function rubberBand(x, max) {
         var abs = Math.abs(x), sign = x < 0 ? -1 : 1;
         if (abs <= THRESH) return x;

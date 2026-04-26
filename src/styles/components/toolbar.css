@@ -45,7 +45,7 @@
       z-index: 2
     }
 
-    /* Outer chrome ring â€” matches LiquidButton shadow div (rounded-full) */
+    /* Outer chrome ring — matches LiquidButton shadow div (rounded-full) */
     .tb-pill {
       position: absolute;
       border-radius: 100px;
@@ -69,7 +69,7 @@
       transform: translateZ(0)
     }
 
-    /* Backdrop glass layer â€” keeps the content behind the pill optically thicker */
+    /* Backdrop glass layer — keeps the content behind the pill optically thicker */
     .tb-pill::before {
       content: '';
       position: absolute;

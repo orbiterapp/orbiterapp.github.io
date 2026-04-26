@@ -679,7 +679,7 @@
       }
     }
 
-    /* ORB-68: Reduce motion â€” disable all animations for users who prefer it */
+    /* ORB-68: Reduce motion — disable all animations for users who prefer it */
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after {
         animation-duration: .01ms !important;
@@ -692,10 +692,10 @@
       }
     }
 
-    /* ORB-73: Prevent iOS zoom on input focus â€” iOS zooms when font-size < 16px */
+    /* ORB-73: Prevent iOS zoom on input focus — iOS zooms when font-size < 16px */
     input, select, textarea { font-size: max(16px, 1em); }
 
-    /* ORB-79: Hide desktop panel on mobile â€” panel CSS only applies inside @media 768px */
+    /* ORB-79: Hide desktop panel on mobile — panel CSS only applies inside @media 768px */
     .desktop-detail-panel { display: none; }
     @media (min-width: 768px) { .desktop-detail-panel { display: flex; flex-direction: column; } }
 

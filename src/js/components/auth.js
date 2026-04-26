@@ -28,11 +28,11 @@
       } catch (e) { toast('Export failed'); }
     }
     function parseHash() { const p = new URLSearchParams(window.location.hash.substring(1)); const t = p.get('access_token'), r = p.get('refresh_token'); if (!t) return null; try { const b = t.split('.')[1].replace(/-/g, '+').replace(/_/g, '/'); const pad = b + '===='.slice(b.length % 4 || 4); const d = JSON.parse(atob(pad)); if (r) localStorage.setItem('sb_refresh_token', r); return { access_token: t, user: { id: d.sub, email: d.email, user_metadata: d.user_metadata || {} } }; } catch (e) { return null; } }
-    // verify() and refresh() are now in auth.js (ORB-21 â€” shared auth module)
+    // verify() and refresh() are now in auth.js (ORB-21 — shared auth module)
     // They are loaded via <script src="auth.js"> before this script.
 
     // â”€â”€â”€ API â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-    // ORB-20: SB_KEY is the Supabase anon/public key â€” safe to expose client-side
+    // ORB-20: SB_KEY is the Supabase anon/public key — safe to expose client-side
     // as long as Row Level Security (RLS) is enabled on all tables (tasks, projects).
     // Never use the service_role key here.
 

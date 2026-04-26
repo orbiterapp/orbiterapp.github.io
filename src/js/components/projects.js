@@ -27,7 +27,7 @@
       }
       list.innerHTML = html;
     }
-    // ORB-122: Complete project â€” marks all active tasks and the project done
+    // ORB-122: Complete project — marks all active tasks and the project done
     async function completeProject(id) {
       var now = new Date().toISOString();
       var proj = projects.find(function (p) { return p.id === id; });

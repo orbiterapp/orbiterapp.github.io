@@ -58,7 +58,7 @@
         h += '<div style="width:100%"></div>';
         h += '<div style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;color:var(--text2)">Saved:</div>';
         _savedFilters.forEach(function (fs) {
-          h += '<div class="filter-chip" style="background:var(--accent-dim);color:var(--accent);border-color:var(--accent)" onclick="applySavedFilter(' + JSON.stringify(fs.name) + ')">' + esc(fs.name) + '<span onclick="event.stopPropagation();deleteSavedFilter(' + JSON.stringify(fs.name) + ')" style="margin-left:4px;opacity:.6;cursor:pointer">Ã—</span></div>';
+          h += '<div class="filter-chip" style="background:var(--accent-dim);color:var(--accent);border-color:var(--accent)" onclick="applySavedFilter(' + JSON.stringify(fs.name) + ')">' + esc(fs.name) + '<span onclick="event.stopPropagation();deleteSavedFilter(' + JSON.stringify(fs.name) + ')" style="margin-left:4px;opacity:.6;cursor:pointer">×</span></div>';
         });
         if (hasActiveFilters()) h += '<div class="filter-chip" onclick="saveFilterSet()" style="border-style:dashed">+ Save</div>';
       }

@@ -28,7 +28,7 @@
           if (newSW.state === 'installed' && navigator.serviceWorker.controller) {
             var b = document.getElementById('update-banner');
             if (b) {
-              b.innerHTML = 'New version available â€” <button onclick="applyUpdate()" style="background:none;border:none;color:inherit;font-weight:700;cursor:pointer;text-decoration:underline;font-family:inherit;font-size:inherit">Refresh</button>';
+              b.innerHTML = 'New version available — <button onclick=”applyUpdate()” style="background:none;border:none;color:inherit;font-weight:700;cursor:pointer;text-decoration:underline;font-family:inherit;font-size:inherit">Refresh</button>';
               b.style.display = 'flex';
             }
           }
@@ -210,7 +210,7 @@
           if (_dragHandled) { _dragHandled = false; e.stopImmediatePropagation(); e.preventDefault(); }
         }, true);
 
-        // Capture on whole toolbar â€” pill is pointer-events:none, bubbles up here
+        // Capture on whole toolbar — pill is pointer-events:none, bubbles up here
         toolbar.addEventListener('pointerdown', function (e) {
           if (e.target.closest('.tb-add')) return;
 

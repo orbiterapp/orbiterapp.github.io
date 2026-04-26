@@ -53,8 +53,8 @@
     }
     function setInboxSort(val) { inboxSort = val; localStorage.setItem('inbox_sort', val); _sortOpen = false; render(); }
     var _sortOpen = false;
-    var _SORT_NAMES = {created:'Date Added',due:'Due Date',priority:'Priority',title:'Aâ€“Z'};
-    var _SORT_ITEMS = [['created','Date Added'],['due','Due Date'],['priority','Priority'],['title','Aâ€“Z']];
+    var _SORT_NAMES = {created:'Date Added',due:'Due Date',priority:'Priority',title:'A–Z'};
+    var _SORT_ITEMS = [['created','Date Added'],['due','Due Date'],['priority','Priority'],['title','A–Z']];
     window.toggleSortDrop = function(e) { e.stopPropagation(); _sortOpen = !_sortOpen; var d = document.getElementById('sort-drop'); if (d) d.style.display = _sortOpen ? 'block' : 'none'; };
     window.setSortAndClose = function(val) { setInboxSort(val); };
     document.addEventListener('click', function() { if (_sortOpen) { _sortOpen = false; var d = document.getElementById('sort-drop'); if (d) d.style.display = 'none'; } });
@@ -183,7 +183,7 @@
         var badge = document.getElementById('persp-badge'); badge.style.background = tab.bg; badge.style.color = tab.color; badge.innerHTML = tab.icon;
       }
       var _countText = searchQuery ? v.length + ' result' + (v.length !== 1 ? 's' : '') : (v.length === 0 ? (showArchived ? 'No archived tasks' : 'No tasks') : v.length + ' ' + (showArchived ? 'archived' : 'task') + (v.length !== 1 ? 's' : ''));
-      document.getElementById('persp-count').textContent = _ds + ' Â· ' + _countText;
+      document.getElementById('persp-count').textContent = _ds + ' · ' + _countText;
       // Tab highlights
       document.querySelectorAll('.tb-btn').forEach(function (b) { b.classList.remove('active'); });
       if (!showArchived) {
@@ -457,7 +457,7 @@
         var sel = selectedArr.indexOf(tag.name) !== -1;
         return '<div class="tag-opt' + (sel ? ' selected' : '') + '" style="color:' + tag.color + (sel ? ';background:' + tag.color + '22;border-color:' + tag.color : '') + '" onclick="toggleTagOpt(\'' + containerId + '\',\'' + tag.name + '\')"><span class="tag-dot" style="background:' + tag.color + '"></span>' + tag.name + '</div>';
       }).join('');
-      var inputHtml = '<input id="' + containerId + '-search" type="text" placeholder="Filter tagsâ€¦" value="' + esc(filterStr||'') + '" oninput="buildTagsPicker(\'' + containerId + '\',' + (containerId==='i-tags-picker'?'addModalTags':'detailModalTags') + ',this.value)" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:5px 8px;font-size:12px;color:var(--text);margin-bottom:6px;box-sizing:border-box" autocomplete="off">';
+      var inputHtml = '<input id="' + containerId + '-search" type="text" placeholder="Filter tags…" value="' + esc(filterStr||'') + '" oninput="buildTagsPicker(\'' + containerId + '\',' + (containerId==='i-tags-picker'?'addModalTags':'detailModalTags') + ',this.value)" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:5px 8px;font-size:12px;color:var(--text);margin-bottom:6px;box-sizing:border-box" autocomplete="off">';
       container.innerHTML = inputHtml + tagHtml;
     }
     function toggleTagOpt(containerId, tagName) {
