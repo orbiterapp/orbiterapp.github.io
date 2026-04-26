@@ -45,15 +45,15 @@
         a = m.avatar_url || m.picture,
         b = document.getElementById('avatar-btn');
       const html = a ? '<img src="' + esc(a) + '" alt="">' : i;
-      b.innerHTML = html;
-      document.getElementById('m-name').textContent = n;
-      document.getElementById('m-email').textContent = e;
+      if (b) b.innerHTML = html;
+      const mn = document.getElementById('m-name'); if (mn) mn.textContent = n;
+      const me = document.getElementById('m-email'); if (me) me.textContent = e;
       // Sync settings page user card
       const sav = document.getElementById('settings-av'); if (sav) sav.innerHTML = html;
       const sn = document.getElementById('settings-user-name'); if (sn) sn.textContent = n;
       const se = document.getElementById('settings-user-email'); if (se) se.textContent = e;
     }
-    function toggleMenu(f) { const el = document.getElementById('menu-overlay'), o = f !== undefined ? f : !el.classList.contains('open'); el.classList.toggle('open', o); }
+    function toggleMenu(f) { const el = document.getElementById('menu-overlay'); if (!el) return; const o = f !== undefined ? f : !el.classList.contains('open'); el.classList.toggle('open', o); }
     function handleMenuClick(e) { if (e.target.id === 'menu-overlay') toggleMenu(false); }
 
     // â”€â”€â”€ Search â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€

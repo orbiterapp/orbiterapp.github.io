@@ -1,22 +1,28 @@
 ﻿    // â”€â”€â”€ Init â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    window.addEventListener('unhandledrejection', function (e) { console.error('Unhandled rejection:', e.reason); });
     // parseHash is kept here for the OAuth redirect case (before bootstrapSession)
     function parseHash() { const p = new URLSearchParams(window.location.hash.substring(1)); const t = p.get('access_token'), r = p.get('refresh_token'); if (!t) return null; try { const b = t.split('.')[1].replace(/-/g, '+').replace(/_/g, '/'); const pad = b + '===='.slice(b.length % 4 || 4); const d = JSON.parse(atob(pad)); if (r) localStorage.setItem('sb_refresh_token', r); return { access_token: t, user: { id: d.sub, email: d.email, user_metadata: d.user_metadata || {} } }; } catch (e) { return null; } }
     async function init() {
-      // ORB-21: Use shared bootstrapSession() from auth.js
-      session = await bootstrapSession();
-      // Pre-load projects from localStorage for instant rendering (ORB-30)
-      try { var _lsProj = localStorage.getItem('pwa_projects'); if (_lsProj) projects = JSON.parse(_lsProj); } catch (e) { }
-      loadTheme();
-      loadAccentColor();
-      if (session) {
-        updateAvatar(); populateProjectSelects();
-        // ORB-69: Show onboarding on first sign-in
-        if (!localStorage.getItem('orbiter_onboarded')) { show('screen-onboard'); }
-        else { show('screen-app'); }
-        render(); syncTasks(); loadConfirmDeleteSetting(); loadUserPreferences(); setTimeout(initRealtime, 2000);
-        if ('Notification' in window && Notification.permission === 'default') { setTimeout(requestNotifPermission, 3000); }
+      try {
+        // ORB-21: Use shared bootstrapSession() from auth.js
+        session = await bootstrapSession();
+        // Pre-load projects from localStorage for instant rendering (ORB-30)
+        try { var _lsProj = localStorage.getItem('pwa_projects'); if (_lsProj) projects = JSON.parse(_lsProj); } catch (e) { }
+        loadTheme();
+        loadAccentColor();
+        if (session) {
+          updateAvatar(); populateProjectSelects();
+          // ORB-69: Show onboarding on first sign-in
+          if (!localStorage.getItem('orbiter_onboarded')) { show('screen-onboard'); }
+          else { show('screen-app'); }
+          render(); syncTasks(); loadConfirmDeleteSetting(); loadUserPreferences(); setTimeout(initRealtime, 2000);
+          if ('Notification' in window && Notification.permission === 'default') { setTimeout(requestNotifPermission, 3000); }
+        }
+        else show('screen-login');
+      } catch (e) {
+        console.error('init() failed:', e);
+        try { show('screen-login'); } catch (_) { }
       }
-      else show('screen-login');
     }
     if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').then(function (reg) {
       reg.update();
