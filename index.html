@@ -69,6 +69,9 @@
       --safe-bottom: env(safe-area-inset-bottom);
       --r: 14px;
       --r-lg: 20px;
+      --glass-accent: var(--accent);
+      --glass-blur: 18px;
+      --glass-sat: 185%;
     }
 
     * {
@@ -1248,16 +1251,24 @@
       pointer-events: all;
       display: flex;
       align-items: flex-end;
-      background: rgba(18, 18, 26, 0.52);
-      border: 1px solid rgba(255, 255, 255, 0.11);
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.02) 38%, rgba(5, 5, 10, 0.16)),
+        color-mix(in srgb, var(--glass-accent) 7%, rgba(18, 18, 26, 0.58));
+      border: 1px solid rgba(255, 255, 255, 0.12);
       border-radius: 26px;
       padding: 8px 4px 6px;
-      box-shadow: 0 -2px 20px rgba(0, 0, 0, .32), 0 8px 32px rgba(0, 0, 0, .22), inset 0 1px 0 rgba(255, 255, 255, 0.09), inset 0 -1px 0 rgba(0, 0, 0, 0.1);
-      backdrop-filter: blur(40px) saturate(180%);
-      -webkit-backdrop-filter: blur(40px) saturate(180%);
+      box-shadow:
+        0 -2px 20px rgba(0, 0, 0, .28),
+        0 14px 42px rgba(0, 0, 0, .28),
+        0 0 0 1px color-mix(in srgb, var(--glass-accent) 10%, transparent),
+        inset 0 1px 0 rgba(255, 255, 255, 0.12),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.12);
+      backdrop-filter: blur(34px) saturate(165%);
+      -webkit-backdrop-filter: blur(34px) saturate(165%);
       overflow: visible;
       position: relative;
-      isolation: isolate
+      isolation: isolate;
+      transform: translateZ(0)
     }
 
     .toolbar::before {
@@ -1276,48 +1287,68 @@
     .tb-pill {
       position: absolute;
       border-radius: 100px;
-      background: transparent;
-      /* dark mode: white inset edges = glass rim light */
+      background:
+        radial-gradient(circle at 18% 20%, color-mix(in srgb, var(--glass-accent) 24%, rgba(255,255,255,0.26)) 0%, transparent 34%),
+        radial-gradient(circle at 82% 78%, rgba(255,255,255,0.12) 0%, transparent 36%),
+        linear-gradient(180deg, rgba(255,255,255,0.18), rgba(255,255,255,0.06) 46%, rgba(255,255,255,0.02) 100%);
       box-shadow:
-        0 0 8px rgba(0,0,0,0.03),
-        0 2px 6px rgba(0,0,0,0.08),
-        inset 3px 3px 0.5px -3.5px rgba(255,255,255,0.09),
-        inset -3px -3px 0.5px -3.5px rgba(255,255,255,0.85),
-        inset 1px 1px 1px -0.5px rgba(255,255,255,0.6),
-        inset -1px -1px 1px -0.5px rgba(255,255,255,0.6),
-        inset 0 0 6px 6px rgba(255,255,255,0.12),
-        inset 0 0 2px 2px rgba(255,255,255,0.06),
-        0 0 12px rgba(0,0,0,0.15);
+        0 8px 24px color-mix(in srgb, var(--glass-accent) 16%, rgba(0,0,0,0.12)),
+        0 3px 8px rgba(0,0,0,0.16),
+        inset 0 1px 0 rgba(255,255,255,0.26),
+        inset 0 -1px 0 rgba(255,255,255,0.06),
+        inset 1px 0 0 rgba(255,255,255,0.08),
+        inset -1px 0 0 rgba(255,255,255,0.12),
+        inset 0 0 0 1px color-mix(in srgb, var(--glass-accent) 18%, rgba(255,255,255,0.18));
       pointer-events: none;
       z-index: 0;
       overflow: hidden;
-      transition: none
+      transition: none;
+      will-change: left, width, top, height;
+      transform: translateZ(0)
     }
 
-    /* Backdrop glass layer — matches LiquidButton -z-10 backdropFilter div (rounded-md) */
+    /* Backdrop glass layer — keeps the content behind the pill optically thicker */
     .tb-pill::before {
       content: '';
       position: absolute;
       inset: 0;
-      border-radius: 14px;
+      border-radius: inherit;
       overflow: hidden;
-      backdrop-filter: url(#lg-glass-filter) blur(4px);
-      -webkit-backdrop-filter: blur(16px) saturate(190%);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.18), rgba(255,255,255,0.05) 45%, rgba(255,255,255,0.02)),
+        color-mix(in srgb, var(--glass-accent) 10%, transparent);
+      backdrop-filter: url(#lg-glass-filter) blur(var(--glass-blur)) saturate(var(--glass-sat));
+      -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
+      opacity: .96;
       pointer-events: none
     }
 
-    /* Top specular shimmer */
+    /* Specular highlight + travelling caustic streak */
     .tb-pill::after {
       content: '';
       position: absolute;
-      top: 0;
-      left: 8%;
-      right: 8%;
-      height: 42%;
-      background: linear-gradient(to bottom, rgba(255,255,255,0.13), transparent);
-      border-radius: 0 0 50% 50%;
+      inset: 0;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.44) 0%, rgba(255,255,255,0.14) 18%, transparent 52%),
+        linear-gradient(115deg, transparent 22%, rgba(255,255,255,0.20) 44%, rgba(255,255,255,0.08) 52%, transparent 66%);
+      mask-image: radial-gradient(125% 88% at 50% 2%, #000 0%, #000 45%, transparent 78%);
+      -webkit-mask-image: radial-gradient(125% 88% at 50% 2%, #000 0%, #000 45%, transparent 78%);
       pointer-events: none;
       z-index: 1
+    }
+
+    @supports not (backdrop-filter: blur(1px)) {
+      .toolbar {
+        background:
+          linear-gradient(180deg, rgba(255,255,255,0.07), rgba(255,255,255,0.02) 38%, rgba(5, 5, 10, 0.16)),
+          color-mix(in srgb, var(--glass-accent) 10%, rgba(20, 20, 28, 0.86));
+      }
+
+      .tb-pill::before {
+        background:
+          linear-gradient(180deg, rgba(255,255,255,0.22), rgba(255,255,255,0.08) 44%, rgba(255,255,255,0.02)),
+          color-mix(in srgb, var(--glass-accent) 14%, rgba(255,255,255,0.05));
+      }
     }
 
     .tb-btn {
@@ -2089,9 +2120,15 @@
     }
 
     body.light .toolbar {
-      background: rgba(240, 240, 248, 0.62);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.84), rgba(255,255,255,0.48) 44%, rgba(255,255,255,0.22)),
+        color-mix(in srgb, var(--glass-accent) 4%, rgba(240, 240, 248, 0.64));
       border-color: rgba(255, 255, 255, 0.72);
-      box-shadow: 0 -2px 20px rgba(0, 0, 0, .05), 0 8px 32px rgba(0, 0, 0, .07), inset 0 1px 0 rgba(255, 255, 255, 0.88)
+      box-shadow:
+        0 -2px 20px rgba(0, 0, 0, .05),
+        0 8px 32px rgba(0, 0, 0, .07),
+        0 0 0 1px color-mix(in srgb, var(--glass-accent) 8%, transparent),
+        inset 0 1px 0 rgba(255, 255, 255, 0.88)
     }
 
     body.light .toolbar::before {
@@ -2099,17 +2136,26 @@
     }
 
     body.light .tb-pill {
-      /* light mode: dark inset edges = glass rim shadow */
+      background:
+        radial-gradient(circle at 20% 18%, color-mix(in srgb, var(--glass-accent) 16%, rgba(255,255,255,0.6)) 0%, transparent 32%),
+        radial-gradient(circle at 82% 78%, rgba(255,255,255,0.42) 0%, transparent 36%),
+        linear-gradient(180deg, rgba(255,255,255,0.72), rgba(255,255,255,0.34) 44%, rgba(255,255,255,0.14) 100%);
       box-shadow:
         0 0 6px rgba(0,0,0,0.03),
+        0 10px 22px color-mix(in srgb, var(--glass-accent) 10%, rgba(0,0,0,0.05)),
         0 2px 6px rgba(0,0,0,0.08),
-        inset 3px 3px 0.5px -3px rgba(0,0,0,0.9),
-        inset -3px -3px 0.5px -3px rgba(0,0,0,0.85),
-        inset 1px 1px 1px -0.5px rgba(0,0,0,0.6),
-        inset -1px -1px 1px -0.5px rgba(0,0,0,0.6),
-        inset 0 0 6px 6px rgba(0,0,0,0.12),
-        inset 0 0 2px 2px rgba(0,0,0,0.06),
-        0 0 12px rgba(255,255,255,0.15)
+        inset 0 1px 0 rgba(255,255,255,0.9),
+        inset 0 -1px 0 rgba(0,0,0,0.08),
+        inset 1px 0 0 rgba(255,255,255,0.5),
+        inset -1px 0 0 rgba(0,0,0,0.08),
+        inset 0 0 0 1px color-mix(in srgb, var(--glass-accent) 12%, rgba(255,255,255,0.24))
+    }
+
+    body.light .tb-pill::before {
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.46), rgba(255,255,255,0.16) 42%, rgba(255,255,255,0.06)),
+        color-mix(in srgb, var(--glass-accent) 6%, transparent);
+      opacity: .9
     }
 
     body.light .modal-sheet {
@@ -3471,6 +3517,10 @@
         animation-iteration-count: 1 !important;
         transition-duration: .01ms !important;
       }
+
+      .tb-pill {
+        will-change: auto
+      }
     }
 
     /* ORB-73: Prevent iOS zoom on input focus — iOS zooms when font-size < 16px */
@@ -3729,11 +3779,16 @@
     <svg style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true">
       <defs>
         <filter id="lg-glass-filter" x="0%" y="0%" width="100%" height="100%" color-interpolation-filters="sRGB">
-          <feTurbulence type="fractalNoise" baseFrequency="0.05 0.05" numOctaves="1" seed="1" result="turbulence"/>
-          <feGaussianBlur in="turbulence" stdDeviation="2" result="blurredNoise"/>
-          <feDisplacementMap in="SourceGraphic" in2="blurredNoise" scale="70" xChannelSelector="R" yChannelSelector="B" result="displaced"/>
-          <feGaussianBlur in="displaced" stdDeviation="4" result="finalBlur"/>
-          <feComposite in="finalBlur" in2="finalBlur" operator="over"/>
+          <feTurbulence type="fractalNoise" baseFrequency="0.018 0.03" numOctaves="2" seed="7" result="noise"/>
+          <feGaussianBlur in="noise" stdDeviation="0.8" result="soft-noise"/>
+          <feDisplacementMap in="SourceGraphic" in2="soft-noise" scale="16" xChannelSelector="R" yChannelSelector="B" result="refracted"/>
+          <feGaussianBlur in="refracted" stdDeviation="0.45" result="settled"/>
+          <feColorMatrix in="settled" type="matrix" values="
+            1 0 0 0 0
+            0 1 0 0 0
+            0 0 1 0 0
+            0 0 0 1.08 0" result="final-glass"/>
+          <feComposite in="final-glass" in2="SourceGraphic" operator="over"/>
         </filter>
       </defs>
     </svg>
@@ -6682,10 +6737,17 @@
         return { left: br.left - tr.left, width: br.width, top: br.top - tr.top, height: br.height };
       }
 
+      function setPillAccent(tabId) {
+        if (!pill || typeof TABS === 'undefined') return;
+        var tab = TABS[tabId] || TABS.inbox;
+        pill.style.setProperty('--glass-accent', (tab && tab.color) || 'var(--accent)');
+      }
+
       function placePill(tabId) {
         if (!ensure()) return;
         var b = getBounds(tabId);
         if (!b) return;
+        setPillAccent(tabId);
         pill.style.transition = _placed ? SPRING : 'none';
         pill.style.left = b.left + 'px';
         pill.style.width = b.width + 'px';
@@ -6766,6 +6828,7 @@
 
             if (nearestId !== dragTabId) {
               dragTabId = nearestId;
+              setPillAccent(nearestId);
               document.querySelectorAll('.tb-btn:not(.tb-add)').forEach(function (b2) {
                 b2.classList.remove('active');
                 var ic = b2.querySelector('.tb-icon'), lb = b2.querySelector('.tb-label');
