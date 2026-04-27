@@ -1,5 +1,4 @@
-﻿    }
-    function getTagArr(t) { try { var a = JSON.parse(t.tag_ids || '[]'); return Array.isArray(a) ? a.map(function (item) { return typeof item === 'string' ? item : (item && item.name ? item.name : String(item)); }) : []; } catch (e) { return []; } }
+﻿    function getTagArr(t) { try { var a = JSON.parse(t.tag_ids || '[]'); return Array.isArray(a) ? a.map(function (item) { return typeof item === 'string' ? item : (item && item.name ? item.name : String(item)); }) : []; } catch (e) { return []; } }
     let localCustomTags = JSON.parse(localStorage.getItem('pwa_custom_tags') || '[]');
     function saveCustomTags() { localStorage.setItem('pwa_custom_tags', JSON.stringify(localCustomTags)); }
     function getAllTags() {
@@ -9,6 +8,3 @@
     function getTagColor(name) { var tag = getAllTags().find(function (t) { return t.name === name; }); return tag ? tag.color : 'var(--text2)'; }
     function getProjectById(id) { return projects.find(function (p) { return p.id === id; }) || null; }
     function fmtRepeat(r) { return (!r || r === 'None') ? null : r; }
-
-    // â”€â”€â”€ Visible / Filter â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-    function visible() {
