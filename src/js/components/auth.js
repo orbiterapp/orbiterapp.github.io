@@ -39,7 +39,8 @@
     // ORB-82 fix: merge headers explicitly so opts.headers never wipes out auth headers
 
     function updateAvatar() {
-      const m = session?.user?.user_metadata || {}, e = session?.user?.email || '',
+      const m = session?.user?.user_metadata || {},
+        e = session?.user?.email || m.email || '',
         n = m.full_name || m.name || e.split('@')[0] || '?',
         i = n.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase(),
         a = m.avatar_url || m.picture,
