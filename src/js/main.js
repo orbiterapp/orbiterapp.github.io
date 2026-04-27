@@ -16,6 +16,7 @@
           if (!localStorage.getItem('orbiter_onboarded')) { show('screen-onboard'); }
           else { show('screen-app'); }
           render(); syncTasks(); loadConfirmDeleteSetting(); loadUserPreferences(); setTimeout(initRealtime, 2000);
+          if (navigator.onLine) _flushOutbox();
           if ('Notification' in window && Notification.permission === 'default') { setTimeout(requestNotifPermission, 3000); }
         }
         else show('screen-login');

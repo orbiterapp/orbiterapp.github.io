@@ -49,7 +49,8 @@
         setTimeout(function(){document.getElementById('i-title').focus();},100);
         toast('Task added âœ“');
       } else { closeModal(); toast('Task added'); }
-      try { await upsert(task); } catch (e) { toast('Failed to sync'); }
+      _queueOffline({ type: 'upsert', task: task });
+      try { await upsert(task); _dequeueOffline(task.id); } catch (e) { toast('Failed to sync'); }
     }
 
     // â”€â”€â”€ Task Detail â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€

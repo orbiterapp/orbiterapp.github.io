@@ -52,6 +52,9 @@
     function _queueOffline(op) {
       try { var q = JSON.parse(localStorage.getItem('orbiter_outbox') || '[]'); q.push(op); localStorage.setItem('orbiter_outbox', JSON.stringify(q)); } catch (e) {}
     }
+    function _dequeueOffline(taskId) {
+      try { var q = JSON.parse(localStorage.getItem('orbiter_outbox') || '[]'); q = q.filter(function(op) { return !(op.type === 'upsert' && op.task && op.task.id === taskId); }); localStorage.setItem('orbiter_outbox', JSON.stringify(q)); } catch (e) {}
+    }
     async function _flushOutbox() {
       var q = JSON.parse(localStorage.getItem('orbiter_outbox') || '[]');
       if (!q.length) return;

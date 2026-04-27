@@ -60,7 +60,7 @@
     async function loadUserPreferences() {
       if (!session) return;
       try {
-        var res = await api('user_preferences?user_id=eq.' + session.user.id + '&select=preferences', { method: 'GET' });
+        var res = await (await api('user_preferences?user_id=eq.' + session.user.id + '&select=preferences', { method: 'GET' })).json();
         if (res && res.length) {
           var prefs = res[0].preferences || {};
           if (prefs.theme) { localStorage.setItem('theme', prefs.theme); loadTheme(); }
