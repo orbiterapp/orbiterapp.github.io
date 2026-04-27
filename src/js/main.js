@@ -6,6 +6,14 @@
       try {
         // ORB-21: Use shared bootstrapSession() from auth.js
         session = await bootstrapSession();
+        // Upgrade session with full user object from server (bootstrapSession may return
+        // partial data from JWT hash parse or refresh token response)
+        if (session) {
+          try {
+            var _freshUser = await fetch(SB_URL + '/auth/v1/user', { headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + session.access_token } });
+            if (_freshUser.ok) { var _u = await _freshUser.json(); if (_u && _u.id) session.user = _u; }
+          } catch (e) {}
+        }
         // Pre-load projects from localStorage for instant rendering (ORB-30)
         try { var _lsProj = localStorage.getItem('pwa_projects'); if (_lsProj) projects = JSON.parse(_lsProj); } catch (e) { }
         loadTheme();
