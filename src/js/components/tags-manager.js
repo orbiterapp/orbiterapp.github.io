@@ -42,4 +42,4 @@
     }
 
     // â”€â”€â”€ Misc event handlers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-    document.getElementById('i-title').addEventListener('keydown', function (e) { if (e.key === 'Enter') addTask(); });
+
