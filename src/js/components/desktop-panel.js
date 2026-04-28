@@ -10,6 +10,8 @@
       document.getElementById('ddp-due-time').value = dueT ? dueT.substring(0,5) === '00:00' ? '' : dueT.substring(0,5) : '';
       var ddpNb = document.getElementById('ddp-notify-before'); if (ddpNb) ddpNb.value = String(task.notify_before_minutes != null ? task.notify_before_minutes : 30);
       document.getElementById('ddp-repeat').value = task.repeat_rule || 'None';
+      var ddpEn = document.getElementById('ddp-energy'); if (ddpEn) ddpEn.value = task.energy_level || '';
+      var ddpEm = document.getElementById('ddp-est-mins'); if (ddpEm) ddpEm.value = task.estimated_minutes || '';
       ddpFlag = task.is_flagged || false;
       ddpToday = task.is_today_task || false;
       document.getElementById('ddp-tog-flag').classList.toggle('on', ddpFlag);
@@ -41,6 +43,8 @@
       task.priority = document.getElementById('ddp-priority').value;
       task.due_date = dueISO;
       task.repeat_rule = document.getElementById('ddp-repeat').value || 'None';
+      task.energy_level = (document.getElementById('ddp-energy') || {}).value || null;
+      task.estimated_minutes = parseInt((document.getElementById('ddp-est-mins') || {}).value) || null;
       task.project_id = document.getElementById('ddp-project').value || null;
       task.is_flagged = ddpFlag;
       task.is_today_task = ddpToday;
@@ -48,7 +52,7 @@
       task.notified_at = null;
       task.updated_at = now;
       render();
-      patch(task.id, { title:task.title, notes:task.notes, priority:task.priority, due_date:task.due_date, repeat_rule:task.repeat_rule, project_id:task.project_id, is_flagged:task.is_flagged, is_today_task:task.is_today_task, notify_before_minutes:task.notify_before_minutes, notified_at:null, updated_at:now }).then(function(){ toast('Saved'); }).catch(function(){ toast('Sync failed'); });
+      patch(task.id, { title:task.title, notes:task.notes, priority:task.priority, due_date:task.due_date, repeat_rule:task.repeat_rule, project_id:task.project_id, is_flagged:task.is_flagged, is_today_task:task.is_today_task, notify_before_minutes:task.notify_before_minutes, energy_level:task.energy_level, estimated_minutes:task.estimated_minutes, notified_at:null, updated_at:now }).then(function(){ toast('Saved'); }).catch(function(){ toast('Sync failed'); });
     }
     function deleteDdpTask() {
       var id = currentTaskId;

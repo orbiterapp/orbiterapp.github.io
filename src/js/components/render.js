@@ -272,6 +272,8 @@
         if (subtasks.length > 0) chips += '<span class="chip chip-note"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="margin-right:2px"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>' + doneSubs + '/' + subtasks.length + '</span>';
         if (proj && currentTab !== 'projects') chips += '<span class="chip chip-project"><span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:' + proj.color + ';margin-right:3px"></span>' + esc(proj.name) + '</span>';
         tags.forEach(function (tag) { var color = _tagColorMap[tag] || 'var(--text2)'; chips += '<span class="chip chip-tag" style="background:' + color + '22;color:' + color + '">' + esc(tag) + '</span>'; });
+        if (t.energy_level) { var _eColor = {Low:'var(--green)',Medium:'var(--amber)',High:'var(--red)'}[t.energy_level]||'var(--text2)'; chips += '<span class="chip" style="color:'+_eColor+'">⚡'+t.energy_level+'</span>'; }
+        if (t.estimated_minutes) chips += '<span class="chip chip-note">'+t.estimated_minutes+'m</span>';
         if (t.notes) chips += '<span class="chip chip-note">Note</span>';
         var archCls = showArchived ? ' archived-row' : '';
         var msSel = _msMode && _msIds.has(t.id) ? ' ms-selected' : '';
