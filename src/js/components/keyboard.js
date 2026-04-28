@@ -22,11 +22,17 @@
       if (cmd && (e.key === 'f' || e.key === 'F') && !inInput) { e.preventDefault(); toggleFilters(); return; }
       // Number keys 1-5: Switch tabs (when not in input)
       if (!inInput && !cmd && !e.altKey) {
-        var tabMap = { '1': 'inbox', '2': 'today', '3': 'flagged', '4': 'projects', '5': 'all' };
+        var tabMap = { '1': 'inbox', '2': 'calendar', '3': 'flagged', '4': 'projects', '5': 'all' };
         if (tabMap[e.key]) { if (showArchived) { showArchived = false; document.getElementById('archive-label').textContent = 'View Archive'; } switchTab(tabMap[e.key]); e.preventDefault(); return; }
       }
       // Cmd+S: Sync
       if (cmd && (e.key === 's' || e.key === 'S')) { e.preventDefault(); syncTasks(); return; }
+      // n: New task, /: Search (bare keys, no modifier, not in input)
+      if (!inInput && !cmd && !e.altKey) {
+        if (e.key === 'n') { e.preventDefault(); openModal(); return; }
+        if (e.key === '/') { e.preventDefault(); var _si = document.getElementById('search-input'); if (_si) { toggleSearch(); _si.focus(); } return; }
+        if (e.key === '?') { showShortcutsModal(); return; }
+      }
     });
 
     // â”€â”€â”€ Drag to Reorder â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€

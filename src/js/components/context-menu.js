@@ -34,14 +34,6 @@
           if (dm && dm.classList.contains('open')) { saveTaskDetails(); closeDetailModal(); return; }
         }
         if (e.key === '?' && !e.target.closest('input,textarea,select')) { showShortcutsModal(); }
-        if (!e.target.closest('input,textarea,select')) {
-          if (e.key === 'n') { e.preventDefault(); openModal(); }
-          if (e.key === '/') { e.preventDefault(); var s = document.getElementById('search-input'); if (s) s.focus(); }
-          if (e.key === '1') switchTab('inbox');
-          if (e.key === '2') switchTab('calendar');
-          if (e.key === '3') switchTab('flagged');
-          if (e.key === '4') switchTab('projects');
-        }
       });
       window.showCtxMenu = function (e, id) {
         _tid = id;
