@@ -458,7 +458,7 @@
       <div class="modal-head">
         <div class="modal-title">New Task</div><button class="modal-cancel" onclick="closeModal()">Cancel</button>
       </div>
-      <div class="m-field"><label style="display:flex;justify-content:space-between;align-items:center">Title<span id="i-title-count" style="font-size:10px;color:var(--red);display:none"></span></label><input type="text" id="i-title" placeholder="What needs to be done?" autocomplete="off" maxlength="255" oninput="updateTitleCount(this)"></div>
+      <div class="m-field"><label style="display:flex;justify-content:space-between;align-items:center">Title<span id="i-title-count" style="font-size:10px;color:var(--red);display:none"></span></label><input type="text" id="i-title" placeholder="What needs to be done?" autocomplete="off" maxlength="255" oninput="updateTitleCount(this)" onkeydown="if(event.key==='Enter'){event.preventDefault();addTask();}"></div>
       <div id="i-nlp-strip" style="display:none;align-items:center;gap:6px;flex-wrap:wrap;margin:-6px 0 8px;padding:6px 10px;background:var(--surface2);border-radius:10px;font-size:11px"></div>
       <div class="m-field"><label style="display:flex;justify-content:space-between;align-items:center">Notes<span id="i-notes-count" style="font-size:10px;color:var(--muted);display:none"></span></label><textarea id="i-notes" placeholder="Add notes…" oninput="updateNotesCount(this)"></textarea></div>
       <div style="display:flex;gap:10px">
