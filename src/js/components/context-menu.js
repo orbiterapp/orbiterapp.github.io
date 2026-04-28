@@ -13,6 +13,18 @@
           var delM = document.getElementById('delete-modal-bg');
           if (delM && delM.classList.contains('open')) { e.preventDefault(); confirmDeleteTask(); return; }
         }
+        if (e.key === 'Tab') {
+          var openModal = document.querySelector('.modal-bg.open');
+          if (openModal) {
+            var focusable = Array.from(openModal.querySelectorAll('button,input,select,textarea,[tabindex]:not([tabindex="-1"])')).filter(function(el) { return !el.disabled && el.offsetParent !== null; });
+            if (focusable.length) {
+              e.preventDefault();
+              var idx = focusable.indexOf(document.activeElement);
+              var next = e.shiftKey ? (idx <= 0 ? focusable.length - 1 : idx - 1) : (idx >= focusable.length - 1 ? 0 : idx + 1);
+              focusable[next].focus();
+            }
+          }
+        }
         if (e.key === 'Escape') {
           closeCtx();
           if (_msMode) { exitMsMode(); return; }

@@ -359,17 +359,18 @@
     async function syncTasks() { if (syncing) return; syncing = true; var _sb = document.getElementById('sync-btn'); if (_sb) _sb.classList.add('spinning'); var _us = document.getElementById('um-sync'); if (_us) _us.style.opacity = '.4'; showSkeleton(); try { tasks = await fetchAll(); await fetchProjects(); populateProjectSelects(); render(); } catch (e) { if (e.message !== 'Unauthorized') toast('Sync failed'); } finally { syncing = false; if (_sb) _sb.classList.remove('spinning'); if (_us) _us.style.opacity = ''; } }
 
     // â”€â”€â”€ ORB-37: Supabase Realtime subscription â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-    var _realtimeChannel = null;
+    var _realtimeChannel = null, _rtClient = null, _rtRenderTimer = null, _rtReconnectTimer = null;
+    function _rtRender() { clearTimeout(_rtRenderTimer); _rtRenderTimer = setTimeout(render, 300); }
     function initRealtime() {
       if (!session || !window.supabase) return;
-      if (_realtimeChannel) return; // already subscribed
-      var client = window.supabase.createClient(SB_URL, SB_KEY, {
+      if (_realtimeChannel) return;
+      clearTimeout(_rtReconnectTimer);
+      _rtClient = window.supabase.createClient(SB_URL, SB_KEY, {
         auth: { persistSession: false, autoRefreshToken: false },
         realtime: { params: { eventsPerSecond: 10 } }
       });
-      // Set access token for RLS
-      client.realtime.setAuth(session.access_token);
-      _realtimeChannel = client
+      _rtClient.realtime.setAuth(session.access_token);
+      _realtimeChannel = _rtClient
         .channel('tasks-realtime')
         .on('postgres_changes', {
           event: '*',
@@ -378,22 +379,24 @@
           filter: 'user_id=eq.' + session.user.id
         }, function(payload) {
           if (payload.eventType === 'INSERT') {
-            if (!tasks.find(function(t) { return t.id === payload.new.id; })) {
-              tasks.push(payload.new);
-              render();
-            }
+            if (!tasks.find(function(t) { return t.id === payload.new.id; })) { tasks.push(payload.new); _rtRender(); }
           } else if (payload.eventType === 'UPDATE') {
             var idx = tasks.findIndex(function(t) { return t.id === payload.new.id; });
-            if (idx !== -1) { Object.assign(tasks[idx], payload.new); render(); }
-            else { tasks.push(payload.new); render(); }
+            if (idx !== -1) { Object.assign(tasks[idx], payload.new); } else { tasks.push(payload.new); }
+            _rtRender();
           } else if (payload.eventType === 'DELETE') {
             tasks = tasks.filter(function(t) { return t.id !== payload.old.id; });
-            render();
+            _rtRender();
           }
         })
-        .subscribe();
+        .subscribe(function(status) {
+          if (status === 'CLOSED' || status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+            _realtimeChannel = null;
+            _rtReconnectTimer = setTimeout(initRealtime, 8000);
+          }
+        });
       window.addEventListener('beforeunload', function() {
-        if (_realtimeChannel) client.removeChannel(_realtimeChannel);
+        if (_rtClient && _realtimeChannel) _rtClient.removeChannel(_realtimeChannel);
       });
     }
 

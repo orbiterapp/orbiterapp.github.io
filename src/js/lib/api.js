@@ -26,8 +26,11 @@
       if (ok) { _syncShow(false, 'Synced'); setTimeout(function(){ if (_syncActive === 0) _syncShow(false, null); }, 1500); }
       else { _syncShow(false, 'Sync failed'); setTimeout(function(){ if (_syncActive === 0) _syncShow(false, null); }, 3000); }
     }
-    window.addEventListener('offline', function() { _syncShow(false, 'Offline'); });
-    window.addEventListener('online', function() { if (_syncActive === 0) _syncShow(false, null); });
+    var _isOffline = false;
+    function _markOffline() { if (!_isOffline) { _isOffline = true; _syncShow(false, 'Offline'); } }
+    function _markOnline() { if (_isOffline) { _isOffline = false; if (_syncActive === 0) _syncShow(false, null); } }
+    window.addEventListener('offline', _markOffline);
+    window.addEventListener('online', function() { _markOnline(); });
 
     async function api(path, opts) {
       opts = opts || {};
@@ -43,9 +46,9 @@
           if (r.status === 401) { _syncEnd(false); signOut(); throw new Error('Unauthorized'); }
         }
         if (!r.ok) { _syncEnd(false); throw new Error('API ' + r.status); }
-        _syncEnd(true);
+        _syncEnd(true); _markOnline();
         return r;
-      } catch(e) { _syncEnd(false); throw e; }
+      } catch(e) { _syncEnd(false); if (e instanceof TypeError) _markOffline(); throw e; }
     }
     async function fetchAll() { return (await api('tasks?order=created_at.asc')).json(); }
     // ORB-23: Offline queue helpers
@@ -71,6 +74,7 @@
       return remaining.length < q.length;
     }
     window.addEventListener('online', async function() {
+      _markOnline();
       var flushed = await _flushOutbox();
       if (flushed) { syncTasks(); toast('Offline tasks synced'); }
     });
