@@ -11,7 +11,7 @@
       if (!_toastQueue.length) { _toastBusy = false; return; }
       _toastBusy = true;
       var item = _toastQueue.shift();
-      var el = document.getElementById('toast');
+      var el = document.getElementById('toast-msg');
       el.innerHTML = item.msg + (item.undoFn ? '<button class="toast-undo" id="toast-undo-btn">Undo</button>' : '');
       el.classList.add('show');
       clearTimeout(window._toastTimer);
@@ -33,3 +33,4 @@
         window._toastUndoFn = null;
         setTimeout(_nextToast, 150);
       }, item.ms);
+    }

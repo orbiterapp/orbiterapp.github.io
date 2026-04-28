@@ -1,4 +1,14 @@
-﻿      document.addEventListener('keydown', function (e) {
+﻿    // â"€â"€â"€ Context Menu (long-press + right-click) â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€
+    (function () {
+      var _ctx = null, _tid = null, _lpTimer = null;
+      var menu = document.createElement('div');
+      menu.id = 'ctx-menu';
+      menu.style.cssText = 'position:fixed;z-index:600;background:var(--card2);border:1px solid var(--border2);border-radius:16px;padding:6px;min-width:220px;box-shadow:0 16px 48px rgba(0,0,0,.4);display:none;overflow:hidden;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)';
+      menu.innerHTML = '';
+      document.body.appendChild(menu);
+      function closeCtx() { menu.classList.remove('open'); _tid = null; }
+      document.addEventListener('click', function (e) { if (!e.target.closest('#ctx-menu')) closeCtx(); });
+      document.addEventListener('keydown', function (e) {
         if (e.key === 'Escape') {
           closeCtx();
           if (_msMode) { exitMsMode(); return; }
