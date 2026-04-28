@@ -18,7 +18,10 @@
       document.getElementById('ddp-tog-today').classList.toggle('on', ddpToday);
       // populate project select
       var ps = document.getElementById('ddp-project');
-      if (ps) { ps.innerHTML = '<option value="">No Project</option>' + projects.map(function(p){return '<option value="'+p.id+'">'+esc(p.name)+'</option>';}).join(''); ps.value = task.project_id || ''; }
+      if (ps) { ps.innerHTML = '<option value="">No Project</option>' + projects.filter(function(p){return !p.is_completed;}).map(function(p){return '<option value="'+p.id+'">'+esc(p.name)+'</option>';}).join(''); ps.value = task.project_id || ''; }
+      var ddpDefer = document.getElementById('ddp-defer'); if (ddpDefer) ddpDefer.value = task.defer_date ? task.defer_date.split('T')[0] : '';
+      var ddpTagsPicker = document.getElementById('ddp-tags-picker');
+      if (ddpTagsPicker) { detailModalTags = getTagArr(task); buildTagsPicker('ddp-tags-picker', detailModalTags); }
       document.getElementById('desktop-detail-panel').classList.add('open');
       document.getElementById('screen-app').classList.add('detail-open');
     }
@@ -46,13 +49,15 @@
       task.energy_level = (document.getElementById('ddp-energy') || {}).value || null;
       task.estimated_minutes = parseInt((document.getElementById('ddp-est-mins') || {}).value) || null;
       task.project_id = document.getElementById('ddp-project').value || null;
+      task.defer_date = (document.getElementById('ddp-defer') || {}).value || null;
+      task.tag_ids = JSON.stringify(detailModalTags.map(function(tn){ return {name:tn,color:getTagColor(tn)}; }));
       task.is_flagged = ddpFlag;
       task.is_today_task = ddpToday;
       task.notify_before_minutes = parseInt((document.getElementById('ddp-notify-before') || {}).value) || 30;
       task.notified_at = null;
       task.updated_at = now;
       render();
-      patch(task.id, { title:task.title, notes:task.notes, priority:task.priority, due_date:task.due_date, repeat_rule:task.repeat_rule, project_id:task.project_id, is_flagged:task.is_flagged, is_today_task:task.is_today_task, notify_before_minutes:task.notify_before_minutes, energy_level:task.energy_level, estimated_minutes:task.estimated_minutes, notified_at:null, updated_at:now }).then(function(){ toast('Saved'); }).catch(function(){ toast('Sync failed'); });
+      patch(task.id, { title:task.title, notes:task.notes, priority:task.priority, due_date:task.due_date, defer_date:task.defer_date, repeat_rule:task.repeat_rule, project_id:task.project_id, tag_ids:task.tag_ids, is_flagged:task.is_flagged, is_today_task:task.is_today_task, notify_before_minutes:task.notify_before_minutes, energy_level:task.energy_level, estimated_minutes:task.estimated_minutes, notified_at:null, updated_at:now }).then(function(){ toast('Saved'); }).catch(function(){ toast('Sync failed'); });
     }
     function deleteDdpTask() {
       var id = currentTaskId;
