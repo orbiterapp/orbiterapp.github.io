@@ -35,11 +35,19 @@
     async function bulkComplete() {
       var ids = Array.from(_msIds);
       var toComplete = tasks.filter(function (t) { return ids.includes(t.id) && !t.is_completed; });
+      var backups = toComplete.map(function (t) { return { id: t.id, is_completed: t.is_completed, completed_at: t.completed_at, updated_at: t.updated_at }; });
       var now = new Date().toISOString();
       toComplete.forEach(function (t) { t.is_completed = true; t.completed_at = now; t.updated_at = now; });
       exitMsMode();
       render();
-      toast('Completed ' + toComplete.length + ' task' + (toComplete.length !== 1 ? 's' : ''));
+      var n = toComplete.length;
+      toast('Completed ' + n + ' task' + (n !== 1 ? 's' : ''), 4000, function () {
+        backups.forEach(function (b) {
+          var t = tasks.find(function (x) { return x.id === b.id; });
+          if (t) { t.is_completed = b.is_completed; t.completed_at = b.completed_at; t.updated_at = b.updated_at; patch(t.id, { is_completed: t.is_completed, completed_at: t.completed_at, updated_at: t.updated_at }).catch(function(){}); }
+        });
+        render(); toast('Restored');
+      });
       await Promise.all(toComplete.map(function (t) { return patch(t.id, { is_completed: true, completed_at: t.completed_at, updated_at: t.updated_at }).catch(function () {}); }));
     }
     function bulkDelete() {
