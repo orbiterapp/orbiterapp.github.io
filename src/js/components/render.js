@@ -65,7 +65,7 @@
 
 
     // --- Calendar UI ---
-    window.setCalView = function (view) { calView = view; if (view === 'today') { calSelectedDate = new Date(); calRefDate = new Date(); } render(); };
+    window.setCalView = function (view) { calView = view; localStorage.setItem('cal_view', view); if (view === 'today') { calSelectedDate = new Date(); calRefDate = new Date(); } render(); };
     window.setCalSelDate = function (y, m, d) { calSelectedDate = new Date(y, m, d); calRefDate = calView === 'month' ? new Date(y, m, 1) : new Date(y, m, d); render(); };
     window.navCalMonth = function (dir) {
       if (calView === 'week') {
@@ -102,7 +102,10 @@
             + '<div class="today-focus-dot"></div>'
             + '</div></div>';
         }
-        return '<div class="cal-wrap" style="padding-bottom:0">' + tabs + '</div>';
+        // Mobile: compact date header
+        var _td2 = new Date();
+        var _mobileDate = _td2.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+        return '<div class="cal-wrap" style="padding-bottom:0">' + tabs + '<div style="text-align:center;padding:12px 0 8px;font-size:15px;font-weight:700;color:var(--text)">' + _mobileDate + '</div></div>';
       }
 
       var dNames = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
@@ -134,13 +137,15 @@
         }
       }
 
-      // Pre-compute tasks per day (priority â†’ dot color)
+      // Pre-compute tasks per day (priority → dot color)
       var td = {};
+      var _todayStr = sToday.getFullYear() + ‘-’ + String(sToday.getMonth()+1).padStart(2,’0’) + ‘-’ + String(sToday.getDate()).padStart(2,’0’);
       tasks.forEach(function (t) {
-        if (t.is_completed || t.parent_id || !t.due_date) return;
-        var tdStr = t.due_date.split('T')[0];
+        if (t.is_completed || t.parent_id) return;
+        var tdStr = t.due_date ? t.due_date.split(‘T’)[0] : (t.is_today_task ? _todayStr : null);
+        if (!tdStr) return;
         if (!td[tdStr]) td[tdStr] = [];
-        td[tdStr].push(t.priority || 'low');
+        td[tdStr].push(t.priority || ‘low’);
       });
 
       days.forEach(function (dy) {
@@ -198,7 +203,7 @@
       if (typeof window._lgPillPlace === 'function') window._lgPillPlace(currentTab);
       // All tab badges
       var t = new Date(); t.setHours(0, 0, 0, 0);
-      var inboxN = tasks.filter(function (x) { return !x.is_completed && !x.parent_id; }).length;
+      var inboxN = tasks.filter(function (x) { if (x.is_completed || x.parent_id) return false; if (x.defer_date) { var _d = new Date(x.defer_date); _d.setHours(0,0,0,0); if (_d > t) return false; } return true; }).length;
       var todayN = tasks.filter(function (x) { if (x.is_completed) return false; if (x.is_today_task) return true; if (!x.due_date) return false; var d = new Date(x.due_date); return d >= t && d < new Date(t.getTime() + 864e5); }).length;
       var flagN = tasks.filter(function (x) { return !x.is_completed && x.is_flagged; }).length;
       var bg = document.getElementById('badge-inbox'); bg.textContent = inboxN > 99 ? '99+' : inboxN; bg.style.display = inboxN > 0 ? 'flex' : 'none';
@@ -290,7 +295,7 @@
         }
         var _accent = fTagColor ? 'border-left:3px solid ' + fTagColor + ';padding-left:10px;' : '';
         var _todayBtn = (showArchived || _msMode) ? '' : (t.is_today_task ? '<span class="row-today-indicator" title="In Today">â˜€</span>' : '<button class="row-today-btn" onclick="event.stopPropagation();markAsToday(\'' + t.id + '\')" title="Add to Today">â˜€</button>');
-        var _trashBtn = (showArchived || _msMode) ? '' : '<button class="row-del-btn" onclick="event.stopPropagation();quickDeleteTask(\'' + t.id + '\')" title="Delete"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>';
+        var _trashBtn = (showArchived || _msMode) ? '' : '<button class="row-del-btn" onclick="event.stopPropagation();rowDeleteTask(\'' + t.id + '\')" title="Delete"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>';
         var _rowClick = _msMode ? 'toggleMsRow(\'' + t.id + '\',event)' : 'openTaskDetail(\'' + t.id + '\')';
         return '<div class="task-row clickable' + archCls + msSel + '" id="task-' + t.id + '" data-sort="' + i + '" style="' + _accent + 'animation-delay:' + Math.min(i * 0.03, 0.3) + 's" onclick="' + _rowClick + '" oncontextmenu="event.preventDefault();showCtxMenu(event,\'' + t.id + '\')" data-longpress="' + t.id + '">' + dragH + chkBtn + '<div class="task-body"><div class="task-name">' + esc(t.title) + '</div>' + (chips ? '<div class="task-chips">' + chips + '</div>' : '') + '</div>' + _todayBtn + _trashBtn + '</div>';
       }

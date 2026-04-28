@@ -49,7 +49,7 @@
       else if (mode === 'none') { newDue = null; }
       else if (mode === 'custom') { var v = document.getElementById('clone-custom-date').value; newDue = v ? combineLocalDateTime(v, '09:00') : null; }
       var now = new Date().toISOString();
-      var dup = Object.assign({}, src, { id: uuid(), created_at: now, updated_at: now, due_date: newDue, notified_at: null });
+      var dup = Object.assign({}, src, { id: uuid(), created_at: now, updated_at: now, due_date: newDue, notified_at: null, is_completed: false, completed_at: null });
       hideCloneModal();
       tasks.push(dup);
       render();

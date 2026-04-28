@@ -1,5 +1,5 @@
 ﻿    let session = null, tasks = [], currentTab = 'inbox', flagged = false, detailToday = false, syncing = false;
-    let calRefDate = new Date(), calSelectedDate = new Date(), calView = 'month';
+    let calRefDate = new Date(), calSelectedDate = new Date(), calView = localStorage.getItem('cal_view') || 'month';
     let searchQuery = '', currentProjectFilter = null;
     let showArchived = false;
     let _archiveSelected = new Set();
