@@ -7,7 +7,11 @@
         return base;
       }
       switch (currentTab) {
-        case 'inbox': base = tasks.filter(function (x) { return !x.is_completed && !x.parent_id; }); break;
+        case 'inbox': base = tasks.filter(function (x) {
+          if (x.is_completed || x.parent_id) return false;
+          if (x.defer_date) { var _dd = new Date(x.defer_date); _dd.setHours(0,0,0,0); if (_dd > t) return false; }
+          return true;
+        }); break;
         case 'calendar':
           var startD = new Date(calSelectedDate); startD.setHours(0, 0, 0, 0);
           var endD = new Date(startD.getTime() + 864e5);
@@ -250,20 +254,24 @@
           return new Date(a.due_date) - new Date(b.due_date);
         });
       }
+      // Build per-render lookup caches to avoid O(n²) linear searches
+      var _projMap = {}; projects.forEach(function(p) { _projMap[p.id] = p; });
+      var _tagColorMap = {}; getAllTags().forEach(function(tg) { _tagColorMap[tg.name] = tg.color; });
       function _mkRow(t, i) {
         var due = fmtDue(t.due_date), pc = pClass(t.priority), chips = '';
         var tags = getTagArr(t);
-        var proj = getProjectById(t.project_id || null);
+        var proj = t.project_id ? (_projMap[t.project_id] || null) : null;
         var subtasks = getSubtasks(t.id);
         var doneSubs = subtasks.filter(function (s) { return s.is_completed; }).length;
-        var fTagColor = null; if (tags.length) { var _ft = getAllTags().find(function (tg) { return tg.name === tags[0]; }); if (_ft) fTagColor = _ft.color; }
+        var fTagColor = tags.length ? (_tagColorMap[tags[0]] || null) : null;
         if (t.is_flagged) chips += '<span class="chip chip-flag"><svg width="10" height="10" viewBox="0 0 24 24" fill="var(--pink)" stroke="none"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/></svg>Flag</span>';
+        if (t.defer_date) { var _df = new Date(t.defer_date); _df.setHours(0,0,0,0); if (_df > _nowDay) chips += '<span class="chip chip-defer" style="color:var(--text3)"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="margin-right:2px"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Defer ' + _df.toLocaleDateString('en-US',{month:'short',day:'numeric'}) + '</span>'; }
         if (due) chips += '<span class="chip ' + due.cls + '">' + due.text + '</span>';
         if (t.priority && t.priority !== 'None') chips += '<span class="chip chip-priority cp-' + t.priority.toLowerCase() + '">' + t.priority + '</span>';
         if (t.repeat_rule && t.repeat_rule !== 'None') chips += '<span class="chip chip-repeat"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="margin-right:2px"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>' + t.repeat_rule + '</span>';
         if (subtasks.length > 0) chips += '<span class="chip chip-note"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="margin-right:2px"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>' + doneSubs + '/' + subtasks.length + '</span>';
         if (proj && currentTab !== 'projects') chips += '<span class="chip chip-project"><span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:' + proj.color + ';margin-right:3px"></span>' + esc(proj.name) + '</span>';
-        tags.forEach(function (tag) { var color = getTagColor(tag); chips += '<span class="chip chip-tag" style="background:' + color + '22;color:' + color + '">' + esc(tag) + '</span>'; });
+        tags.forEach(function (tag) { var color = _tagColorMap[tag] || 'var(--text2)'; chips += '<span class="chip chip-tag" style="background:' + color + '22;color:' + color + '">' + esc(tag) + '</span>'; });
         if (t.notes) chips += '<span class="chip chip-note">Note</span>';
         var archCls = showArchived ? ' archived-row' : '';
         var msSel = _msMode && _msIds.has(t.id) ? ' ms-selected' : '';

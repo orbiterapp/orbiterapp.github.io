@@ -9,6 +9,10 @@
       function closeCtx() { menu.classList.remove('open'); _tid = null; }
       document.addEventListener('click', function (e) { if (!e.target.closest('#ctx-menu')) closeCtx(); });
       document.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') {
+          var delM = document.getElementById('delete-modal-bg');
+          if (delM && delM.classList.contains('open')) { e.preventDefault(); confirmDeleteTask(); return; }
+        }
         if (e.key === 'Escape') {
           closeCtx();
           if (_msMode) { exitMsMode(); return; }
