@@ -24,6 +24,7 @@
       if (!inInput && !cmd && !e.altKey) {
         var tabMap = { '1': 'inbox', '2': 'calendar', '3': 'flagged', '4': 'projects', '5': 'all' };
         if (tabMap[e.key]) { if (showArchived) { showArchived = false; document.getElementById('archive-label').textContent = 'View Archive'; } switchTab(tabMap[e.key]); e.preventDefault(); return; }
+        if (e.key === '6') { switchToCompleted(); e.preventDefault(); return; }
       }
       // Cmd+S: Sync
       if (cmd && (e.key === 's' || e.key === 'S')) { e.preventDefault(); syncTasks(); return; }

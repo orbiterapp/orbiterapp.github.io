@@ -1,7 +1,16 @@
-﻿    function toggleArchiveView() {
+﻿    function switchToCompleted() {
+      if (showArchived) return;
+      showArchived = true;
+      _archiveSelected.clear();
+      document.getElementById('archive-label').textContent = 'View Archive';
+      _renderLimit = 50;
+      render();
+    }
+    function toggleArchiveView() {
       showArchived = !showArchived;
       _archiveSelected.clear();
       document.getElementById('archive-label').textContent = showArchived ? 'Back to Tasks' : 'View Archive';
+      _renderLimit = 50;
       render();
     }
     async function unarchiveTask(id) {

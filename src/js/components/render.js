@@ -2,7 +2,8 @@
       var t = new Date(); t.setHours(0, 0, 0, 0);
       var base;
       if (showArchived) {
-        base = tasks.filter(function (x) { return x.is_completed; });
+        base = tasks.filter(function (x) { return x.is_completed && !x.parent_id; });
+        base.sort(function (a, b) { return (b.completed_at || b.updated_at || '') > (a.completed_at || a.updated_at || '') ? 1 : -1; });
         if (searchQuery) { var q = searchQuery.toLowerCase(); base = base.filter(function (x) { return x.title.toLowerCase().includes(q) || (x.notes && x.notes.toLowerCase().includes(q)) || getTagArr(x).some(function (tg) { return tg.toLowerCase().includes(q); }); }); }
         return base;
       }
@@ -184,18 +185,21 @@
       // Header
       var _ds = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
       if (showArchived) {
-        document.getElementById('persp-title').textContent = 'Archive';
-        var badge = document.getElementById('persp-badge'); badge.style.background = 'none'; badge.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg>';
+        document.getElementById('persp-title').textContent = 'Completed';
+        var badge = document.getElementById('persp-badge'); badge.style.background = 'var(--green-dim)'; badge.style.color = 'var(--green)'; badge.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>';
       } else {
         var tab = TABS[currentTab] || TABS['inbox'];
         document.getElementById('persp-title').textContent = tab.label;
         var badge = document.getElementById('persp-badge'); badge.style.background = tab.bg; badge.style.color = tab.color; badge.innerHTML = tab.icon;
       }
-      var _countText = searchQuery ? v.length + ' result' + (v.length !== 1 ? 's' : '') : (v.length === 0 ? (showArchived ? 'No archived tasks' : 'No tasks') : v.length + ' ' + (showArchived ? 'archived' : 'task') + (v.length !== 1 ? 's' : ''));
+      var _countText = searchQuery ? v.length + ' result' + (v.length !== 1 ? 's' : '') : (v.length === 0 ? (showArchived ? 'No completed tasks' : 'No tasks') : v.length + ' completed task' + (v.length !== 1 ? 's' : ''));
       document.getElementById('persp-count').textContent = _ds + ' · ' + _countText;
       // Tab highlights
       document.querySelectorAll('.tb-btn').forEach(function (b) { b.classList.remove('active'); });
-      if (!showArchived) {
+      if (showArchived) {
+        var tbComp = document.getElementById('tb-completed');
+        if (tbComp) { tbComp.classList.add('active'); tbComp.querySelector('.tb-icon').style.color = 'var(--green)'; tbComp.querySelector('.tb-label').style.color = 'var(--green)'; }
+      } else {
         var tbEl = document.getElementById('tb-' + currentTab);
         if (tbEl) { tbEl.classList.add('active'); tbEl.querySelector('.tb-icon').style.color = tab.color; tbEl.querySelector('.tb-label').style.color = tab.color; }
       }
@@ -227,9 +231,10 @@
         // ORB-67: Per-perspective empty state copy
         var EMPTY_COPY_TAB = { inbox: ["You're all caught up", "New tasks land here. Tap + to capture."], calendar: ["No tasks today", "Nothing scheduled. Tap + to add one."], flagged: ["Nothing flagged", "Flag important tasks to surface them here."], projects: ["No tasks", "Add tasks to keep your project moving."], all: ["All clear", "Your task list is empty."] };
         var _ec = !searchQuery && EMPTY_COPY_TAB[currentTab];
-        var emptyMsg = searchQuery ? 'No results' : (_ec ? _ec[0] : 'Nothing here');
-        var emptySub = searchQuery ? 'Try a different search' : (_ec ? _ec[1] : 'Tap + to add a task');
-        var emptyHTML = '<div class="empty-state"><div class="empty-icon">' + EMPTY_ICONS[currentTab] + '</div><div class="empty-label">' + emptyMsg + '</div><div class="empty-sub">' + emptySub + '</div></div>';
+        var emptyMsg = searchQuery ? 'No results' : (showArchived ? 'No completed tasks' : (_ec ? _ec[0] : 'Nothing here'));
+        var emptySub = searchQuery ? 'Try a different search' : (showArchived ? 'Completed tasks will appear here' : (_ec ? _ec[1] : 'Tap + to add a task'));
+        var _emptyIcon = showArchived ? '<svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>' : EMPTY_ICONS[currentTab];
+        var emptyHTML = '<div class="empty-state"><div class="empty-icon">' + _emptyIcon + '</div><div class="empty-label">' + emptyMsg + '</div><div class="empty-sub">' + emptySub + '</div></div>';
         if (currentTab === 'calendar') {
           var _dsk = window.matchMedia('(min-width: 768px)').matches;
           var _selLabel = calSelectedDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });

@@ -102,26 +102,28 @@
         { id: 'inbox', label: 'Inbox', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>' },
         { id: 'calendar', label: 'Calendar', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>' },
         { id: 'flagged', label: 'Flagged', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>' },
-        { id: 'projects', label: 'Projects', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>' }
+        { id: 'projects', label: 'Projects', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>' },
+        { id: 'completed', label: 'Completed', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>' }
       ];
       var t = new Date(); t.setHours(0, 0, 0, 0);
       var _now0 = new Date(); _now0.setHours(0,0,0,0);
       var inboxN = tasks.filter(function (x) { if (x.is_completed || x.parent_id) return false; if (x.defer_date) { var _dd = new Date(x.defer_date); _dd.setHours(0,0,0,0); if (_dd > _now0) return false; } return true; }).length;
       var todayN = tasks.filter(function (x) { if (x.is_completed) return false; if (x.is_today_task) return true; if (!x.due_date) return false; var d = new Date(x.due_date); return d >= t && d < new Date(t.getTime() + 864e5); }).length;
       var flagN = tasks.filter(function (x) { return !x.is_completed && x.is_flagged; }).length;
-      var badgeCounts = { inbox: inboxN, calendar: todayN, flagged: flagN, projects: 0 };
-      var colors = { inbox: 'var(--purple)', calendar: 'var(--cyan)', flagged: 'var(--pink)', projects: 'var(--green)' };
+      var completedN = tasks.filter(function (x) { return x.is_completed && !x.parent_id; }).length;
+      var badgeCounts = { inbox: inboxN, calendar: todayN, flagged: flagN, projects: 0, completed: completedN };
+      var colors = { inbox: 'var(--purple)', calendar: 'var(--cyan)', flagged: 'var(--pink)', projects: 'var(--green)', completed: 'var(--green)' };
       var h = '';
       tabs.forEach(function (tab) {
-        var isActive = currentTab === tab.id && !showArchived;
+        var isActive = tab.id === 'completed' ? showArchived : (currentTab === tab.id && !showArchived);
         var badge = badgeCounts[tab.id];
         var iconColor = isActive ? colors[tab.id] : 'currentColor';
         var iconHtml = tab.icon.replace('stroke="currentColor"', 'stroke="' + iconColor + '"');
-        h += '<button class="ds-tab' + (isActive ? ' active' : '') + '" onclick="switchTab(\'' + tab.id + '\')" style="' + (isActive ? 'color:' + colors[tab.id] : '') + '"><span class="ds-icon">' + iconHtml + '</span>' + tab.label + (badge > 0 ? '<span class="ds-badge">' + (badge > 99 ? '99+' : badge) + '</span>' : '') + '</button>';
+        var onclick = tab.id === 'completed' ? 'switchToCompleted()' : 'switchTab(\'' + tab.id + '\')';
+        h += '<button class="ds-tab' + (isActive ? ' active' : '') + '" onclick="' + onclick + '" style="' + (isActive ? 'color:' + colors[tab.id] : '') + '"><span class="ds-icon">' + iconHtml + '</span>' + tab.label + (badge > 0 ? '<span class="ds-badge">' + (badge > 99 ? '99+' : badge) + '</span>' : '') + '</button>';
       });
       // Utility section
       h += '<div class="ds-section-label">Utilities</div>';
-      h += '<button class="ds-tab' + (showArchived ? ' active' : '') + '" onclick="toggleArchiveView()" style="' + (showArchived ? 'color:var(--text2)' : '') + '"><span class="ds-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5"/><line x1="10" y1="12" x2="14" y2="12"/></svg></span>' + (showArchived ? 'Back to Tasks' : 'Archive') + '</button>';
       h += '<button class="ds-tab" onclick="toggleTheme()"><span class="ds-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></span><span id="ds-theme-label">' + (document.body.classList.contains('light') ? 'Dark Mode' : 'Light Mode') + '</span></button>';
       h += '<button class="ds-tab" onclick="syncTasks()"><span class="ds-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg></span>Sync</button>';
       nav.innerHTML = h;
