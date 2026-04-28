@@ -74,6 +74,7 @@
       }
       if (parsed.priority !== 'None') document.getElementById('i-priority').value = parsed.priority;
       if (parsed.isFlagged) { var tog = document.getElementById('tog-flag'); if (tog && !tog.classList.contains('on')) tog.click(); }
+      if (parsed.deferDate) { var dfd = document.getElementById('i-defer'); if (dfd) dfd.value = parsed.deferDate.split('T')[0]; }
       if (parsed.projectId) { var ps = document.getElementById('i-project'); if (ps) ps.value = parsed.projectId; }
       if (parsed.tagNames && parsed.tagNames.length) { parsed.tagNames.forEach(function (tn) { if (!addModalTags.includes(tn)) addModalTags.push(tn); }); buildTagsPicker('i-tags-picker', addModalTags); }
       if (strip) { strip.style.display = 'none'; strip.innerHTML = ''; }

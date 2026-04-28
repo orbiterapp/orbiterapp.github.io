@@ -44,14 +44,15 @@
         // Reorder based on final position
         var rows = Array.from(area.querySelectorAll('.task-row'));
         var ids = rows.map(function (r) { return r.id.replace('task-', ''); });
-        var v = visible();
-        // Update sort_order based on visual order
+        var changed = [];
         ids.forEach(function (id, i) {
           var task = tasks.find(function (t) { return t.id === id; });
-          if (task) task.sort_order = i;
+          if (task && task.sort_order !== i) { task.sort_order = i; changed.push(task); }
+          else if (task) task.sort_order = i;
         });
         dragId = null; dragEl = null;
         render();
+        changed.forEach(function (t) { patch(t.id, { sort_order: t.sort_order, updated_at: new Date().toISOString() }).catch(function(){}); });
       });
       // HTML5 drag for desktop
       area.addEventListener('dragstart', function (e) {
@@ -82,9 +83,11 @@
         if (dragEl) dragEl.classList.remove('dragging');
         var rows = Array.from(area.querySelectorAll('.task-row'));
         var ids = rows.map(function (r) { return r.id.replace('task-', ''); });
-        ids.forEach(function (id, i) { var task = tasks.find(function (t) { return t.id === id; }); if (task) task.sort_order = i; });
+        var changed2 = [];
+        ids.forEach(function (id, i) { var task = tasks.find(function (t) { return t.id === id; }); if (task && task.sort_order !== i) { task.sort_order = i; changed2.push(task); } else if (task) task.sort_order = i; });
         dragId = null; dragEl = null;
         render();
+        changed2.forEach(function (t) { patch(t.id, { sort_order: t.sort_order, updated_at: new Date().toISOString() }).catch(function(){}); });
       });
       area.addEventListener('dragend', function () {
         if (dragEl) dragEl.classList.remove('dragging');

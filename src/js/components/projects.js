@@ -1,4 +1,5 @@
 ﻿    function openProjectsModal() {
+      newProjColor = PROJECT_COLORS[0];
       renderProjColorPicker();
       renderProjList();
       document.getElementById('projects-modal-bg').classList.add('open');
@@ -51,6 +52,7 @@
     function createProject() {
       var name = document.getElementById('new-proj-name').value.trim();
       if (!name) { document.getElementById('new-proj-name').focus(); return; }
+      if (projects.some(function(p) { return p.name.toLowerCase() === name.toLowerCase() && !p.is_completed; })) { toast('Project already exists'); return; }
       var proj = { id: uuid(), name: name, color: newProjColor };
       projects.push(proj);
       api('projects', { method: 'POST', headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + (session?.access_token || SB_KEY), 'Content-Type': 'application/json', 'Prefer': 'return=minimal' }, body: JSON.stringify({ id: proj.id, user_id: session.user.id, name: proj.name, color: proj.color }) }).catch(function () { toast('Failed to sync project'); });
@@ -60,6 +62,7 @@
     }
     function deleteProject(id) {
       var backupProj = projects.find(function (p) { return p.id === id; });
+      var affectedCount = tasks.filter(function (t) { return t.project_id === id && !t.is_completed; }).length;
       projects = projects.filter(function (p) { return p.id !== id; });
       api('projects?id=eq.' + id, { method: 'DELETE', headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + (session?.access_token || SB_KEY), 'Prefer': 'return=minimal' } }).catch(function () { toast('Failed to sync project'); });
       // Remove project_id from tasks that used it
@@ -68,7 +71,8 @@
       var prevFilter = currentProjectFilter;
       if (currentProjectFilter === id) currentProjectFilter = null;
       renderProjList(); populateProjectSelects(); render();
-      toast('Project deleted', 3500, function () {
+      var msg = affectedCount > 0 ? 'Project deleted (' + affectedCount + ' task' + (affectedCount !== 1 ? 's' : '') + ' unlinked)' : 'Project deleted';
+      toast(msg, 4000, function () {
         if (backupProj) projects.push(backupProj);
         api('projects', { method: 'POST', headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + (session?.access_token || SB_KEY), 'Content-Type': 'application/json', 'Prefer': 'return=minimal' }, body: JSON.stringify(backupProj) }).catch(function () { });
         affectedTaskIds.forEach(function (tid) {

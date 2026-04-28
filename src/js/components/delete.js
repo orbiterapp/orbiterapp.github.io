@@ -1,4 +1,8 @@
-﻿    function showDeleteConfirm() {
+﻿    function rowDeleteTask(id) {
+      if (shouldConfirmDelete()) { currentTaskId = id; document.getElementById('delete-modal-bg').classList.add('open'); }
+      else quickDeleteTask(id);
+    }
+    function showDeleteConfirm() {
       if (shouldConfirmDelete()) {
         document.getElementById('delete-modal-bg').classList.add('open');
       } else {

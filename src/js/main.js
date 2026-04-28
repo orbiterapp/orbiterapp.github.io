@@ -74,6 +74,7 @@
     function completeOnboarding() {
       localStorage.setItem('orbiter_onboarded', '1');
       show('screen-app');
+      syncTasks();
     }
 
     // â”€â”€â”€ Desktop Sidebar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -104,7 +105,8 @@
         { id: 'projects', label: 'Projects', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>' }
       ];
       var t = new Date(); t.setHours(0, 0, 0, 0);
-      var inboxN = tasks.filter(function (x) { return !x.is_completed && !x.parent_id; }).length;
+      var _now0 = new Date(); _now0.setHours(0,0,0,0);
+      var inboxN = tasks.filter(function (x) { if (x.is_completed || x.parent_id) return false; if (x.defer_date) { var _dd = new Date(x.defer_date); _dd.setHours(0,0,0,0); if (_dd > _now0) return false; } return true; }).length;
       var todayN = tasks.filter(function (x) { if (x.is_completed) return false; if (x.is_today_task) return true; if (!x.due_date) return false; var d = new Date(x.due_date); return d >= t && d < new Date(t.getTime() + 864e5); }).length;
       var flagN = tasks.filter(function (x) { return !x.is_completed && x.is_flagged; }).length;
       var badgeCounts = { inbox: inboxN, calendar: todayN, flagged: flagN, projects: 0 };

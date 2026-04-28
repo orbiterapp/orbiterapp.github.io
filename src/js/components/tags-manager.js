@@ -32,14 +32,17 @@
       toast('Tag created');
     }
     function deleteCustomTag(name) {
-      var count = tasks.filter(function (t) { try { return (JSON.parse(t.tag_ids || '[]')).includes(name); } catch { return false; } }).length;
-      if (count > 0 && !confirm('Delete "' + name + '"? Used by ' + count + ' task(s).')) return;
+      var backup = localCustomTags.find(function (t) { return t.name === name; });
       localCustomTags = localCustomTags.filter(function (t) { return t.name !== name; });
       saveCustomTags();
       renderTagManagerList();
       render();
-      toast('Tag deleted');
+      var count = tasks.filter(function (t) { try { return (JSON.parse(t.tag_ids || '[]')).some(function(x){ return (x.name||x) === name; }); } catch { return false; } }).length;
+      var msg = count > 0 ? 'Tag deleted (' + count + ' task' + (count !== 1 ? 's' : '') + ' affected)' : 'Tag deleted';
+      toast(msg, 3500, function () {
+        if (backup) { localCustomTags.push(backup); saveCustomTags(); renderTagManagerList(); render(); toast('Restored'); }
+      });
     }
 
     // â”€â”€â”€ Misc event handlers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-    document.getElementById('i-title').addEventListener('keydown', function (e) { if (e.key === 'Enter') addTask(); });
+

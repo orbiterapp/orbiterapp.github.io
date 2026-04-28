@@ -7,7 +7,11 @@
         return base;
       }
       switch (currentTab) {
-        case 'inbox': base = tasks.filter(function (x) { return !x.is_completed && !x.parent_id; }); break;
+        case 'inbox': base = tasks.filter(function (x) {
+          if (x.is_completed || x.parent_id) return false;
+          if (x.defer_date) { var _dd = new Date(x.defer_date); _dd.setHours(0,0,0,0); if (_dd > t) return false; }
+          return true;
+        }); break;
         case 'calendar':
           var startD = new Date(calSelectedDate); startD.setHours(0, 0, 0, 0);
           var endD = new Date(startD.getTime() + 864e5);
@@ -61,7 +65,7 @@
 
 
     // --- Calendar UI ---
-    window.setCalView = function (view) { calView = view; if (view === 'today') { calSelectedDate = new Date(); calRefDate = new Date(); } render(); };
+    window.setCalView = function (view) { calView = view; localStorage.setItem('cal_view', view); if (view === 'today') { calSelectedDate = new Date(); calRefDate = new Date(); } render(); };
     window.setCalSelDate = function (y, m, d) { calSelectedDate = new Date(y, m, d); calRefDate = calView === 'month' ? new Date(y, m, 1) : new Date(y, m, d); render(); };
     window.navCalMonth = function (dir) {
       if (calView === 'week') {
@@ -98,7 +102,10 @@
             + '<div class="today-focus-dot"></div>'
             + '</div></div>';
         }
-        return '<div class="cal-wrap" style="padding-bottom:0">' + tabs + '</div>';
+        // Mobile: compact date header
+        var _td2 = new Date();
+        var _mobileDate = _td2.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+        return '<div class="cal-wrap" style="padding-bottom:0">' + tabs + '<div style="text-align:center;padding:12px 0 8px;font-size:15px;font-weight:700;color:var(--text)">' + _mobileDate + '</div></div>';
       }
 
       var dNames = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
@@ -130,13 +137,15 @@
         }
       }
 
-      // Pre-compute tasks per day (priority â†’ dot color)
+      // Pre-compute tasks per day (priority → dot color)
       var td = {};
+      var _todayStr = sToday.getFullYear() + ‘-’ + String(sToday.getMonth()+1).padStart(2,’0’) + ‘-’ + String(sToday.getDate()).padStart(2,’0’);
       tasks.forEach(function (t) {
-        if (t.is_completed || t.parent_id || !t.due_date) return;
-        var tdStr = t.due_date.split('T')[0];
+        if (t.is_completed || t.parent_id) return;
+        var tdStr = t.due_date ? t.due_date.split(‘T’)[0] : (t.is_today_task ? _todayStr : null);
+        if (!tdStr) return;
         if (!td[tdStr]) td[tdStr] = [];
-        td[tdStr].push(t.priority || 'low');
+        td[tdStr].push(t.priority || ‘low’);
       });
 
       days.forEach(function (dy) {
@@ -194,7 +203,7 @@
       if (typeof window._lgPillPlace === 'function') window._lgPillPlace(currentTab);
       // All tab badges
       var t = new Date(); t.setHours(0, 0, 0, 0);
-      var inboxN = tasks.filter(function (x) { return !x.is_completed && !x.parent_id; }).length;
+      var inboxN = tasks.filter(function (x) { if (x.is_completed || x.parent_id) return false; if (x.defer_date) { var _d = new Date(x.defer_date); _d.setHours(0,0,0,0); if (_d > t) return false; } return true; }).length;
       var todayN = tasks.filter(function (x) { if (x.is_completed) return false; if (x.is_today_task) return true; if (!x.due_date) return false; var d = new Date(x.due_date); return d >= t && d < new Date(t.getTime() + 864e5); }).length;
       var flagN = tasks.filter(function (x) { return !x.is_completed && x.is_flagged; }).length;
       var bg = document.getElementById('badge-inbox'); bg.textContent = inboxN > 99 ? '99+' : inboxN; bg.style.display = inboxN > 0 ? 'flex' : 'none';
@@ -239,10 +248,10 @@
       updateAppBadge();
       var _nowDay = new Date(); _nowDay.setHours(0, 0, 0, 0);
       var _overdue = [], _reg = [];
-      if (currentTab === 'today' || currentTab === 'inbox') {
+      if (currentTab === 'inbox') {
         v.forEach(function (t) { if (t.due_date && new Date(t.due_date) < _nowDay && !t.is_completed) _overdue.push(t); else _reg.push(t); });
       } else { _reg = v; }
-      if (currentTab === 'today') {
+      if (currentTab === 'calendar') {
         _reg.sort(function (a, b) {
           if (!a.due_date && !b.due_date) return 0;
           if (!a.due_date) return 1;
@@ -250,20 +259,26 @@
           return new Date(a.due_date) - new Date(b.due_date);
         });
       }
+      // Build per-render lookup caches to avoid O(n²) linear searches
+      var _projMap = {}; projects.forEach(function(p) { _projMap[p.id] = p; });
+      var _tagColorMap = {}; getAllTags().forEach(function(tg) { _tagColorMap[tg.name] = tg.color; });
       function _mkRow(t, i) {
         var due = fmtDue(t.due_date), pc = pClass(t.priority), chips = '';
         var tags = getTagArr(t);
-        var proj = getProjectById(t.project_id || null);
+        var proj = t.project_id ? (_projMap[t.project_id] || null) : null;
         var subtasks = getSubtasks(t.id);
         var doneSubs = subtasks.filter(function (s) { return s.is_completed; }).length;
-        var fTagColor = null; if (tags.length) { var _ft = getAllTags().find(function (tg) { return tg.name === tags[0]; }); if (_ft) fTagColor = _ft.color; }
+        var fTagColor = tags.length ? (_tagColorMap[tags[0]] || null) : null;
         if (t.is_flagged) chips += '<span class="chip chip-flag"><svg width="10" height="10" viewBox="0 0 24 24" fill="var(--pink)" stroke="none"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/></svg>Flag</span>';
+        if (t.defer_date) { var _df = new Date(t.defer_date); _df.setHours(0,0,0,0); if (_df > _nowDay) chips += '<span class="chip chip-defer" style="color:var(--text3)"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="margin-right:2px"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Defer ' + _df.toLocaleDateString('en-US',{month:'short',day:'numeric'}) + '</span>'; }
         if (due) chips += '<span class="chip ' + due.cls + '">' + due.text + '</span>';
         if (t.priority && t.priority !== 'None') chips += '<span class="chip chip-priority cp-' + t.priority.toLowerCase() + '">' + t.priority + '</span>';
         if (t.repeat_rule && t.repeat_rule !== 'None') chips += '<span class="chip chip-repeat"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="margin-right:2px"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>' + t.repeat_rule + '</span>';
         if (subtasks.length > 0) chips += '<span class="chip chip-note"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="margin-right:2px"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>' + doneSubs + '/' + subtasks.length + '</span>';
         if (proj && currentTab !== 'projects') chips += '<span class="chip chip-project"><span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:' + proj.color + ';margin-right:3px"></span>' + esc(proj.name) + '</span>';
-        tags.forEach(function (tag) { var color = getTagColor(tag); chips += '<span class="chip chip-tag" style="background:' + color + '22;color:' + color + '">' + esc(tag) + '</span>'; });
+        tags.forEach(function (tag) { var color = _tagColorMap[tag] || 'var(--text2)'; chips += '<span class="chip chip-tag" style="background:' + color + '22;color:' + color + '">' + esc(tag) + '</span>'; });
+        if (t.energy_level) { var _eColor = {Low:'var(--green)',Medium:'var(--amber)',High:'var(--red)'}[t.energy_level]||'var(--text2)'; chips += '<span class="chip" style="color:'+_eColor+'">⚡'+t.energy_level+'</span>'; }
+        if (t.estimated_minutes) chips += '<span class="chip chip-note">'+t.estimated_minutes+'m</span>';
         if (t.notes) chips += '<span class="chip chip-note">Note</span>';
         var archCls = showArchived ? ' archived-row' : '';
         var msSel = _msMode && _msIds.has(t.id) ? ' ms-selected' : '';
@@ -280,7 +295,7 @@
         }
         var _accent = fTagColor ? 'border-left:3px solid ' + fTagColor + ';padding-left:10px;' : '';
         var _todayBtn = (showArchived || _msMode) ? '' : (t.is_today_task ? '<span class="row-today-indicator" title="In Today">â˜€</span>' : '<button class="row-today-btn" onclick="event.stopPropagation();markAsToday(\'' + t.id + '\')" title="Add to Today">â˜€</button>');
-        var _trashBtn = (showArchived || _msMode) ? '' : '<button class="row-del-btn" onclick="event.stopPropagation();quickDeleteTask(\'' + t.id + '\')" title="Delete"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>';
+        var _trashBtn = (showArchived || _msMode) ? '' : '<button class="row-del-btn" onclick="event.stopPropagation();rowDeleteTask(\'' + t.id + '\')" title="Delete"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>';
         var _rowClick = _msMode ? 'toggleMsRow(\'' + t.id + '\',event)' : 'openTaskDetail(\'' + t.id + '\')';
         return '<div class="task-row clickable' + archCls + msSel + '" id="task-' + t.id + '" data-sort="' + i + '" style="' + _accent + 'animation-delay:' + Math.min(i * 0.03, 0.3) + 's" onclick="' + _rowClick + '" oncontextmenu="event.preventDefault();showCtxMenu(event,\'' + t.id + '\')" data-longpress="' + t.id + '">' + dragH + chkBtn + '<div class="task-body"><div class="task-name">' + esc(t.title) + '</div>' + (chips ? '<div class="task-chips">' + chips + '</div>' : '') + '</div>' + _todayBtn + _trashBtn + '</div>';
       }
@@ -351,17 +366,18 @@
     async function syncTasks() { if (syncing) return; syncing = true; var _sb = document.getElementById('sync-btn'); if (_sb) _sb.classList.add('spinning'); var _us = document.getElementById('um-sync'); if (_us) _us.style.opacity = '.4'; showSkeleton(); try { tasks = await fetchAll(); await fetchProjects(); populateProjectSelects(); render(); } catch (e) { if (e.message !== 'Unauthorized') toast('Sync failed'); } finally { syncing = false; if (_sb) _sb.classList.remove('spinning'); if (_us) _us.style.opacity = ''; } }
 
     // â”€â”€â”€ ORB-37: Supabase Realtime subscription â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-    var _realtimeChannel = null;
+    var _realtimeChannel = null, _rtClient = null, _rtRenderTimer = null, _rtReconnectTimer = null;
+    function _rtRender() { clearTimeout(_rtRenderTimer); _rtRenderTimer = setTimeout(render, 300); }
     function initRealtime() {
       if (!session || !window.supabase) return;
-      if (_realtimeChannel) return; // already subscribed
-      var client = window.supabase.createClient(SB_URL, SB_KEY, {
+      if (_realtimeChannel) return;
+      clearTimeout(_rtReconnectTimer);
+      _rtClient = window.supabase.createClient(SB_URL, SB_KEY, {
         auth: { persistSession: false, autoRefreshToken: false },
         realtime: { params: { eventsPerSecond: 10 } }
       });
-      // Set access token for RLS
-      client.realtime.setAuth(session.access_token);
-      _realtimeChannel = client
+      _rtClient.realtime.setAuth(session.access_token);
+      _realtimeChannel = _rtClient
         .channel('tasks-realtime')
         .on('postgres_changes', {
           event: '*',
@@ -370,22 +386,24 @@
           filter: 'user_id=eq.' + session.user.id
         }, function(payload) {
           if (payload.eventType === 'INSERT') {
-            if (!tasks.find(function(t) { return t.id === payload.new.id; })) {
-              tasks.push(payload.new);
-              render();
-            }
+            if (!tasks.find(function(t) { return t.id === payload.new.id; })) { tasks.push(payload.new); _rtRender(); }
           } else if (payload.eventType === 'UPDATE') {
             var idx = tasks.findIndex(function(t) { return t.id === payload.new.id; });
-            if (idx !== -1) { Object.assign(tasks[idx], payload.new); render(); }
-            else { tasks.push(payload.new); render(); }
+            if (idx !== -1) { Object.assign(tasks[idx], payload.new); } else { tasks.push(payload.new); }
+            _rtRender();
           } else if (payload.eventType === 'DELETE') {
             tasks = tasks.filter(function(t) { return t.id !== payload.old.id; });
-            render();
+            _rtRender();
           }
         })
-        .subscribe();
+        .subscribe(function(status) {
+          if (status === 'CLOSED' || status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+            _realtimeChannel = null;
+            _rtReconnectTimer = setTimeout(initRealtime, 8000);
+          }
+        });
       window.addEventListener('beforeunload', function() {
-        if (_realtimeChannel) client.removeChannel(_realtimeChannel);
+        if (_rtClient && _realtimeChannel) _rtClient.removeChannel(_realtimeChannel);
       });
     }
 
@@ -480,7 +498,7 @@
     }
 
     // â”€â”€â”€ Add Task Modal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-    function switchTab(tab) { currentTab = tab; if (tab !== 'projects') currentProjectFilter = null; if (showArchived) { showArchived = false; document.getElementById('archive-label').textContent = 'View Archive'; } _renderLimit = 50; render(); }
+    function switchTab(tab) { currentTab = tab; if (tab !== 'projects') currentProjectFilter = null; if (showArchived) { showArchived = false; document.getElementById('archive-label').textContent = 'View Archive'; } _renderLimit = 50; clearSearch(); render(); }
     function updateTitleCount(inp) {
       var rem = 255 - inp.value.length;
       var el = document.getElementById('i-title-count');

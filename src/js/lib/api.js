@@ -26,8 +26,11 @@
       if (ok) { _syncShow(false, 'Synced'); setTimeout(function(){ if (_syncActive === 0) _syncShow(false, null); }, 1500); }
       else { _syncShow(false, 'Sync failed'); setTimeout(function(){ if (_syncActive === 0) _syncShow(false, null); }, 3000); }
     }
-    window.addEventListener('offline', function() { _syncShow(false, 'Offline'); });
-    window.addEventListener('online', function() { if (_syncActive === 0) _syncShow(false, null); });
+    var _isOffline = false;
+    function _markOffline() { if (!_isOffline) { _isOffline = true; _syncShow(false, 'Offline'); } }
+    function _markOnline() { if (_isOffline) { _isOffline = false; if (_syncActive === 0) _syncShow(false, null); } }
+    window.addEventListener('offline', _markOffline);
+    window.addEventListener('online', function() { _markOnline(); });
 
     async function api(path, opts) {
       opts = opts || {};
@@ -43,21 +46,23 @@
           if (r.status === 401) { _syncEnd(false); signOut(); throw new Error('Unauthorized'); }
         }
         if (!r.ok) { _syncEnd(false); throw new Error('API ' + r.status); }
-        _syncEnd(true);
+        _syncEnd(true); _markOnline();
         return r;
-      } catch(e) { _syncEnd(false); throw e; }
+      } catch(e) { _syncEnd(false); if (e instanceof TypeError) _markOffline(); throw e; }
     }
     async function fetchAll() { return (await api('tasks?order=created_at.asc')).json(); }
     // ORB-23: Offline queue helpers
+    var _OUTBOX_TTL = 7 * 24 * 60 * 60 * 1000; // 7 days
     function _queueOffline(op) {
-      try { var q = JSON.parse(localStorage.getItem('orbiter_outbox') || '[]'); q.push(op); localStorage.setItem('orbiter_outbox', JSON.stringify(q)); } catch (e) {}
+      try { var q = JSON.parse(localStorage.getItem('orbiter_outbox') || '[]'); op._ts = Date.now(); q.push(op); localStorage.setItem('orbiter_outbox', JSON.stringify(q)); } catch (e) {}
     }
     function _dequeueOffline(taskId) {
       try { var q = JSON.parse(localStorage.getItem('orbiter_outbox') || '[]'); q = q.filter(function(op) { return !(op.type === 'upsert' && op.task && op.task.id === taskId); }); localStorage.setItem('orbiter_outbox', JSON.stringify(q)); } catch (e) {}
     }
     async function _flushOutbox() {
-      var q = JSON.parse(localStorage.getItem('orbiter_outbox') || '[]');
-      if (!q.length) return false;
+      var now = Date.now();
+      var q = JSON.parse(localStorage.getItem('orbiter_outbox') || '[]').filter(function(op) { return !op._ts || (now - op._ts) < _OUTBOX_TTL; });
+      if (!q.length) { localStorage.setItem('orbiter_outbox', '[]'); return false; }
       var remaining = [];
       for (var i = 0; i < q.length; i++) {
         var op = q[i];
@@ -71,6 +76,7 @@
       return remaining.length < q.length;
     }
     window.addEventListener('online', async function() {
+      _markOnline();
       var flushed = await _flushOutbox();
       if (flushed) { syncTasks(); toast('Offline tasks synced'); }
     });
