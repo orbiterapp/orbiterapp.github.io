@@ -42,7 +42,9 @@
       var prefs = {
         theme: localStorage.getItem('theme') || 'system',
         accent_color: localStorage.getItem('accent_color') || '',
-        confirm_before_delete: localStorage.getItem('confirm_before_delete') || 'false'
+        confirm_before_delete: localStorage.getItem('confirm_before_delete') || 'false',
+        inbox_sort: localStorage.getItem('inbox_sort') || 'created',
+        quiet_hours: (function() { try { return JSON.parse(localStorage.getItem('orbiter_quiet_hours') || '{}'); } catch(e) { return {}; } })()
       };
       api('user_preferences', {
         method: 'POST',

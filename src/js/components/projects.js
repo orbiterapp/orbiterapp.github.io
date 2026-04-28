@@ -52,6 +52,7 @@
     function createProject() {
       var name = document.getElementById('new-proj-name').value.trim();
       if (!name) { document.getElementById('new-proj-name').focus(); return; }
+      if (projects.some(function(p) { return p.name.toLowerCase() === name.toLowerCase() && !p.is_completed; })) { toast('Project already exists'); return; }
       var proj = { id: uuid(), name: name, color: newProjColor };
       projects.push(proj);
       api('projects', { method: 'POST', headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + (session?.access_token || SB_KEY), 'Content-Type': 'application/json', 'Prefer': 'return=minimal' }, body: JSON.stringify({ id: proj.id, user_id: session.user.id, name: proj.name, color: proj.color }) }).catch(function () { toast('Failed to sync project'); });

@@ -66,6 +66,8 @@
           if (prefs.theme) { localStorage.setItem('theme', prefs.theme); loadTheme(); }
           if (prefs.accent_color) { localStorage.setItem('accent_color', prefs.accent_color); loadAccentColor(); }
           if (prefs.confirm_before_delete !== undefined) localStorage.setItem('confirm_before_delete', prefs.confirm_before_delete);
+          if (prefs.inbox_sort) { inboxSort = prefs.inbox_sort; localStorage.setItem('inbox_sort', inboxSort); render(); }
+          if (prefs.quiet_hours && typeof prefs.quiet_hours === 'object') { try { localStorage.setItem('orbiter_quiet_hours', JSON.stringify(prefs.quiet_hours)); initQuietHoursUI(); _syncQuietHoursToSW(); } catch(e) {} }
         }
       } catch (e) { }
     }

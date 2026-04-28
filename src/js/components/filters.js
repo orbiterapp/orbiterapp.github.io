@@ -44,11 +44,12 @@
       dues.forEach(function (d) {
         h += '<div class="filter-chip' + (activeFilters.due === d[0] ? ' active' : '') + '" onclick="setFilter(\'due\',\'' + d[0] + '\')">' + d[1] + '</div>';
       });
-      // Tag filters (show on second row)
-      var hasTagFilters = PRESET_TAGS.length > 0;
+      // Tag filters (show on second row) — use all tags, not just presets
+      var _allFilterTags = getAllTags();
+      var hasTagFilters = _allFilterTags.length > 0;
       if (hasTagFilters) {
         h += '<div style="width:100%"></div>';
-        PRESET_TAGS.forEach(function (tag) {
+        _allFilterTags.forEach(function (tag) {
           var sel = activeFilters.tag === tag.name;
           h += '<div class="filter-chip' + (sel ? ' active' : '') + '" onclick="setFilter(\'tag\',\'' + tag.name + '\')" style="' + (sel ? 'border-color:' + tag.color + ';color:' + tag.color + ';background:' + tag.color + '18' : '') + '"><span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:' + tag.color + '"></span>' + tag.name + '</div>';
         });
