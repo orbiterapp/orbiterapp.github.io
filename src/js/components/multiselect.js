@@ -20,6 +20,11 @@
       if (chk) chk.classList.toggle('checked', _msIds.has(id));
       _updateMsToolbar();
     }
+    function selectAllVisible() {
+      var rows = document.querySelectorAll('#task-area .task-row');
+      rows.forEach(function(row) { var id = row.id.replace('task-', ''); if (id) _msIds.add(id); });
+      render(); _updateMsToolbar();
+    }
     function _updateMsToolbar() {
       var tb = document.getElementById('ms-toolbar');
       var ct = document.getElementById('ms-count');
@@ -35,24 +40,20 @@
       exitMsMode();
       render();
       toast('Completed ' + toComplete.length + ' task' + (toComplete.length !== 1 ? 's' : ''));
-      await Promise.all(toComplete.map(function (t) { return upsert(t).catch(function () {}); }));
+      await Promise.all(toComplete.map(function (t) { return patch(t.id, { is_completed: true, completed_at: t.completed_at, updated_at: t.updated_at }).catch(function () {}); }));
     }
     function bulkDelete() {
       var ids = Array.from(_msIds);
       var n = ids.length;
-      var doDelete = function () {
-        ids.forEach(function (id) {
-          tasks = tasks.filter(function (t) { return t.id !== id; });
-          deleteTask(id).catch(function () {});
-        });
-        exitMsMode();
-        render();
-        toast('Deleted ' + n + ' task' + (n !== 1 ? 's' : ''));
-      };
-      if (localStorage.getItem('confirm_before_delete') === 'true') {
-        if (!confirm('Delete ' + n + ' task' + (n !== 1 ? 's' : '') + '?')) return;
-      }
-      doDelete();
+      var backups = tasks.filter(function (t) { return ids.includes(t.id); }).map(function (t) { return Object.assign({}, t); });
+      tasks = tasks.filter(function (t) { return !ids.includes(t.id); });
+      exitMsMode();
+      render();
+      ids.forEach(function (id) { deleteTask(id).catch(function () {}); });
+      toast('Deleted ' + n + ' task' + (n !== 1 ? 's' : ''), 4000, function () {
+        backups.forEach(function (t) { tasks.push(t); upsert(t).catch(function () {}); });
+        render(); toast('Restored');
+      });
     }
 
     // â”€â”€â”€ Dark / Light Mode â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€

@@ -82,9 +82,14 @@
           setTimeout(function () { cleanActions(row); completeTask(id); }, 280);
         } else if (dx < -THRESH) {
           // Swipe left â†’ delete
-          haptic('heavy');
-          row.style.transition = 'transform .28s cubic-bezier(.2,.8,.2,1), opacity .28s ease';
-          row.style.transform = 'translateX(-110vw)'; row.style.opacity = '0';
+          haptic(‘heavy’);
+          if (shouldConfirmDelete()) {
+            row.style.transition = ‘transform .35s cubic-bezier(.175,.885,.32,1.275)’;
+            row.style.transform = ‘’; setTimeout(function () { cleanActions(row); row.style.transition = ‘’; }, 350);
+            currentTaskId = id; showDeleteConfirm(); aRow = null; sw = false; return;
+          }
+          row.style.transition = ‘transform .28s cubic-bezier(.2,.8,.2,1), opacity .28s ease’;
+          row.style.transform = ‘translateX(-110vw)’; row.style.opacity = ‘0’;
           setTimeout(function () { cleanActions(row); quickDeleteTask(id); }, 280);
         } else {
           // Bounce back with spring

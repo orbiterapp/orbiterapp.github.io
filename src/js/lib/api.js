@@ -52,15 +52,17 @@
     }
     async function fetchAll() { return (await api('tasks?order=created_at.asc')).json(); }
     // ORB-23: Offline queue helpers
+    var _OUTBOX_TTL = 7 * 24 * 60 * 60 * 1000; // 7 days
     function _queueOffline(op) {
-      try { var q = JSON.parse(localStorage.getItem('orbiter_outbox') || '[]'); q.push(op); localStorage.setItem('orbiter_outbox', JSON.stringify(q)); } catch (e) {}
+      try { var q = JSON.parse(localStorage.getItem('orbiter_outbox') || '[]'); op._ts = Date.now(); q.push(op); localStorage.setItem('orbiter_outbox', JSON.stringify(q)); } catch (e) {}
     }
     function _dequeueOffline(taskId) {
       try { var q = JSON.parse(localStorage.getItem('orbiter_outbox') || '[]'); q = q.filter(function(op) { return !(op.type === 'upsert' && op.task && op.task.id === taskId); }); localStorage.setItem('orbiter_outbox', JSON.stringify(q)); } catch (e) {}
     }
     async function _flushOutbox() {
-      var q = JSON.parse(localStorage.getItem('orbiter_outbox') || '[]');
-      if (!q.length) return false;
+      var now = Date.now();
+      var q = JSON.parse(localStorage.getItem('orbiter_outbox') || '[]').filter(function(op) { return !op._ts || (now - op._ts) < _OUTBOX_TTL; });
+      if (!q.length) { localStorage.setItem('orbiter_outbox', '[]'); return false; }
       var remaining = [];
       for (var i = 0; i < q.length; i++) {
         var op = q[i];
