@@ -67,7 +67,24 @@
       const sn = document.getElementById('settings-user-name'); if (sn) sn.textContent = n;
       const se = document.getElementById('settings-user-email'); if (se) se.textContent = e;
     }
-    function toggleMenu(f) { const el = document.getElementById('menu-overlay'); if (!el) return; const o = f !== undefined ? f : !el.classList.contains('open'); if (o) updateAvatar(); el.classList.toggle('open', o); }
+    function toggleMenu(f) {
+      const el = document.getElementById('menu-overlay');
+      if (!el) return;
+      const o = f !== undefined ? f : !el.classList.contains('open');
+      if (o) {
+        updateAvatar();
+        try {
+          const _m = session?.user?.user_metadata || {};
+          const _e = session?.user?.email || _m.email || '';
+          const _n = _m.full_name || _m.name || (_e ? _e.split('@')[0] : '');
+          const mn = document.getElementById('m-name');
+          const me = document.getElementById('m-email');
+          if (mn && _n) mn.textContent = _n;
+          if (me && _e) me.textContent = _e;
+        } catch (_) {}
+      }
+      el.classList.toggle('open', o);
+    }
     function handleMenuClick(e) { if (e.target.id === 'menu-overlay') toggleMenu(false); }
 
     // â”€â”€â”€ Search â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€

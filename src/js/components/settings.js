@@ -8,6 +8,7 @@
       renderSettingsAccentPicker();
       loadSettingsConfirmDelete();
       initQuietHoursUI();
+      updateAvatar();
       toggleMenu(false);
       show('screen-settings');
     }
