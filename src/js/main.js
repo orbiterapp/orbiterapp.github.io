@@ -23,8 +23,9 @@
           // ORB-69: Show onboarding on first sign-in
           if (!localStorage.getItem('orbiter_onboarded')) { show('screen-onboard'); }
           else { show('screen-app'); }
-          render(); syncTasks(); loadConfirmDeleteSetting(); loadUserPreferences(); setTimeout(initRealtime, 2000);
-          if (navigator.onLine) _flushOutbox();
+          render();
+          if (navigator.onLine) await _flushOutbox();
+          syncTasks(); loadConfirmDeleteSetting(); loadUserPreferences(); setTimeout(initRealtime, 2000);
           if ('Notification' in window && Notification.permission === 'default') { setTimeout(requestNotifPermission, 3000); }
         }
         else show('screen-login');

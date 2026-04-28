@@ -57,7 +57,7 @@
     }
     async function _flushOutbox() {
       var q = JSON.parse(localStorage.getItem('orbiter_outbox') || '[]');
-      if (!q.length) return;
+      if (!q.length) return false;
       var remaining = [];
       for (var i = 0; i < q.length; i++) {
         var op = q[i];
@@ -68,9 +68,12 @@
         } catch (e) { remaining.push(op); }
       }
       localStorage.setItem('orbiter_outbox', JSON.stringify(remaining));
-      if (remaining.length < q.length) { syncTasks(); toast('Offline tasks synced'); }
+      return remaining.length < q.length;
     }
-    window.addEventListener('online', _flushOutbox);
+    window.addEventListener('online', async function() {
+      var flushed = await _flushOutbox();
+      if (flushed) { syncTasks(); toast('Offline tasks synced'); }
+    });
 
     // ORB-82: upsert = POST with resolution=merge-duplicates for new tasks
     async function upsert(t) {

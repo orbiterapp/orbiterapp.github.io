@@ -40,10 +40,23 @@
 
     function updateAvatar() {
       const m = session?.user?.user_metadata || {},
-        e = session?.user?.email || m.email || '',
-        n = m.full_name || m.name || e.split('@')[0] || '?',
-        i = n.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase(),
-        a = m.avatar_url || m.picture,
+        rawE = session?.user?.email || m.email || '',
+        rawN = m.full_name || m.name || '';
+      // Fall back to cached profile if session lacks data
+      let e = rawE, n = rawN;
+      if (!e || !n) {
+        try {
+          const cached = JSON.parse(localStorage.getItem('orbiter_profile') || 'null');
+          if (cached) { e = e || cached.email || ''; n = n || cached.name || ''; }
+        } catch (_) {}
+      }
+      n = n || (e ? e.split('@')[0] : '?');
+      // Cache good profile data for future loads
+      if (e && n && n !== '?') {
+        try { localStorage.setItem('orbiter_profile', JSON.stringify({ email: e, name: n, avatar_url: m.avatar_url || m.picture || '' })); } catch (_) {}
+      }
+      const i = n.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase(),
+        a = m.avatar_url || m.picture || (() => { try { return JSON.parse(localStorage.getItem('orbiter_profile') || 'null')?.avatar_url || ''; } catch(_){return '';} })(),
         b = document.getElementById('avatar-btn');
       const html = a ? '<img src="' + esc(a) + '" alt="">' : i;
       if (b) b.innerHTML = html;
