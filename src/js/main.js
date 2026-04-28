@@ -130,6 +130,8 @@
         var initials = n.split(' ').map(function (w) { return w[0]; }).join('').slice(0, 2).toUpperCase();
         var avatarUrl = m.avatar_url || m.picture;
         footer.innerHTML = '<div class="ds-footer-avatar">' + (avatarUrl ? '<img src="' + esc(avatarUrl) + '" alt="">' : initials) + '</div><div class="ds-footer-info"><div class="ds-footer-name">' + esc(n) + '</div><div class="ds-footer-email">' + esc(e) + '</div></div>';
+        var mn = document.getElementById('m-name'); if (mn) mn.textContent = n;
+        var me = document.getElementById('m-email'); if (me) me.textContent = e;
       }
     }
     // ORB-81: Debounce render via requestAnimationFrame so rapid successive calls
