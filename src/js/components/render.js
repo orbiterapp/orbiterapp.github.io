@@ -239,10 +239,10 @@
       updateAppBadge();
       var _nowDay = new Date(); _nowDay.setHours(0, 0, 0, 0);
       var _overdue = [], _reg = [];
-      if (currentTab === 'today' || currentTab === 'inbox') {
+      if (currentTab === 'inbox') {
         v.forEach(function (t) { if (t.due_date && new Date(t.due_date) < _nowDay && !t.is_completed) _overdue.push(t); else _reg.push(t); });
       } else { _reg = v; }
-      if (currentTab === 'today') {
+      if (currentTab === 'calendar') {
         _reg.sort(function (a, b) {
           if (!a.due_date && !b.due_date) return 0;
           if (!a.due_date) return 1;
@@ -480,7 +480,7 @@
     }
 
     // â”€â”€â”€ Add Task Modal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-    function switchTab(tab) { currentTab = tab; if (tab !== 'projects') currentProjectFilter = null; if (showArchived) { showArchived = false; document.getElementById('archive-label').textContent = 'View Archive'; } _renderLimit = 50; render(); }
+    function switchTab(tab) { currentTab = tab; if (tab !== 'projects') currentProjectFilter = null; if (showArchived) { showArchived = false; document.getElementById('archive-label').textContent = 'View Archive'; } _renderLimit = 50; clearSearch(); render(); }
     function updateTitleCount(inp) {
       var rem = 255 - inp.value.length;
       var el = document.getElementById('i-title-count');

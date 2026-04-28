@@ -1,4 +1,5 @@
 ﻿    function openProjectsModal() {
+      newProjColor = PROJECT_COLORS[0];
       renderProjColorPicker();
       renderProjList();
       document.getElementById('projects-modal-bg').classList.add('open');
