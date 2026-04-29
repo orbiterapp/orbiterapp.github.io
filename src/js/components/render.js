@@ -140,13 +140,13 @@
 
       // Pre-compute tasks per day (priority → dot color)
       var td = {};
-      var _todayStr = sToday.getFullYear() + ‘-’ + String(sToday.getMonth()+1).padStart(2,’0’) + ‘-’ + String(sToday.getDate()).padStart(2,’0’);
+      var _todayStr = sToday.getFullYear() + '-' + String(sToday.getMonth()+1).padStart(2,'0') + '-' + String(sToday.getDate()).padStart(2,'0');
       tasks.forEach(function (t) {
         if (t.is_completed || t.parent_id) return;
-        var tdStr = t.due_date ? t.due_date.split(‘T’)[0] : (t.is_today_task ? _todayStr : null);
+        var tdStr = t.due_date ? t.due_date.split('T')[0] : (t.is_today_task ? _todayStr : null);
         if (!tdStr) return;
         if (!td[tdStr]) td[tdStr] = [];
-        td[tdStr].push(t.priority || ‘low’);
+        td[tdStr].push(t.priority || 'low');
       });
 
       days.forEach(function (dy) {
@@ -346,7 +346,7 @@
 
     function setProjectFilter(id) { currentProjectFilter = id; render(); }
 
-    // â”€â”€â”€ Sync â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // â"€â"€â"€ Sync â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€
     async function fetchProjects() {
       try {
         var r = await api('projects?order=name.asc');
@@ -370,7 +370,7 @@
     }
     async function syncTasks() { if (syncing) return; syncing = true; var _sb = document.getElementById('sync-btn'); if (_sb) _sb.classList.add('spinning'); var _us = document.getElementById('um-sync'); if (_us) _us.style.opacity = '.4'; showSkeleton(); try { tasks = await fetchAll(); await fetchProjects(); populateProjectSelects(); render(); } catch (e) { if (e.message !== 'Unauthorized') toast('Sync failed'); } finally { syncing = false; if (_sb) _sb.classList.remove('spinning'); if (_us) _us.style.opacity = ''; } }
 
-    // â”€â”€â”€ ORB-37: Supabase Realtime subscription â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // â"€â"€â"€ ORB-37: Supabase Realtime subscription â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€
     var _realtimeChannel = null, _rtClient = null, _rtRenderTimer = null, _rtReconnectTimer = null;
     function _rtRender() { clearTimeout(_rtRenderTimer); _rtRenderTimer = setTimeout(render, 300); }
     function initRealtime() {
@@ -412,7 +412,7 @@
       });
     }
 
-    // â”€â”€â”€ Complete â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // â"€â"€â"€ Complete â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€
     // ORB-85: Calculate the next due date for recurring tasks.
     function calculateNextDueDate(baseDateISO, rule) {
       var base = new Date(baseDateISO);
@@ -445,7 +445,7 @@
           task._next_instance_id = null;
         }
         render();
-        toast('Restored âœ“');
+        toast('Restored âœ"');
       });
       window._completeDelay = setTimeout(function () {
         task.is_completed = true; task.completed_at = new Date().toISOString(); task.updated_at = new Date().toISOString();
@@ -470,7 +470,7 @@
       }, 480);
     }
 
-    // â”€â”€â”€ Tags picker â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // â"€â"€â"€ Tags picker â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€
     function buildTagsPicker(containerId, selectedArr, filterStr) {
       var container = document.getElementById(containerId);
       var allTags = getAllTags();
@@ -491,7 +491,7 @@
       buildTagsPicker(containerId, arr, searchEl ? searchEl.value : '');
     }
 
-    // â”€â”€â”€ Project selects â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // â"€â"€â"€ Project selects â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€
     function populateProjectSelects() {
       ['i-project', 'd-project', 'ddp-project'].forEach(function (id) {
         var sel = document.getElementById(id);
@@ -502,7 +502,7 @@
       });
     }
 
-    // â”€â”€â”€ Add Task Modal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // â"€â"€â"€ Add Task Modal â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€
     function switchTab(tab) { currentTab = tab; if (tab !== 'projects') currentProjectFilter = null; if (showArchived) { showArchived = false; document.getElementById('archive-label').textContent = 'View Archive'; } _renderLimit = 50; clearSearch(); render(); }
     function updateTitleCount(inp) {
       var rem = 255 - inp.value.length;

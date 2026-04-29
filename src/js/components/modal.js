@@ -47,11 +47,11 @@
         flagged=false; addModalTags=[]; document.getElementById('tog-flag').classList.remove('on'); buildTagsPicker('i-tags-picker',addModalTags);
         var strip=document.getElementById('i-nlp-strip'); if(strip){strip.style.display='none';strip.innerHTML='';}
         setTimeout(function(){document.getElementById('i-title').focus();},100);
-        toast('Task added âœ“');
+        toast('Task added âœ"');
       } else { closeModal(); toast('Task added'); }
       _queueOffline({ type: 'upsert', task: task });
       try { await upsert(task); _dequeueOffline(task.id); } catch (e) { toast('Failed to sync'); }
     }
 
-    // â”€â”€â”€ Task Detail â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // â"€â"€â"€ Task Detail â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€
     let currentTaskId = null;

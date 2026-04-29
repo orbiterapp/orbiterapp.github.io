@@ -141,5 +141,5 @@
       }).then(function () { toast('Task updated'); }).catch(function () { toast('Failed to sync'); });
     }
 
-    // â”€â”€â”€ ORB-79: Desktop right detail panel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // â"€â"€â"€ ORB-79: Desktop right detail panel â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€
     var ddpFlag = false, ddpToday = false;

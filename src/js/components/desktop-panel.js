@@ -73,7 +73,7 @@
       }
     }
 
-    // â”€â”€â”€ DDP Subtasks â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // â"€â"€â"€ DDP Subtasks â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€
     function renderDdpSubtasks() {
       if (!currentTaskId) return;
       var subtasks = getSubtasks(currentTaskId);
@@ -81,9 +81,9 @@
       var label = document.getElementById('ddp-subtasks-title-label');
       if (!list || !label) return;
       var done = subtasks.filter(function(s) { return s.is_completed; }).length;
-      label.innerHTML = '<svg width=”14” height=”14” viewBox=”0 0 24 24” fill=”none” stroke=”currentColor” stroke-width=”2.5” stroke-linecap=”round” stroke-linejoin=”round”><polyline points=”9 11 12 14 22 4”/><path d=”M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11”/></svg>Subtasks' + (subtasks.length > 0 ? ' (' + done + '/' + subtasks.length + ')' : '');
+      label.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>Subtasks' + (subtasks.length > 0 ? ' (' + done + '/' + subtasks.length + ')' : '');
       list.innerHTML = subtasks.map(function(s) {
-        return '<div class=”subtask-item”><button class=”subtask-chk' + (s.is_completed ? ' checked' : '') + '” onclick=”toggleDdpSubtask(\'' + s.id + '\')”>' + (s.is_completed ? '<svg width=”10” height=”10” viewBox=”0 0 24 24” fill=”none” stroke=”var(--green)” stroke-width=”3” stroke-linecap=”round” stroke-linejoin=”round”><polyline points=”20 6 9 17 4 12”/></svg>' : '') + '</button><span class=”subtask-title' + (s.is_completed ? ' done' : '') + '” onclick=”toggleDdpSubtask(\'' + s.id + '\')”>' + esc(s.title) + '</span><button class=”del-sub-btn” onclick=”deleteDdpSubtask(\'' + s.id + '\')”><svg width=”13” height=”13” viewBox=”0 0 24 24” fill=”none” stroke=”currentColor” stroke-width=”2.5” stroke-linecap=”round”><line x1=”18” y1=”6” x2=”6” y2=”18”/><line x1=”6” y1=”6” x2=”18” y2=”18”/></svg></button></div>';
+        return '<div class="subtask-item"><button class="subtask-chk' + (s.is_completed ? ' checked' : '') + '" onclick="toggleDdpSubtask(\'' + s.id + '\')">' + (s.is_completed ? '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>' : '') + '</button><span class="subtask-title' + (s.is_completed ? ' done' : '') + '" onclick="toggleDdpSubtask(\'' + s.id + '\')">' + esc(s.title) + '</span><button class="del-sub-btn" onclick="deleteDdpSubtask(\'' + s.id + '\')"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>';
       }).join('');
     }
     function showDdpSubtaskInput() {
@@ -121,4 +121,4 @@
     }
     document.getElementById('ddp-new-subtask-input').addEventListener('keydown', function(e) { if (e.key === 'Enter') confirmAddDdpSubtask(); });
 
-    // â”€â”€â”€ Subtasks â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // â"€â"€â"€ Subtasks â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€

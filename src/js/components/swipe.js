@@ -1,4 +1,4 @@
-﻿    // â”€â”€â”€ Swipe Gestures (right = complete, left = delete) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+﻿    // â"€â"€â"€ Swipe Gestures (right = complete, left = delete) â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€
     (function () {
       var area = document.getElementById('task-area');
       var sX = 0, sY = 0, aRow = null, aId = null, sw = false, THRESH = 55, MAX = 130;
@@ -75,21 +75,21 @@
         if (!aRow || !sw) { if (aRow) cleanActions(aRow); aRow = null; sw = false; return; }
         var dx = e.changedTouches[0].clientX - sX, row = aRow, id = aId;
         if (dx > THRESH) {
-          // Swipe right â†’ complete
+          // Swipe right â†' complete
           haptic('success');
           row.style.transition = 'transform .28s cubic-bezier(.2,.8,.2,1), opacity .28s ease';
           row.style.transform = 'translateX(110vw)'; row.style.opacity = '0';
           setTimeout(function () { cleanActions(row); completeTask(id); }, 280);
         } else if (dx < -THRESH) {
-          // Swipe left â†’ delete
-          haptic(‘heavy’);
+          // Swipe left â†' delete
+          haptic('heavy');
           if (shouldConfirmDelete()) {
-            row.style.transition = ‘transform .35s cubic-bezier(.175,.885,.32,1.275)’;
-            row.style.transform = ‘’; setTimeout(function () { cleanActions(row); row.style.transition = ‘’; }, 350);
+            row.style.transition = 'transform .35s cubic-bezier(.175,.885,.32,1.275)';
+            row.style.transform = ''; setTimeout(function () { cleanActions(row); row.style.transition = ''; }, 350);
             currentTaskId = id; showDeleteConfirm(); aRow = null; sw = false; return;
           }
-          row.style.transition = ‘transform .28s cubic-bezier(.2,.8,.2,1), opacity .28s ease’;
-          row.style.transform = ‘translateX(-110vw)’; row.style.opacity = ‘0’;
+          row.style.transition = 'transform .28s cubic-bezier(.2,.8,.2,1), opacity .28s ease';
+          row.style.transform = 'translateX(-110vw)'; row.style.opacity = '0';
           setTimeout(function () { cleanActions(row); quickDeleteTask(id); }, 280);
         } else {
           // Bounce back with spring

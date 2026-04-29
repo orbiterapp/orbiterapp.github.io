@@ -39,7 +39,7 @@
       await Promise.allSettled(activeTasks.map(function (t) { return upsert(t); }));
       await api('projects?id=eq.' + id, { method: 'PATCH', headers: { 'Prefer': 'return=minimal' }, body: JSON.stringify({ is_completed: true, completed_at: now }) }).catch(function () { });
       renderProjList(); populateProjectSelects(); render();
-      toast('Project completed âœ“');
+      toast('Project completed âœ"');
     }
     function reopenProject(id) {
       var proj = projects.find(function (p) { return p.id === id; });
@@ -81,7 +81,7 @@
         });
         currentProjectFilter = prevFilter;
         renderProjList(); populateProjectSelects(); render();
-        toast('Restored âœ“');
+        toast('Restored âœ"');
       });
     }
 
