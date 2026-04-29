@@ -75,7 +75,25 @@
       const el = document.getElementById('menu-overlay');
       if (!el) return;
       const o = f !== undefined ? f : !el.classList.contains('open');
-      if (o) updateAvatar();
+      if (o) {
+        updateAvatar();
+        // Belt-and-suspenders: directly populate modal fields in case updateAvatar
+        // runs before session is fully hydrated or DOM is in an unexpected state.
+        try {
+          const _m = session?.user?.user_metadata || {};
+          let _e = session?.user?.email || _m.email || '';
+          let _n = _m.full_name || _m.name || '';
+          if (!_e || !_n) {
+            const _cached = JSON.parse(localStorage.getItem('orbiter_profile') || 'null');
+            if (_cached) { _e = _e || _cached.email || ''; _n = _n || _cached.name || ''; }
+          }
+          _n = _n || (_e ? _e.split('@')[0] : '');
+          const mn = document.getElementById('m-name');
+          const me = document.getElementById('m-email');
+          if (mn && _n) mn.textContent = _n;
+          if (me && _e) me.textContent = _e;
+        } catch (_) {}
+      }
       el.classList.toggle('open', o);
     }
     function handleMenuClick(e) { if (e.target.id === 'menu-overlay') toggleMenu(false); }
