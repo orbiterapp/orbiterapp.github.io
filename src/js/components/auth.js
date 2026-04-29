@@ -1,6 +1,6 @@
 ﻿    function show(id) { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); document.getElementById(id).classList.add('active'); }
     function signInWithGoogle() { const r = encodeURIComponent(window.location.href.split('#')[0]); window.location.href = SB_URL + '/auth/v1/authorize?provider=google&prompt=select_account&redirect_to=' + r; }
-    async function signOut() { toggleMenu(false); await fetch(SB_URL + '/auth/v1/logout', { method: 'POST', headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + (session?.access_token || '') } }).catch(() => { }); session = null; tasks = []; projects = []; ['sb_access_token','sb_refresh_token','pwa_projects','orbiter_profile','orbiter_outbox','orbiter_saved_filters','orbiter_quiet_hours'].forEach(function(k){ localStorage.removeItem(k); }); show('screen-login'); }
+    async function signOut() { toggleMenu(false); try { localStorage.setItem('pwa_tasks', JSON.stringify(tasks)); } catch(e) {} await fetch(SB_URL + '/auth/v1/logout', { method: 'POST', headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + (session?.access_token || '') } }).catch(() => { }); session = null; tasks = []; projects = []; ['sb_access_token','sb_refresh_token','pwa_projects','orbiter_profile','orbiter_outbox','orbiter_saved_filters','orbiter_quiet_hours'].forEach(function(k){ localStorage.removeItem(k); }); show('screen-login'); }
 
     // ORB-123: Export tasks to JSON and CSV
     function downloadFile(name, type, content) {

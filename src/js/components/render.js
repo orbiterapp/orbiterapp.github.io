@@ -368,7 +368,7 @@
       }
       area.innerHTML = html;
     }
-    async function syncTasks() { if (syncing) return; syncing = true; var _sb = document.getElementById('sync-btn'); if (_sb) _sb.classList.add('spinning'); var _us = document.getElementById('um-sync'); if (_us) _us.style.opacity = '.4'; showSkeleton(); try { tasks = await fetchAll(); await fetchProjects(); populateProjectSelects(); render(); } catch (e) { if (e.message !== 'Unauthorized') toast('Sync failed'); } finally { syncing = false; if (_sb) _sb.classList.remove('spinning'); if (_us) _us.style.opacity = ''; } }
+    async function syncTasks() { if (syncing) return; syncing = true; var _sb = document.getElementById('sync-btn'); if (_sb) _sb.classList.add('spinning'); var _us = document.getElementById('um-sync'); if (_us) _us.style.opacity = '.4'; showSkeleton(); try { tasks = await fetchAll(); try { localStorage.setItem('pwa_tasks', JSON.stringify(tasks)); } catch(e) {} await fetchProjects(); populateProjectSelects(); render(); } catch (e) { if (e.message !== 'Unauthorized') toast('Sync failed'); } finally { syncing = false; if (_sb) _sb.classList.remove('spinning'); if (_us) _us.style.opacity = ''; } }
 
     // â"€â"€â"€ ORB-37: Supabase Realtime subscription â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€
     var _realtimeChannel = null, _rtClient = null, _rtRenderTimer = null, _rtReconnectTimer = null;

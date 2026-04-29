@@ -19,6 +19,8 @@
         }
         // Pre-load projects from localStorage for instant rendering (ORB-30)
         try { var _lsProj = localStorage.getItem('pwa_projects'); if (_lsProj) projects = JSON.parse(_lsProj); } catch (e) { }
+        // Pre-load cached tasks for instant offline rendering
+        try { var _lsTasks = localStorage.getItem('pwa_tasks'); if (_lsTasks) tasks = JSON.parse(_lsTasks); } catch (e) { }
         loadTheme();
         loadAccentColor();
         if (session) {
