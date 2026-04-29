@@ -61,8 +61,8 @@
       const html = a ? '<img src="' + esc(a) + '" alt="">' : i;
       if (b) b.innerHTML = html;
       const _umh = (document.getElementById('menu-overlay') || document.querySelector('.menu-overlay'))?.querySelector('.um-header');
-      const mn = _umh && _umh.children[0]; if (mn) mn.textContent = n;
-      const me = _umh && _umh.children[1]; if (me) me.textContent = e;
+      const mn = _umh && _umh.children[0]; if (mn) { mn.textContent = n; mn.style.cssText = 'font-size:15px;font-weight:700'; }
+      const me = _umh && _umh.children[1]; if (me) { me.textContent = e; me.style.cssText = 'font-size:11px;opacity:0.5;margin-top:2px'; }
       // Sync sidebar footer
       const dsav = document.querySelector('.ds-footer-avatar'); if (dsav) dsav.innerHTML = html;
       const dsn = document.querySelector('.ds-footer-name'); if (dsn) dsn.textContent = n;
@@ -86,11 +86,11 @@
           const dse = document.querySelector('.ds-footer-email');
           const _n = (dsn && dsn.textContent) || '';
           const _e = (dse && dse.textContent) || '';
-          if (_n && mn) mn.textContent = _n;
-          if (_e && me) me.textContent = _e;
+          if (_n && mn) { mn.textContent = _n; mn.style.cssText = 'font-size:15px;font-weight:700'; }
+          if (_e && me) { me.textContent = _e; me.style.cssText = 'font-size:11px;opacity:0.5;margin-top:2px'; }
           if (!_n || !_e) {
             const _c = JSON.parse(localStorage.getItem('orbiter_profile') || 'null');
-            if (_c) { if (!_n && mn && _c.name) mn.textContent = _c.name; if (!_e && me && _c.email) me.textContent = _c.email; }
+            if (_c) { if (!_n && mn && _c.name) { mn.textContent = _c.name; mn.style.cssText = 'font-size:15px;font-weight:700'; } if (!_e && me && _c.email) { me.textContent = _c.email; me.style.cssText = 'font-size:11px;opacity:0.5;margin-top:2px'; } }
           }
         } catch (_) {}
       }
