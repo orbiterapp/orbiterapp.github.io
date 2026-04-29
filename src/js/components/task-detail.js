@@ -16,7 +16,6 @@
       document.getElementById('d-defer').value = task.defer_date ? task.defer_date.split('T')[0] : '';
       document.getElementById('d-notify-before').value = String(task.notify_before_minutes != null ? task.notify_before_minutes : 30);
       document.getElementById('d-repeat').value = task.repeat_rule || 'None';
-      document.getElementById('d-energy').value = task.energy_level || '';
       document.getElementById('d-est-mins').value = task.estimated_minutes || '';
       flagged = task.is_flagged || false;
       detailToday = task.is_today_task || false;
@@ -107,7 +106,6 @@
       task.due_date = combineLocalDateTime(dueVal, dueTimeVal);
       task.defer_date = deferVal || null;
       task.repeat_rule = document.getElementById('d-repeat').value || 'None';
-      task.energy_level = document.getElementById('d-energy').value || null;
       task.estimated_minutes = parseInt(document.getElementById('d-est-mins').value) || null;
       task.project_id = document.getElementById('d-project').value || null;
       task.tag_ids = JSON.stringify(detailModalTags.map(function(tn){ return {name:tn,color:getTagColor(tn)}; }));
@@ -134,7 +132,6 @@
         is_flagged: task.is_flagged,
         is_today_task: task.is_today_task,
         notify_before_minutes: task.notify_before_minutes,
-        energy_level: task.energy_level,
         estimated_minutes: task.estimated_minutes,
         notified_at: null,
         updated_at: task.updated_at

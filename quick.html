@@ -78,8 +78,6 @@
       <!-- ORB-30: Project chip (retained after reset) -->
       <div class="opt" id="chip-proj"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg><span id="pjlbl">Project</span><select id="pjsel" onchange="handleProject(this.value)"><option value="">No Project</option></select></div>
       <div class="opt" id="chip-flag" onclick="toggleF()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg><span>Flag</span></div>
-      <!-- ORB-119: energy level chip -->
-      <div class="opt" id="chip-energy" onclick="cycleEnergy()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg><span id="elbl">Energy</span></div>
     </div>
     <button class="submit" id="sbtn" onclick="submitTask()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add Task</button>
   </div>
@@ -105,7 +103,7 @@ const SB_URL='https://kmfymwtarvvmzuwwspwy.supabase.co',SB_KEY='eyJhbGciOiJIUzI1
 <!-- ORB-21: shared auth module -->
 <script src="auth.js"></script>
 <script>
-let session=null,qP='None',qF=false,qD=null,qDuePreset='',qProj=null,qE='None',qTagIds=[],qDeferDate=null,_nlpState=null;
+let session=null,qP='None',qF=false,qD=null,qDuePreset='',qProj=null,qTagIds=[],qDeferDate=null,_nlpState=null;
 function _pad(n){return String(n).padStart(2,'0');}
 function _toLocalDateTimeValue(date){return date.getFullYear()+'-'+_pad(date.getMonth()+1)+'-'+_pad(date.getDate())+'T'+_pad(date.getHours())+':'+_pad(date.getMinutes());}
 function _toLocalDateValue(date){return date.getFullYear()+'-'+_pad(date.getMonth()+1)+'-'+_pad(date.getDate());}
@@ -189,7 +187,6 @@ function _resetNLPChips(prev){
   if(prev.priority!=='None'){qP='None';document.getElementById('plbl').textContent='None';document.getElementById('pdot').style.background=PCOL['None'];const c=document.getElementById('chip-pri');c.classList.remove('active');c.style.borderColor='';}
   if(prev.isFlagged){qF=false;document.getElementById('chip-flag').classList.remove('flag-on');}
   if(prev.dueDate){qD=null;qDuePreset='';document.getElementById('dsel').value='';_syncDueUi();}
-  if(prev.energy!=='None'){qE='None';document.getElementById('elbl').textContent='Energy';const ec=document.getElementById('chip-energy');ec.classList.remove('active');ec.style.borderColor='';}
   if(prev.projectMatch){qProj=null;document.getElementById('pjlbl').textContent='Project';document.getElementById('chip-proj').classList.remove('active');document.getElementById('pjsel').value='';}
   if(prev.tagMatches&&prev.tagMatches.length)qTagIds=[];
   if(prev.deferDate)qDeferDate=null;
@@ -203,13 +200,9 @@ function applyNLPChips(input){
   if(nlp.isFlagged){qF=true;document.getElementById('chip-flag').classList.add('flag-on');}
   if(nlp.dueDate){qD=nlp.dueDate;qDuePreset='custom';_syncDueUi();}
   if(nlp.deferDate){qDeferDate=nlp.deferDate;}
-  if(nlp.energy!=='None'){qE=nlp.energy;document.getElementById('elbl').textContent=qE;const ec=document.getElementById('chip-energy');ec.classList.add('active');ec.style.borderColor=ECOL[qE];}
   if(nlp.projectMatch){qProj=nlp.projectMatch.id;document.getElementById('pjlbl').textContent=nlp.projectMatch.name;document.getElementById('chip-proj').classList.add('active');document.getElementById('pjsel').value=nlp.projectMatch.id;}
   if(nlp.tagMatches&&nlp.tagMatches.length)qTagIds=nlp.tagMatches.map(function(t){return t.id;});
 }
-// ORB-119: energy level chip
-const ENERGY=['None','Low','Medium','High'],ECOL={None:'var(--text3)',Low:'var(--cyan)',Medium:'var(--amber)',High:'var(--pink)'};
-function cycleEnergy(){const i=(ENERGY.indexOf(qE)+1)%ENERGY.length;qE=ENERGY[i];document.getElementById('elbl').textContent=qE==='None'?'Energy':qE;const chip=document.getElementById('chip-energy');chip.classList.toggle('active',qE!=='None');chip.style.borderColor=qE!=='None'?ECOL[qE]:'';}
 // ORB-30: load projects from same localStorage key used by main app
 let qProjects=[];
 try { qProjects=JSON.parse(localStorage.getItem('pwa_projects')||'[]'); } catch(e){}
@@ -269,7 +262,7 @@ async function submitTask(){
   const title=(_nlp&&_nlp.title)?_nlp.title:rawTitle;
   const btn=document.getElementById('sbtn');btn.disabled=true;btn.textContent='Adding…';
   const now=new Date().toISOString();
-  const task={id:crypto.randomUUID?crypto.randomUUID():([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g,c=>(c^crypto.getRandomValues(new Uint8Array(1))[0]&15>>c/4).toString(16)),user_id:session.user.id,title,notes:document.getElementById('q-notes').value.trim(),due_date:qD,defer_date:qDeferDate,is_completed:false,is_flagged:qF,priority:qP,project_id:qProj,tag_ids:qTagIds.length?JSON.stringify(qTagIds):'[]',energy_level:qE,created_at:now,completed_at:null,repeat_rule:'None',parent_id:null,sort_order:0,last_reviewed:null,next_review_date:null,review_frequency_num:null,review_frequency_unit:null,is_in_review:false,is_today_task:false,updated_at:now};
+  const task={id:crypto.randomUUID?crypto.randomUUID():([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g,c=>(c^crypto.getRandomValues(new Uint8Array(1))[0]&15>>c/4).toString(16)),user_id:session.user.id,title,notes:document.getElementById('q-notes').value.trim(),due_date:qD,defer_date:qDeferDate,is_completed:false,is_flagged:qF,priority:qP,project_id:qProj,tag_ids:qTagIds.length?JSON.stringify(qTagIds):'[]',energy_level:null,created_at:now,completed_at:null,repeat_rule:'None',parent_id:null,sort_order:0,last_reviewed:null,next_review_date:null,review_frequency_num:null,review_frequency_unit:null,is_in_review:false,is_today_task:false,updated_at:now};
   // ORB-23: Offline queue
   if(!navigator.onLine){
     try{const outbox=JSON.parse(localStorage.getItem('orbiter_outbox')||'[]');outbox.push(task);localStorage.setItem('orbiter_outbox',JSON.stringify(outbox));showOKOffline();}
@@ -304,7 +297,7 @@ window.addEventListener('online',async function flushOutbox(){
 function reset(){
   document.getElementById('q-title').value='';
   document.getElementById('q-notes').value='';
-  qP='None';qF=false;qD=null;qDuePreset='';qE='None';qTagIds=[];qDeferDate=null;_nlpState=null;
+  qP='None';qF=false;qD=null;qDuePreset='';qTagIds=[];qDeferDate=null;_nlpState=null;
   document.getElementById('dsel').value='';
   closeDuePopover();
   _syncDueUi();
@@ -316,7 +309,6 @@ function reset(){
   document.getElementById('dlbl').textContent='Due date';
   document.getElementById('dsel').value='';
   document.getElementById('chip-flag').classList.remove('flag-on');
-  const ec=document.getElementById('chip-energy');if(ec){ec.classList.remove('active');ec.style.borderColor='';document.getElementById('elbl').textContent='Energy';}
   renderNLPStrip(null);
   // Project intentionally NOT reset (ORB-30: retain project between rapid captures)
   const b=document.getElementById('sbtn');
