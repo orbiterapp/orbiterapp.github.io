@@ -78,15 +78,17 @@
       if (o) {
         updateAvatar();
         try {
-          const mn = document.getElementById('m-name');
-          const me = document.getElementById('m-email');
+          const mn = el.querySelector('.um-name');
+          const me = el.querySelector('.um-email');
           const dsn = document.querySelector('.ds-footer-name');
           const dse = document.querySelector('.ds-footer-email');
-          if (dsn && dsn.textContent && mn) mn.textContent = dsn.textContent;
-          if (dse && dse.textContent && me) me.textContent = dse.textContent;
-          if ((!dsn || !dsn.textContent) && (mn || me)) {
+          const _n = (dsn && dsn.textContent) || '';
+          const _e = (dse && dse.textContent) || '';
+          if (_n && mn) mn.textContent = _n;
+          if (_e && me) me.textContent = _e;
+          if (!_n || !_e) {
             const _c = JSON.parse(localStorage.getItem('orbiter_profile') || 'null');
-            if (_c) { if (mn && _c.name) mn.textContent = _c.name; if (me && _c.email) me.textContent = _c.email; }
+            if (_c) { if (!_n && mn && _c.name) mn.textContent = _c.name; if (!_e && me && _c.email) me.textContent = _c.email; }
           }
         } catch (_) {}
       }
