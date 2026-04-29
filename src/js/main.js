@@ -130,16 +130,12 @@
       h += '<button class="ds-tab" onclick="toggleTheme()"><span class="ds-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg></span><span id="ds-theme-label">' + (document.body.classList.contains('light') ? 'Dark Mode' : 'Light Mode') + '</span></button>';
       h += '<button class="ds-tab" onclick="syncTasks()"><span class="ds-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg></span>Sync</button>';
       nav.innerHTML = h;
-      // Footer (user info)
+      // Footer (user info) — shell built once; updateAvatar fills name/email/avatar
       var footer = document.getElementById('ds-footer');
-      if (footer) {
-        var m = session?.user?.user_metadata || {}, e = session?.user?.email || '', n = m.full_name || m.name || e.split('@')[0] || '?';
-        var initials = n.split(' ').map(function (w) { return w[0]; }).join('').slice(0, 2).toUpperCase();
-        var avatarUrl = m.avatar_url || m.picture;
-        footer.innerHTML = '<div class="ds-footer-avatar">' + (avatarUrl ? '<img src="' + esc(avatarUrl) + '" alt="">' : initials) + '</div><div class="ds-footer-info"><div class="ds-footer-name">' + esc(n) + '</div><div class="ds-footer-email">' + esc(e) + '</div></div>';
-        var mn = document.getElementById('m-name'); if (mn) mn.textContent = n;
-        var me = document.getElementById('m-email'); if (me) me.textContent = e;
+      if (footer && !footer.querySelector('.ds-footer-avatar')) {
+        footer.innerHTML = '<div class="ds-footer-avatar"></div><div class="ds-footer-info"><div class="ds-footer-name"></div><div class="ds-footer-email"></div></div>';
       }
+      updateAvatar();
     }
     // ORB-81: Debounce render via requestAnimationFrame so rapid successive calls
     // (e.g. badge update + sidebar update + task list) coalesce into a single DOM paint.

@@ -62,6 +62,10 @@
       if (b) b.innerHTML = html;
       const mn = document.getElementById('m-name'); if (mn) mn.textContent = n;
       const me = document.getElementById('m-email'); if (me) me.textContent = e;
+      // Sync sidebar footer
+      const dsav = document.querySelector('.ds-footer-avatar'); if (dsav) dsav.innerHTML = html;
+      const dsn = document.querySelector('.ds-footer-name'); if (dsn) dsn.textContent = n;
+      const dse = document.querySelector('.ds-footer-email'); if (dse) dse.textContent = e;
       // Sync settings page user card
       const sav = document.getElementById('settings-av'); if (sav) sav.innerHTML = html;
       const sn = document.getElementById('settings-user-name'); if (sn) sn.textContent = n;
@@ -71,18 +75,7 @@
       const el = document.getElementById('menu-overlay');
       if (!el) return;
       const o = f !== undefined ? f : !el.classList.contains('open');
-      if (o) {
-        updateAvatar();
-        try {
-          const _m = session?.user?.user_metadata || {};
-          const _e = session?.user?.email || _m.email || '';
-          const _n = _m.full_name || _m.name || (_e ? _e.split('@')[0] : '');
-          const mn = document.getElementById('m-name');
-          const me = document.getElementById('m-email');
-          if (mn && _n) mn.textContent = _n;
-          if (me && _e) me.textContent = _e;
-        } catch (_) {}
-      }
+      if (o) updateAvatar();
       el.classList.toggle('open', o);
     }
     function handleMenuClick(e) { if (e.target.id === 'menu-overlay') toggleMenu(false); }
