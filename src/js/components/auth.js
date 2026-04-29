@@ -77,21 +77,17 @@
       const o = f !== undefined ? f : !el.classList.contains('open');
       if (o) {
         updateAvatar();
-        // Belt-and-suspenders: directly populate modal fields in case updateAvatar
-        // runs before session is fully hydrated or DOM is in an unexpected state.
         try {
-          const _m = session?.user?.user_metadata || {};
-          let _e = session?.user?.email || _m.email || '';
-          let _n = _m.full_name || _m.name || '';
-          if (!_e || !_n) {
-            const _cached = JSON.parse(localStorage.getItem('orbiter_profile') || 'null');
-            if (_cached) { _e = _e || _cached.email || ''; _n = _n || _cached.name || ''; }
-          }
-          _n = _n || (_e ? _e.split('@')[0] : '');
           const mn = document.getElementById('m-name');
           const me = document.getElementById('m-email');
-          if (mn && _n) mn.textContent = _n;
-          if (me && _e) me.textContent = _e;
+          const dsn = document.querySelector('.ds-footer-name');
+          const dse = document.querySelector('.ds-footer-email');
+          if (dsn && dsn.textContent && mn) mn.textContent = dsn.textContent;
+          if (dse && dse.textContent && me) me.textContent = dse.textContent;
+          if ((!dsn || !dsn.textContent) && (mn || me)) {
+            const _c = JSON.parse(localStorage.getItem('orbiter_profile') || 'null');
+            if (_c) { if (mn && _c.name) mn.textContent = _c.name; if (me && _c.email) me.textContent = _c.email; }
+          }
         } catch (_) {}
       }
       el.classList.toggle('open', o);
