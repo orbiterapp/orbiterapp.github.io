@@ -60,8 +60,9 @@
         b = document.getElementById('avatar-btn');
       const html = a ? '<img src="' + esc(a) + '" alt="">' : i;
       if (b) b.innerHTML = html;
-      const mn = document.getElementById('m-name'); if (mn) mn.textContent = n;
-      const me = document.getElementById('m-email'); if (me) me.textContent = e;
+      const _umh = (document.getElementById('menu-overlay') || document.querySelector('.menu-overlay'))?.querySelector('.um-header');
+      const mn = _umh && _umh.children[0]; if (mn) mn.textContent = n;
+      const me = _umh && _umh.children[1]; if (me) me.textContent = e;
       // Sync sidebar footer
       const dsav = document.querySelector('.ds-footer-avatar'); if (dsav) dsav.innerHTML = html;
       const dsn = document.querySelector('.ds-footer-name'); if (dsn) dsn.textContent = n;
@@ -78,8 +79,9 @@
       if (o) {
         updateAvatar();
         try {
-          const mn = el.querySelector('.um-name');
-          const me = el.querySelector('.um-email');
+          const umh = el.querySelector('.um-header');
+          const mn = umh && umh.children[0];
+          const me = umh && umh.children[1];
           const dsn = document.querySelector('.ds-footer-name');
           const dse = document.querySelector('.ds-footer-email');
           const _n = (dsn && dsn.textContent) || '';
