@@ -10,7 +10,10 @@
         // partial data from JWT hash parse or refresh token response)
         if (session) {
           try {
-            var _freshUser = await fetch(SB_URL + '/auth/v1/user', { headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + session.access_token } });
+            var _freshCtrl = new AbortController();
+            var _freshTimer = setTimeout(function() { _freshCtrl.abort(); }, 8000);
+            var _freshUser = await fetch(SB_URL + '/auth/v1/user', { headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + session.access_token }, signal: _freshCtrl.signal });
+            clearTimeout(_freshTimer);
             if (_freshUser.ok) { var _u = await _freshUser.json(); if (_u && _u.id) session.user = _u; }
           } catch (e) {}
         }

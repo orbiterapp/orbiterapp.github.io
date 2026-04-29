@@ -8,9 +8,13 @@
  */
 async function verify(t) {
   try {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 10000);
     const r = await fetch(SB_URL + '/auth/v1/user', {
-      headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + t }
+      headers: { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + t },
+      signal: ctrl.signal
     });
+    clearTimeout(timer);
     if (!r.ok) return null;
     const u = await r.json();
     return u?.id ? { access_token: t, user: u } : null;
@@ -26,11 +30,15 @@ async function refresh() {
   const rt = localStorage.getItem('sb_refresh_token');
   if (!rt) return null;
   try {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 10000);
     const r = await fetch(SB_URL + '/auth/v1/token?grant_type=refresh_token', {
       method: 'POST',
       headers: { 'apikey': SB_KEY, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ refresh_token: rt })
+      body: JSON.stringify({ refresh_token: rt }),
+      signal: ctrl.signal
     });
+    clearTimeout(timer);
     if (!r.ok) return null;
     const d = await r.json();
     if (!d.access_token) return null;
