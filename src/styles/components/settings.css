@@ -223,7 +223,8 @@
     }
 
     .st-theme-swatch.system {
-      background: linear-gradient(135deg, #ffffff 0 50%, #090a0f 50% 100%)
+      background: linear-gradient(to right, #f0f0f0 50%, #090a0f 50%);
+      border-color: rgba(128,128,128,.3)
     }
 
     .st-theme-name {
