@@ -34,8 +34,14 @@
     .opt:active{transform:scale(.95)}
     .opt.active{border-color:var(--purple);color:var(--text);background:var(--purple-dim)}
     .opt.flag-on{border-color:var(--pink);color:var(--pink);background:var(--pink-dim)}
-    .opt select,.opt input[type="time"]{position:absolute;inset:0;opacity:0;cursor:pointer;font-size:16px}
+    .opt input[type="time"]{position:absolute;inset:0;opacity:0;cursor:pointer;font-size:16px}
     .pdot{width:7px;height:7px;border-radius:50%}
+    .opt-panel{position:fixed;z-index:200;background:#1e1e28;border:1px solid rgba(255,255,255,0.14);border-radius:12px;padding:5px;min-width:150px;box-shadow:0 8px 32px rgba(0,0,0,.6);display:none}
+    .opt-panel.open{display:block}
+    .opt-panel-item{padding:8px 12px;border-radius:8px;font-size:13px;font-weight:600;color:var(--text2);cursor:pointer;transition:background .12s}
+    .opt-panel-item:hover,.opt-panel-item:active{background:rgba(255,255,255,0.08);color:var(--text)}
+    .opt-panel-item.danger{color:var(--red)}
+    .opt-panel-sep{height:1px;background:rgba(255,255,255,0.07);margin:4px 0}
     .submit{width:100%;padding:14px;border:none;background:var(--purple);color:white;font-family:inherit;font-size:16px;font-weight:700;border-radius:12px;cursor:pointer;box-shadow:0 4px 16px rgba(139,92,246,.3),inset 0 1px 0 rgba(255,255,255,.15);transition:all .15s;display:flex;align-items:center;justify-content:center;gap:8px}
     .submit:active{transform:scale(.97);opacity:.85}
     .submit:disabled{opacity:.4;pointer-events:none}
@@ -72,11 +78,14 @@
     <textarea class="notes-input" id="q-notes" placeholder="Notes (optional)"></textarea>
     <div class="options">
       <div class="opt" id="chip-pri" onclick="cyclePri()"><div class="pdot" id="pdot" style="background:var(--text3)"></div><span id="plbl">None</span></div>
-      <div class="opt" id="chip-due"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span id="dlbl">Due date</span><select id="dsel" onchange="handleDue(this.value)"><option value="">No date</option><option value="today">Today</option><option value="tomorrow">Tomorrow</option><option value="week">Next week</option><option value="custom">Pick…</option></select></div>
+      <div class="opt" id="chip-due" onclick="toggleDuePanel(event)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span id="dlbl">Due date</span></div>
       <div class="opt" id="chip-time"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg><span id="tlbl">Time</span><input type="time" id="tcustom" onchange="handleTime(this.value)"></div>
       <input type="date" id="dcustom" style="position:absolute;opacity:0;pointer-events:none" onchange="handleCustom(this.value)">
       <!-- ORB-30: Project chip (retained after reset) -->
-      <div class="opt" id="chip-proj"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg><span id="pjlbl">Project</span><select id="pjsel" onchange="handleProject(this.value)"><option value="">No Project</option></select></div>
+      <div class="opt" id="chip-proj" onclick="toggleProjPanel(event)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg><span id="pjlbl">Project</span></div>
+      <!-- Custom dropdown panels (avoid native <select> which closes Electron window) -->
+      <div class="opt-panel" id="due-panel"></div>
+      <div class="opt-panel" id="proj-panel"></div>
       <div class="opt" id="chip-flag" onclick="toggleF()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg><span>Flag</span></div>
     </div>
     <button class="submit" id="sbtn" onclick="submitTask()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add Task</button>
@@ -117,7 +126,6 @@ function _syncDueUi(){
   var dueLabel=document.getElementById('dlbl'),timeLabel=document.getElementById('tlbl');
   document.getElementById('dcustom').value=dueDate;
   document.getElementById('tcustom').value=dueTime;
-  document.getElementById('dsel').value=dueDate?(qDuePreset||'custom'):'';
   if(!qD){
     dueChip.classList.remove('active');
     timeChip.classList.remove('active');
@@ -136,12 +144,47 @@ function _syncDueUi(){
     timeLabel.textContent='Time';
   }
 }
+function _positionPanel(panel,anchor){
+  var r=anchor.getBoundingClientRect();
+  panel.style.left=Math.min(r.left,window.innerWidth-panel.offsetWidth-8)+'px';
+  panel.style.top=(r.bottom+6)+'px';
+}
+function _closeAllPanels(){
+  document.getElementById('due-panel').classList.remove('open');
+  document.getElementById('proj-panel').classList.remove('open');
+}
+function toggleDuePanel(e){
+  e.stopPropagation();
+  var panel=document.getElementById('due-panel');
+  var isOpen=panel.classList.contains('open');
+  _closeAllPanels();
+  if(isOpen)return;
+  var opts=[{v:'today',l:'Today'},{v:'tomorrow',l:'Tomorrow'},{v:'week',l:'Next week'},{v:'custom',l:'Pick date…'}];
+  var h=opts.map(function(o){return'<div class="opt-panel-item" onclick="handleDue(\''+o.v+'\');_closeAllPanels()">'+o.l+'</div>';}).join('');
+  if(qD)h+='<div class="opt-panel-sep"></div><div class="opt-panel-item danger" onclick="clearDue();_closeAllPanels()">Clear</div>';
+  panel.innerHTML=h;
+  panel.classList.add('open');
+  setTimeout(function(){_positionPanel(panel,document.getElementById('chip-due'));},0);
+}
+function toggleProjPanel(e){
+  e.stopPropagation();
+  var panel=document.getElementById('proj-panel');
+  var isOpen=panel.classList.contains('open');
+  _closeAllPanels();
+  if(isOpen)return;
+  var items=[{id:'',name:'No Project'}].concat(qProjects);
+  var h=items.map(function(p){return'<div class="opt-panel-item" onclick="handleProject(\''+p.id+'\');_closeAllPanels()">'+p.name+'</div>';}).join('');
+  panel.innerHTML=h;
+  panel.classList.add('open');
+  setTimeout(function(){_positionPanel(panel,document.getElementById('chip-proj'));},0);
+}
+document.addEventListener('click',function(){_closeAllPanels();});
 function openDuePopover(){
   var input=document.getElementById('dcustom');
   setTimeout(function(){input.focus();if(input.showPicker) input.showPicker(); else input.click();},0);
 }
+function clearDue(){qD=null;qDuePreset='';_syncDueUi();}
 function closeDuePopover(){}
-function clearDuePopover(){qD=null;qDuePreset='';document.getElementById('dsel').value='';_syncDueUi();}
 // NLP helpers
 function _nlpParseTime(s){var m=s.match(/^(\d{1,2})(?::(\d{2}))(am|pm)?$/i)||s.match(/^(\d{1,2})(am|pm)$/i);if(!m)return null;var h=parseInt(m[1]),mn=m[2]&&!/(am|pm)/i.test(m[2])?parseInt(m[2]):0,mer=(m[3]||(/am|pm/i.test(m[2])?m[2]:null));if(mer)mer=mer.toLowerCase();if(h>23||mn>59)return null;if(mer==='pm'&&h<12)h+=12;if(mer==='am'&&h===12)h=0;return[h,mn];}
 function _nlpNamedDay(w){var n={'today':0,'tod':0,'tmr':1,'tomorrow':1,'tmrw':1,'sun':function(){var d=new Date();var t=d.getDay();return t===0?7:7-t;}(),'mon':function(){var d=new Date();var t=d.getDay();return t===1?7:(8-t)%7||7;}(),'tue':function(){var d=new Date();var t=d.getDay();return t===2?7:(9-t)%7||7;}(),'wed':function(){var d=new Date();var t=d.getDay();return t===3?7:(10-t)%7||7;}(),'thu':function(){var d=new Date();var t=d.getDay();return t===4?7:(11-t)%7||7;}(),'fri':function(){var d=new Date();var t=d.getDay();return t===5?7:(12-t)%7||7;}(),'sat':function(){var d=new Date();var t=d.getDay();return t===6?7:(13-t)%7||7;}(),'sunday':0,'monday':0,'tuesday':0,'wednesday':0,'thursday':0,'friday':0,'saturday':0};if(w in n){var v=n[w];if(typeof v==='function')return v();return v;}var full={'sunday':0,'monday':1,'tuesday':2,'wednesday':3,'thursday':4,'friday':5,'saturday':6};if(w in full){var today=new Date().getDay(),tgt=full[w];var diff=((tgt-today)+7)%7;return diff===0?7:diff;}return null;}
@@ -186,8 +229,8 @@ function _resetNLPChips(prev){
   if(!prev)return;
   if(prev.priority!=='None'){qP='None';document.getElementById('plbl').textContent='None';document.getElementById('pdot').style.background=PCOL['None'];const c=document.getElementById('chip-pri');c.classList.remove('active');c.style.borderColor='';}
   if(prev.isFlagged){qF=false;document.getElementById('chip-flag').classList.remove('flag-on');}
-  if(prev.dueDate){qD=null;qDuePreset='';document.getElementById('dsel').value='';_syncDueUi();}
-  if(prev.projectMatch){qProj=null;document.getElementById('pjlbl').textContent='Project';document.getElementById('chip-proj').classList.remove('active');document.getElementById('pjsel').value='';}
+  if(prev.dueDate){qD=null;qDuePreset='';_syncDueUi();}
+  if(prev.projectMatch){qProj=null;document.getElementById('pjlbl').textContent='Project';document.getElementById('chip-proj').classList.remove('active');}
   if(prev.tagMatches&&prev.tagMatches.length)qTagIds=[];
   if(prev.deferDate)qDeferDate=null;
 }
@@ -200,17 +243,15 @@ function applyNLPChips(input){
   if(nlp.isFlagged){qF=true;document.getElementById('chip-flag').classList.add('flag-on');}
   if(nlp.dueDate){qD=nlp.dueDate;qDuePreset='custom';_syncDueUi();}
   if(nlp.deferDate){qDeferDate=nlp.deferDate;}
-  if(nlp.projectMatch){qProj=nlp.projectMatch.id;document.getElementById('pjlbl').textContent=nlp.projectMatch.name;document.getElementById('chip-proj').classList.add('active');document.getElementById('pjsel').value=nlp.projectMatch.id;}
+  if(nlp.projectMatch){qProj=nlp.projectMatch.id;document.getElementById('pjlbl').textContent=nlp.projectMatch.name;document.getElementById('chip-proj').classList.add('active');}
   if(nlp.tagMatches&&nlp.tagMatches.length)qTagIds=nlp.tagMatches.map(function(t){return t.id;});
 }
 // ORB-30: load projects from same localStorage key used by main app
 let qProjects=[];
 try { qProjects=JSON.parse(localStorage.getItem('pwa_projects')||'[]'); } catch(e){}
 function populateProjectChip(){
-  var sel=document.getElementById('pjsel');
-  if(!sel)return;
-  sel.innerHTML='<option value="">No Project</option>'+qProjects.map(function(p){return'<option value="'+p.id+'">'+p.name+'</option>';}).join('');
-  if(qProj)sel.value=qProj;
+  // Projects are loaded into qProjects and shown via toggleProjPanel()
+  if(qProj){var p=qProjects.find(function(x){return x.id===qProj;});if(p){document.getElementById('pjlbl').textContent=p.name;document.getElementById('chip-proj').classList.add('active');}}
 }
 function handleProject(v){
   qProj=v||null;
@@ -229,9 +270,9 @@ const PRI=['None','Low','Medium','High'],PCOL={None:'var(--text3)',Low:'var(--lo
 function cyclePri(){const i=(PRI.indexOf(qP)+1)%PRI.length;qP=PRI[i];document.getElementById('plbl').textContent=qP;document.getElementById('pdot').style.background=PCOL[qP];const c=document.getElementById('chip-pri');c.classList.toggle('active',qP!=='None');c.style.borderColor=qP!=='None'?PCOL[qP]:''}
 function handleDue(v){
   const t=new Date();t.setHours(0,0,0,0);
-  if(v==='custom'){qDuePreset='custom';document.getElementById('dsel').value='custom';openDuePopover();return}
+  if(v==='custom'){qDuePreset='custom';openDuePopover();return}
   closeDuePopover();
-  if(!v){qD=null;qDuePreset='';document.getElementById('dsel').value='';_syncDueUi();return}
+  if(!v){qD=null;qDuePreset='';_syncDueUi();return}
   let d=new Date(t);
   if(v==='tomorrow')d.setDate(d.getDate()+1);
   if(v==='week')d.setDate(d.getDate()+7);
@@ -245,7 +286,6 @@ function handleCustom(v){
   var currentTime=_hasExplicitTime(qD)?qD.split('T')[1].substring(0,5):(document.getElementById('tcustom').value||'');
   qDuePreset='custom';
   qD=_composeDue(v,currentTime);
-  document.getElementById('dsel').value='custom';
   _syncDueUi();
 }
 function handleTime(v){
@@ -298,7 +338,6 @@ function reset(){
   document.getElementById('q-title').value='';
   document.getElementById('q-notes').value='';
   qP='None';qF=false;qD=null;qDuePreset='';qTagIds=[];qDeferDate=null;_nlpState=null;
-  document.getElementById('dsel').value='';
   closeDuePopover();
   _syncDueUi();
   document.getElementById('plbl').textContent='None';
@@ -307,7 +346,6 @@ function reset(){
   document.getElementById('chip-pri').style.borderColor='';
   document.getElementById('chip-due').classList.remove('active');
   document.getElementById('dlbl').textContent='Due date';
-  document.getElementById('dsel').value='';
   document.getElementById('chip-flag').classList.remove('flag-on');
   renderNLPStrip(null);
   // Project intentionally NOT reset (ORB-30: retain project between rapid captures)
