@@ -9,20 +9,57 @@
       }
     }
 
-    /* â”€â”€ Light mode â”€â”€ */
+    /* ── Light / Paper mode ── */
     body.light {
-      --bg: #f5f5f7;
-      --bg2: #eeeef2;
-      --surface: rgba(0, 0, 0, 0.04);
-      --surface2: rgba(0, 0, 0, 0.06);
-      --surface3: rgba(0, 0, 0, 0.09);
-      --card: #ffffff;
-      --card2: #f8f8fa;
-      --border: rgba(0, 0, 0, 0.07);
-      --border2: rgba(0, 0, 0, 0.11);
-      --text: #1a1a1e;
-      --text2: rgba(0, 0, 0, 0.55);
-      --text3: rgba(0, 0, 0, 0.32)
+      --bg: #F4F1EA;
+      --bg2: #EDEAE2;
+      --surface: rgba(20, 18, 14, 0.04);
+      --surface2: rgba(20, 18, 14, 0.06);
+      --surface3: rgba(20, 18, 14, 0.09);
+      --card: #FFFFFF;
+      --card2: #FBFAF6;
+      --border: rgba(20, 18, 14, 0.07);
+      --border2: rgba(20, 18, 14, 0.13);
+      --text: #1A1816;
+      --text2: rgba(20, 18, 14, 0.60);
+      --text3: rgba(20, 18, 14, 0.42);
+      --muted: rgba(20, 18, 14, 0.42);
+
+      /* Adjusted accent for light mode */
+      --accent: #6B4FE8;
+      --accent-2: #E26B3A;
+      --accent-glow: 107, 79, 232;
+      --purple: var(--accent);
+      --purple-dim: color-mix(in srgb, var(--accent) 12%, transparent);
+      --accent-dim: color-mix(in srgb, var(--accent) 15%, transparent);
+
+      /* Adjusted semantic for light */
+      --cyan: #1FA682;
+      --cyan-dim: rgba(31, 166, 130, 0.12);
+      --pink: #D14B97;
+      --pink-dim: rgba(209, 75, 151, 0.12);
+      --amber: #DD7B2B;
+      --amber-dim: rgba(221, 123, 43, 0.12);
+      --green: #1E9C66;
+      --green-dim: rgba(30, 156, 102, 0.12);
+      --red: #D5443A;
+      --red-dim: rgba(213, 68, 58, 0.12);
+      --blue: #3576D6;
+      --blue-dim: rgba(53, 118, 214, 0.12);
+      --high: #D5443A;
+      --medium: #D08B30;
+      --low: #3576D6;
+      --pri-high: #D5443A;
+      --pri-med: #D08B30;
+      --pri-low: #3576D6;
+
+      /* Perspective jewel tones for light */
+      --p-inbox: #6B4FE8;
+      --p-today: #DD7B2B;
+      --p-calendar: #3576D6;
+      --p-flagged: #C99720;
+      --p-done: #1E9C66;
+      --p-tags: #D14B97;
     }
 
     body.light::before {

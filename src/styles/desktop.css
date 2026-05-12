@@ -34,9 +34,10 @@
         display: flex;
         flex-direction: column;
         z-index: 30;
-        padding: 20px 14px 16px;
+        padding: 20px 12px 16px;
         overflow-y: auto;
-        scrollbar-width: none
+        scrollbar-width: none;
+        gap: 1px;
       }
 
       .desktop-sidebar::-webkit-scrollbar {
@@ -47,23 +48,25 @@
         display: flex;
         align-items: center;
         gap: 10px;
-        padding: 2px 6px 18px;
+        padding: 2px 8px 16px;
         border-bottom: 1px solid var(--border);
-        margin-bottom: 14px
+        margin-bottom: 12px
       }
 
       .ds-brand-logo {
-        width: 32px;
-        height: 32px;
-        border-radius: 9px;
-        object-fit: contain
+        width: 28px;
+        height: 28px;
+        border-radius: 8px;
+        object-fit: contain;
+        box-shadow: 0 2px 8px color-mix(in srgb, var(--accent) 35%, transparent);
       }
 
       .ds-brand-name {
-        font-size: 17px;
-        font-weight: 800;
-        letter-spacing: -.5px;
-        color: var(--text)
+        font-size: 15px;
+        font-weight: 700;
+        letter-spacing: -0.015em;
+        color: var(--text);
+        font-family: var(--font-sans, inherit);
       }
 
       .ds-nav {
@@ -76,64 +79,83 @@
       .ds-tab {
         display: flex;
         align-items: center;
-        gap: 11px;
-        padding: 9px 12px;
-        border-radius: 10px;
-        font-size: 13.5px;
-        font-weight: 600;
+        gap: 10px;
+        padding: 6px 10px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 500;
         color: var(--text2);
         cursor: pointer;
         border: none;
         background: none;
         width: 100%;
         text-align: left;
-        font-family: inherit;
-        transition: background .12s, color .12s;
+        font-family: var(--font-sans, inherit);
+        transition: background .1s, color .1s;
         position: relative
       }
 
       .ds-tab:hover {
-        background: var(--surface2);
+        background: var(--surface);
         color: var(--text)
       }
 
       .ds-tab.active {
         background: var(--surface2);
         color: var(--text);
-        font-weight: 700
+        font-weight: 600;
       }
 
+      .ds-tab.active::before {
+        content: '';
+        position: absolute;
+        left: -12px;
+        top: 8px;
+        bottom: 8px;
+        width: 2px;
+        background: var(--tab-color, var(--accent));
+        border-radius: 0 2px 2px 0;
+      }
+
+      /* Icon badge with colored background */
       .ds-tab .ds-icon {
-        width: 20px;
-        height: 20px;
+        width: 22px;
+        height: 22px;
+        border-radius: 6px;
         display: flex;
         align-items: center;
         justify-content: center;
-        flex-shrink: 0
+        flex-shrink: 0;
+        background: color-mix(in srgb, var(--tab-color, var(--accent)) 14%, transparent);
+        color: var(--tab-color, var(--accent));
+      }
+
+      .ds-tab:not(.active) .ds-icon {
+        opacity: 0.75;
       }
 
       .ds-tab .ds-badge {
         margin-left: auto;
-        background: var(--red);
-        color: #fff;
-        font-size: 10px;
-        font-weight: 800;
+        font-family: var(--font-mono, monospace);
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--text3);
+        padding: 0 4px;
         min-width: 18px;
-        height: 18px;
-        border-radius: 9px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 0 5px
+        text-align: center;
+      }
+
+      .ds-tab.active .ds-badge {
+        color: var(--tab-color, var(--accent));
       }
 
       .ds-section-label {
         font-size: 10px;
-        font-weight: 700;
+        font-weight: 600;
         color: var(--text3);
         text-transform: uppercase;
-        letter-spacing: 1px;
-        padding: 14px 12px 6px;
+        letter-spacing: 0.08em;
+        padding: 14px 10px 6px;
         user-select: none
       }
 
@@ -141,43 +163,39 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 8px;
-        padding: 11px 16px;
-        background: var(--purple);
-        color: white;
+        gap: 7px;
+        padding: 10px 16px;
+        background: var(--accent);
+        color: var(--bg);
         border: none;
-        border-radius: 11px;
-        font-family: inherit;
-        font-size: 13.5px;
-        font-weight: 700;
+        border-radius: 9px;
+        font-family: var(--font-sans, inherit);
+        font-size: 13px;
+        font-weight: 600;
         cursor: pointer;
         margin-top: 10px;
-        box-shadow: 0 4px 14px color-mix(in srgb, var(--accent) 35%, transparent), inset 0 1px 0 rgba(255, 255, 255, .18);
-        transition: transform .12s, box-shadow .12s
+        box-shadow: 0 4px 14px color-mix(in srgb, var(--accent) 35%, transparent);
+        transition: transform .12s, filter .12s
       }
 
       .ds-new-btn:hover {
+        filter: brightness(1.07);
         transform: translateY(-1px);
-        box-shadow: 0 6px 20px color-mix(in srgb, var(--accent) 45%, transparent), inset 0 1px 0 rgba(255, 255, 255, .18)
       }
 
       .ds-new-btn:active {
         transform: scale(.97);
-        box-shadow: 0 2px 8px color-mix(in srgb, var(--accent) 30%, transparent)
       }
 
       .ds-footer {
         border-top: 1px solid var(--border);
-        padding-top: 12px;
+        padding: 12px 8px 4px;
         margin-top: 10px;
         display: flex;
         align-items: center;
         gap: 10px;
         cursor: pointer;
-        padding-left: 6px;
-        padding-right: 6px;
-        border-radius: 10px;
-        padding-bottom: 4px;
+        border-radius: 9px;
         transition: background .12s
       }
 
@@ -186,19 +204,19 @@
       }
 
       .ds-footer-avatar {
-        width: 30px;
-        height: 30px;
-        border-radius: 50%;
-        border: 2px solid var(--border2);
-        background: var(--card);
+        width: 28px;
+        height: 28px;
+        border-radius: 8px;
+        background: linear-gradient(135deg, var(--accent), var(--accent-2, var(--orange)));
         overflow: hidden;
         display: flex;
         align-items: center;
         justify-content: center;
         font-size: 11px;
         font-weight: 700;
-        color: var(--text2);
-        flex-shrink: 0
+        color: white;
+        flex-shrink: 0;
+        box-shadow: 0 2px 8px color-mix(in srgb, var(--accent) 30%, transparent);
       }
 
       .ds-footer-avatar img {
@@ -213,8 +231,8 @@
       }
 
       .ds-footer-name {
-        font-size: 12.5px;
-        font-weight: 700;
+        font-size: 13px;
+        font-weight: 600;
         color: var(--text);
         white-space: nowrap;
         overflow: hidden;

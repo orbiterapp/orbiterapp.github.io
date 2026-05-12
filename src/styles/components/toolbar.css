@@ -137,7 +137,7 @@
     }
 
     .tb-label {
-      font-family: 'Outfit', sans-serif;
+      font-family: var(--font-sans, "Geist", sans-serif);
       font-size: 9.5px;
       font-weight: 600;
       transition: color .18s;
@@ -205,7 +205,7 @@
     }
 
     .tb-add-lbl {
-      font-family: 'Outfit', sans-serif;
+      font-family: var(--font-sans, "Geist", sans-serif);
       font-size: 9.5px;
       font-weight: 600;
       color: var(--purple);

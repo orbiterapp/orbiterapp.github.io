@@ -122,12 +122,14 @@
 
     // â"€â"€â"€ ORB-88: Accent Color Picker â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€
     var ACCENT_COLORS = [
-      { name: 'Indigo', value: '#8b5cf6' },
-      { name: 'Blue', value: '#3b82f6' },
-      { name: 'Teal', value: '#14b8a6' },
-      { name: 'Green', value: '#22c55e' },
-      { name: 'Orange', value: '#f97316' },
-      { name: 'Pink', value: '#ec4899' }
+      { name: 'Lilac', value: '#B49BFF' },
+      { name: 'Electric', value: '#7C7CFF' },
+      { name: 'Sky', value: '#7DB7FF' },
+      { name: 'Mint', value: '#6EE7C7' },
+      { name: 'Coral', value: '#FF8A65' },
+      { name: 'Sunset', value: '#FFB068' },
+      { name: 'Rose', value: '#FF8AC9' },
+      { name: 'Gold', value: '#FFC857' },
     ];
     function loadAccentColor() {
       var saved = localStorage.getItem('accent_color');

@@ -215,16 +215,16 @@
     }
 
     .st-theme-swatch.light {
-      background: linear-gradient(180deg, #ffffff, #dfe3ec)
+      background: linear-gradient(180deg, #F4F1EA, #EDEAE2);
     }
 
     .st-theme-swatch.dark {
-      background: linear-gradient(180deg, #2b2d37, #05060a)
+      background: linear-gradient(180deg, #14171F, #0A0B10);
     }
 
     .st-theme-swatch.system {
-      background: linear-gradient(to right, #f0f0f0 50%, #090a0f 50%);
-      border-color: rgba(128,128,128,.3)
+      background: linear-gradient(to right, #F4F1EA 50%, #0A0B10 50%);
+      border-color: rgba(128,128,128,.3);
     }
 
     .st-theme-name {

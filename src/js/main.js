@@ -117,15 +117,14 @@
       var flagN = tasks.filter(function (x) { return !x.is_completed && x.is_flagged; }).length;
       var completedN = tasks.filter(function (x) { return x.is_completed && !x.parent_id; }).length;
       var badgeCounts = { inbox: inboxN, calendar: todayN, flagged: flagN, projects: 0, completed: completedN };
-      var colors = { inbox: 'var(--purple)', calendar: 'var(--cyan)', flagged: 'var(--pink)', projects: 'var(--green)', completed: 'var(--green)' };
+      var tabColorMap = { inbox: 'var(--p-inbox)', calendar: 'var(--p-calendar)', flagged: 'var(--p-flagged)', projects: 'var(--p-projects)', completed: 'var(--p-done)', all: 'var(--p-done)' };
       var h = '';
       tabs.forEach(function (tab) {
         var isActive = tab.id === 'completed' ? showArchived : (currentTab === tab.id && !showArchived);
         var badge = badgeCounts[tab.id];
-        var iconColor = isActive ? colors[tab.id] : 'currentColor';
-        var iconHtml = tab.icon.replace('stroke="currentColor"', 'stroke="' + iconColor + '"');
+        var tabColor = tabColorMap[tab.id] || 'var(--accent)';
         var onclick = tab.id === 'completed' ? 'switchToCompleted()' : 'switchTab(\'' + tab.id + '\')';
-        h += '<button class="ds-tab' + (isActive ? ' active' : '') + '" onclick="' + onclick + '" style="' + (isActive ? 'color:' + colors[tab.id] : '') + '"><span class="ds-icon">' + iconHtml + '</span>' + tab.label + (badge > 0 ? '<span class="ds-badge">' + (badge > 99 ? '99+' : badge) + '</span>' : '') + '</button>';
+        h += '<button class="ds-tab' + (isActive ? ' active' : '') + '" onclick="' + onclick + '" style="--tab-color:' + tabColor + (isActive ? ';color:' + tabColor : '') + '"><span class="ds-icon">' + tab.icon + '</span>' + tab.label + (badge > 0 ? '<span class="ds-badge">' + (badge > 99 ? '99+' : badge) + '</span>' : '') + '</button>';
       });
       // Utility section
       h += '<div class="ds-section-label">Utilities</div>';

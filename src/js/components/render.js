@@ -298,11 +298,13 @@
         } else {
           chkBtn = '<button class="chk ' + pc + '" onclick="event.stopPropagation();completeTask(\'' + t.id + '\')"></button>';
         }
-        var _accent = fTagColor ? 'border-left:3px solid ' + fTagColor + ';padding-left:10px;' : '';
+        var _priBarColor = t.priority === 'High' ? 'var(--pri-high)' : t.priority === 'Medium' ? 'var(--pri-med)' : t.priority === 'Low' ? 'var(--pri-low)' : '';
+        var _priBar = _priBarColor ? '<div class="task-pri-bar" style="background:' + _priBarColor + '"></div>' : '';
+        var _accent = fTagColor && !_priBarColor ? 'border-left:3px solid ' + fTagColor + ';padding-left:10px;' : '';
         var _todayBtn = (showArchived || _msMode) ? '' : (t.is_today_task ? '<span class="row-today-indicator" title="In Today">â˜€</span>' : '<button class="row-today-btn" onclick="event.stopPropagation();markAsToday(\'' + t.id + '\')" title="Add to Today">â˜€</button>');
         var _trashBtn = (showArchived || _msMode) ? '' : '<button class="row-del-btn" onclick="event.stopPropagation();rowDeleteTask(\'' + t.id + '\')" title="Delete"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>';
         var _rowClick = _msMode ? 'toggleMsRow(\'' + t.id + '\',event)' : 'openTaskDetail(\'' + t.id + '\')';
-        return '<div class="task-row clickable' + archCls + msSel + '" id="task-' + t.id + '" data-sort="' + i + '" style="' + _accent + 'animation-delay:' + Math.min(i * 0.03, 0.3) + 's" onclick="' + _rowClick + '" oncontextmenu="event.preventDefault();showCtxMenu(event,\'' + t.id + '\')" data-longpress="' + t.id + '">' + dragH + chkBtn + '<div class="task-body"><div class="task-name">' + esc(t.title) + '</div>' + (chips ? '<div class="task-chips">' + chips + '</div>' : '') + '</div>' + _todayBtn + _trashBtn + '</div>';
+        return '<div class="task-row clickable' + archCls + msSel + '" id="task-' + t.id + '" data-sort="' + i + '" style="' + _accent + 'animation-delay:' + Math.min(i * 0.03, 0.3) + 's" onclick="' + _rowClick + '" oncontextmenu="event.preventDefault();showCtxMenu(event,\'' + t.id + '\')" data-longpress="' + t.id + '">' + dragH + chkBtn + _priBar + '<div class="task-body"><div class="task-name">' + esc(t.title) + '</div>' + (chips ? '<div class="task-chips">' + chips + '</div>' : '') + '</div>' + _todayBtn + _trashBtn + '</div>';
       }
       var _allRows = [];
       if (_overdue.length) { _allRows.push({ type: 'header', label: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg> Overdue (' + _overdue.length + ')', cls: 'overdue-header' }); _overdue.forEach(function(t,i){ _allRows.push({type:'task',t,i}); }); _allRows.push({ type: 'header', label: tab.label, cls: '' }); }
