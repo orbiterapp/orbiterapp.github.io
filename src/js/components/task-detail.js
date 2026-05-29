@@ -19,12 +19,21 @@
       document.getElementById('d-est-mins').value = task.estimated_minutes || '';
       flagged = task.is_flagged || false;
       detailToday = task.is_today_task || false;
+      detailEvening = task.is_evening_task || false;
       document.getElementById('d-tog-flag').classList.toggle('on', flagged);
       document.getElementById('d-tog-today').classList.toggle('on', detailToday);
+      var _dTog = document.getElementById('d-tog-evening'); if (_dTog) _dTog.classList.toggle('on', detailEvening);
+      var _dEn = document.getElementById('d-energy'); if (_dEn) _dEn.value = task.energy_level || 'None';
       detailModalTags = getTagArr(task);
       populateProjectSelects();
       document.getElementById('d-project').value = task.project_id || '';
       buildTagsPicker('d-tags-picker', detailModalTags);
+      var _rfNum = document.getElementById('d-review-freq-num');
+      var _rfUnit = document.getElementById('d-review-freq-unit');
+      var _rfNext = document.getElementById('d-next-review');
+      if (_rfNum) _rfNum.value = task.review_frequency_num || '';
+      if (_rfUnit) _rfUnit.value = task.review_frequency_unit || 'week';
+      if (_rfNext) _rfNext.value = task.next_review_date ? task.next_review_date.split('T')[0] : '';
       renderSubtasks();
       document.getElementById('detail-modal-bg').classList.add('open');
       setTimeout(function () { document.getElementById('d-title').focus(); }, 350);
@@ -55,7 +64,8 @@
       upsert(dup).then(function () { toast('Task cloned'); }).catch(function () { toast('Sync failed'); });
     }
     function toggleDetailFlag() { flagged = !flagged; document.getElementById('d-tog-flag').classList.toggle('on', flagged); }
-    function toggleDetailToday() { detailToday = !detailToday; document.getElementById('d-tog-today').classList.toggle('on', detailToday); }
+    function toggleDetailToday() { detailToday = !detailToday; document.getElementById('d-tog-today').classList.toggle('on', detailToday); if (!detailToday) { detailEvening = false; var _et = document.getElementById('d-tog-evening'); if (_et) _et.classList.remove('on'); } }
+    function toggleDetailEvening() { detailEvening = !detailEvening; var _et = document.getElementById('d-tog-evening'); if (_et) _et.classList.toggle('on', detailEvening); if (detailEvening) { detailToday = true; document.getElementById('d-tog-today').classList.add('on'); } }
 
     var _repeatEditPending = null;
     function saveTaskDetails() {
@@ -111,12 +121,26 @@
       task.tag_ids = JSON.stringify(detailModalTags.map(function(tn){ return {name:tn,color:getTagColor(tn)}; }));
       task.is_flagged = flagged;
       task.is_today_task = detailToday;
+      task.is_evening_task = detailEvening;
+      task.energy_level = (document.getElementById('d-energy') || {}).value || 'None';
       task.notify_before_minutes = parseInt(document.getElementById('d-notify-before').value) || 30;
       task.notified_at = null;
+      var _rfNum2 = document.getElementById('d-review-freq-num');
+      var _rfUnit2 = document.getElementById('d-review-freq-unit');
+      var _rfNumVal = _rfNum2 ? (parseInt(_rfNum2.value) || null) : null;
+      var _rfUnitVal = _rfUnit2 ? (_rfUnit2.value || null) : null;
+      task.review_frequency_num = _rfNumVal;
+      task.review_frequency_unit = _rfNumVal ? _rfUnitVal : null;
+      if (_rfNumVal && !task.next_review_date) {
+        var _nrd = new Date(); _nrd.setDate(_nrd.getDate() + _rfNumVal * (_rfUnitVal === 'month' ? 30 : _rfUnitVal === 'week' ? 7 : 1));
+        task.next_review_date = _nrd.toISOString().split('T')[0];
+      }
       task.updated_at = now;
     }
     function _doSaveDetails(task) {
+      var _before = { title: task.title, notes: task.notes, priority: task.priority, due_date: task.due_date, defer_date: task.defer_date, repeat_rule: task.repeat_rule, project_id: task.project_id, tag_ids: task.tag_ids, is_flagged: task.is_flagged, is_today_task: task.is_today_task, is_evening_task: task.is_evening_task, energy_level: task.energy_level, estimated_minutes: task.estimated_minutes };
       _applyFormToTask(task);
+      if (typeof pushUndo === 'function') pushUndo({ type: 'update', id: task.id, before: _before });
       closeDetailModal();
       render();
       // ORB-82: Use PATCH (targeted update) instead of upsert POST so edits always save
@@ -131,12 +155,35 @@
         tag_ids: task.tag_ids,
         is_flagged: task.is_flagged,
         is_today_task: task.is_today_task,
+        is_evening_task: task.is_evening_task,
+        energy_level: task.energy_level,
         notify_before_minutes: task.notify_before_minutes,
         estimated_minutes: task.estimated_minutes,
         notified_at: null,
+        review_frequency_num: task.review_frequency_num,
+        review_frequency_unit: task.review_frequency_unit,
+        next_review_date: task.next_review_date,
         updated_at: task.updated_at
       }).then(function () { toast('Task updated'); }).catch(function () { toast('Failed to sync'); });
     }
 
     // â"€â"€â"€ ORB-79: Desktop right detail panel â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€
-    var ddpFlag = false, ddpToday = false;
+    var ddpFlag = false, ddpToday = false, ddpEvening = false;
+
+    window.markTaskReviewed = function(taskId) {
+      var task = tasks.find(function(t) { return t.id === taskId; });
+      if (!task) return;
+      var now = new Date();
+      task.last_reviewed = now.toISOString();
+      if (task.review_frequency_num && task.review_frequency_unit) {
+        var _mult = task.review_frequency_unit === 'month' ? 30 : task.review_frequency_unit === 'week' ? 7 : 1;
+        var _next = new Date(now); _next.setDate(_next.getDate() + task.review_frequency_num * _mult);
+        task.next_review_date = _next.toISOString().split('T')[0];
+      } else {
+        task.next_review_date = null;
+      }
+      task.is_in_review = false;
+      task.updated_at = new Date().toISOString();
+      render();
+      patch(task.id, { last_reviewed: task.last_reviewed, next_review_date: task.next_review_date, is_in_review: false, updated_at: task.updated_at }).then(function(){ toast('Reviewed ✓'); }).catch(function(){ toast('Sync failed'); });
+    };

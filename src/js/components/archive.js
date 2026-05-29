@@ -1,11 +1,4 @@
-﻿    function switchToCompleted() {
-      if (showArchived) return;
-      showArchived = true;
-      _archiveSelected.clear();
-      document.getElementById('archive-label').textContent = 'View Archive';
-      _renderLimit = 50;
-      render();
-    }
+﻿    function switchToCompleted() { switchToLogbook(); }
     function toggleArchiveView() {
       showArchived = !showArchived;
       _archiveSelected.clear();

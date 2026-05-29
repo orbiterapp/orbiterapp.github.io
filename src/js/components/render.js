@@ -10,6 +10,8 @@
       switch (currentTab) {
         case 'inbox': base = tasks.filter(function (x) {
           if (x.is_completed || x.parent_id) return false;
+          if (x.is_today_task) return false;
+          if (x.project_id) return false;
           if (x.defer_date) { var _dd = new Date(x.defer_date); _dd.setHours(0,0,0,0); if (_dd > t) return false; }
           return true;
         }); break;
@@ -26,11 +28,57 @@
             return x.due_date.substring(0, 10) === startStr;
           });
           break;
+        case 'today':
+          base = tasks.filter(function (x) {
+            if (x.is_completed || x.parent_id) return false;
+            if (x.is_today_task) return true;
+            if (!x.due_date) return false;
+            var _td = new Date(x.due_date); _td.setHours(0,0,0,0);
+            return _td.getTime() === t.getTime();
+          });
+          break;
+        case 'someday':
+          base = tasks.filter(function (x) {
+            if (x.is_completed || x.parent_id) return false;
+            if (!x.defer_date) return false;
+            var _sd = new Date(x.defer_date); _sd.setHours(0,0,0,0);
+            return _sd > t;
+          });
+          break;
+        case 'review':
+          base = tasks.filter(function (x) {
+            if (x.is_completed || x.parent_id) return false;
+            if (!x.next_review_date) return false;
+            var _rd = new Date(x.next_review_date); _rd.setHours(0,0,0,0);
+            return _rd <= t;
+          });
+          break;
+        case 'logbook':
+          base = tasks.filter(function (x) { return x.is_completed && !x.parent_id; });
+          base.sort(function (a, b) { return (b.completed_at || b.updated_at || '') > (a.completed_at || a.updated_at || '') ? 1 : -1; });
+          break;
+        case 'tags':
+          base = tasks.filter(function (x) {
+            if (x.is_completed || x.parent_id) return false;
+            var _tags = getTagArr(x);
+            if (!_tags.length) return false;
+            if (typeof activeTagFilter !== 'undefined' && activeTagFilter) return _tags.indexOf(activeTagFilter) !== -1;
+            return true;
+          });
+          break;
         case 'flagged': base = tasks.filter(function (x) { return !x.is_completed && x.is_flagged && !x.parent_id; }); break;
         case 'projects':
-          base = currentProjectFilter
-            ? tasks.filter(function (x) { return !x.is_completed && x.project_id === currentProjectFilter; })
-            : tasks.filter(function (x) { return !x.is_completed && !!x.project_id; });
+          if (currentProjectFilter) {
+            var _seqProj = projects.find(function(p) { return p.id === currentProjectFilter; });
+            base = tasks.filter(function (x) { return !x.is_completed && x.project_id === currentProjectFilter; });
+            if (_seqProj && _seqProj.is_sequential) {
+              var _roots = base.filter(function(x) { return !x.parent_id; }).sort(function(a,b){ return a.sort_order - b.sort_order; });
+              var _first = _roots[0];
+              base = _first ? base.filter(function(x) { return x.id === _first.id || x.parent_id === _first.id; }) : [];
+            }
+          } else {
+            base = tasks.filter(function (x) { return !x.is_completed && !!x.project_id && !x.parent_id; });
+          }
           break;
         case 'all': base = tasks.filter(function (x) { return !x.is_completed && !x.parent_id; }); break;
         default: base = [];
@@ -185,19 +233,19 @@
       // Header
       var _ds = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
       if (showArchived) {
-        document.getElementById('persp-title').textContent = 'Completed';
+        document.getElementById('persp-title').textContent = 'Logbook';
         var badge = document.getElementById('persp-badge'); badge.style.background = 'var(--green-dim)'; badge.style.color = 'var(--green)'; badge.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>';
       } else {
         var tab = TABS[currentTab] || TABS['inbox'];
         document.getElementById('persp-title').textContent = tab.label;
         var badge = document.getElementById('persp-badge'); badge.style.background = tab.bg; badge.style.color = tab.color; badge.innerHTML = tab.icon;
       }
-      var _countText = searchQuery ? v.length + ' result' + (v.length !== 1 ? 's' : '') : (v.length === 0 ? (showArchived ? 'No completed tasks' : 'No tasks') : v.length + ' completed task' + (v.length !== 1 ? 's' : ''));
+      var _isLogbook = showArchived || currentTab === 'logbook'; var _countText = searchQuery ? v.length + ' result' + (v.length !== 1 ? 's' : '') : (v.length === 0 ? (_isLogbook ? 'No completed tasks' : 'No tasks') : v.length + (_isLogbook ? ' completed' : '') + ' task' + (v.length !== 1 ? 's' : ''));
       document.getElementById('persp-count').textContent = _ds + ' · ' + _countText;
       // Tab highlights
       document.querySelectorAll('.tb-btn').forEach(function (b) { b.classList.remove('active'); });
       if (showArchived) {
-        var tbComp = document.getElementById('tb-completed');
+        var tbComp = document.getElementById('tb-more');
         if (tbComp) { tbComp.classList.add('active'); tbComp.querySelector('.tb-icon').style.color = 'var(--green)'; tbComp.querySelector('.tb-label').style.color = 'var(--green)'; }
       } else {
         var tbEl = document.getElementById('tb-' + currentTab);
@@ -207,11 +255,11 @@
       if (typeof window._lgPillPlace === 'function') window._lgPillPlace(currentTab);
       // All tab badges
       var t = new Date(); t.setHours(0, 0, 0, 0);
-      var inboxN = tasks.filter(function (x) { if (x.is_completed || x.parent_id) return false; if (x.defer_date) { var _d = new Date(x.defer_date); _d.setHours(0,0,0,0); if (_d > t) return false; } return true; }).length;
+      var inboxN = tasks.filter(function (x) { if (x.is_completed || x.parent_id) return false; if (x.is_today_task) return false; if (x.project_id) return false; if (x.defer_date) { var _d = new Date(x.defer_date); _d.setHours(0,0,0,0); if (_d > t) return false; } return true; }).length;
       var todayN = tasks.filter(function (x) { if (x.is_completed) return false; if (x.is_today_task) return true; if (!x.due_date) return false; var d = new Date(x.due_date); return d >= t && d < new Date(t.getTime() + 864e5); }).length;
       var flagN = tasks.filter(function (x) { return !x.is_completed && x.is_flagged; }).length;
       var bg = document.getElementById('badge-inbox'); bg.textContent = inboxN > 99 ? '99+' : inboxN; bg.style.display = inboxN > 0 ? 'flex' : 'none';
-      var bt = document.getElementById('badge-calendar'); bt.textContent = todayN > 99 ? '99+' : todayN; bt.style.display = todayN > 0 ? 'flex' : 'none';
+      var bt = document.getElementById('badge-today'); if (bt) { bt.textContent = todayN > 99 ? '99+' : todayN; bt.style.display = todayN > 0 ? 'flex' : 'none'; }
       var bf = document.getElementById('badge-flagged'); bf.textContent = flagN > 99 ? '99+' : flagN; bf.style.display = flagN > 0 ? 'flex' : 'none';
       // Filter chips
       renderFilterChips();
@@ -220,22 +268,49 @@
       if (currentTab === 'projects') {
         pfb.style.display = 'flex';
         var pills = '<div class="proj-pill' + (currentProjectFilter === null ? ' active' : '') + '" onclick="setProjectFilter(null)" style="color:var(--green)"><span class="proj-dot" style="background:var(--green)"></span>All</div>';
-        projects.forEach(function (p) {
+        var _activeProjs = projects.filter(function(p){ return !p.is_archived; });
+        var _pFolders = {}, _pNoFolder = [];
+        _activeProjs.forEach(function(p) { if (p.folder) { if (!_pFolders[p.folder]) _pFolders[p.folder] = []; _pFolders[p.folder].push(p); } else _pNoFolder.push(p); });
+        _pNoFolder.forEach(function (p) {
           var active = currentProjectFilter === p.id;
-          pills += '<div class="proj-pill' + (active ? ' active' : '') + '" onclick="setProjectFilter(\'' + p.id + '\')" style="color:' + p.color + '"><span class="proj-dot" style="background:' + p.color + '"></span>' + esc(p.name) + '</div>';
+          pills += '<div class="proj-pill' + (active ? ' active' : '') + '" onclick="setProjectFilter(\'' + p.id + '\')" style="color:' + p.color + '"><span class="proj-dot" style="background:' + p.color + '"></span>' + esc(p.name) + (p.is_sequential ? ' <span style="font-size:9px;opacity:.6">seq</span>' : '') + '</div>';
+        });
+        Object.keys(_pFolders).sort().forEach(function(folder) {
+          pills += '<div class="proj-pill" style="color:var(--text3);cursor:default;font-size:10px;padding:4px 8px;border-style:dashed">' + esc(folder) + '</div>';
+          _pFolders[folder].forEach(function(p) {
+            var active = currentProjectFilter === p.id;
+            pills += '<div class="proj-pill' + (active ? ' active' : '') + '" onclick="setProjectFilter(\'' + p.id + '\')" style="color:' + p.color + ';padding-left:14px"><span class="proj-dot" style="background:' + p.color + '"></span>' + esc(p.name) + (p.is_sequential ? ' <span style="font-size:9px;opacity:.6">seq</span>' : '') + '</div>';
+          });
         });
         if (projects.length === 0) pills += '<div class="proj-pill" onclick="openProjectsModal()" style="color:var(--text3)">+ Create project</div>';
         pfb.innerHTML = pills;
       } else { pfb.style.display = 'none'; }
       if (v.length === 0) {
         // ORB-67: Per-perspective empty state copy
-        var EMPTY_COPY_TAB = { inbox: ["You're all caught up", "New tasks land here. Tap + to capture."], calendar: ["No tasks today", "Nothing scheduled. Tap + to add one."], flagged: ["Nothing flagged", "Flag important tasks to surface them here."], projects: ["No tasks", "Add tasks to keep your project moving."], all: ["All clear", "Your task list is empty."] };
+        var EMPTY_COPY_TAB = { inbox: ["You're all caught up", "New tasks land here. Tap + to capture."], today: ["Nothing for today", "Mark tasks as Today or set a due date for today."], calendar: ["No tasks today", "Nothing scheduled. Tap + to add one."], flagged: ["Nothing flagged", "Flag important tasks to surface them here."], projects: ["No tasks", "Add tasks to keep your project moving."], someday: ["No deferred tasks", "Set a defer date to hide tasks until you're ready."], tags: ["No tagged tasks", "Add tags to tasks to find them here."], review: ["Nothing to review", "Tasks with review dates will appear here."], logbook: ["No completed tasks", "Completed tasks will appear here."], all: ["All clear", "Your task list is empty."] };
         var _ec = !searchQuery && EMPTY_COPY_TAB[currentTab];
         var emptyMsg = searchQuery ? 'No results' : (showArchived ? 'No completed tasks' : (_ec ? _ec[0] : 'Nothing here'));
         var emptySub = searchQuery ? 'Try a different search' : (showArchived ? 'Completed tasks will appear here' : (_ec ? _ec[1] : 'Tap + to add a task'));
         var _emptyIcon = showArchived ? '<svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>' : EMPTY_ICONS[currentTab];
         var emptyHTML = '<div class="empty-state"><div class="empty-icon">' + _emptyIcon + '</div><div class="empty-label">' + emptyMsg + '</div><div class="empty-sub">' + emptySub + '</div></div>';
-        if (currentTab === 'calendar') {
+        if (currentTab === 'tags') {
+        // Tags sub-filter: show tag pills above task list
+        var _allUsedTags = [];
+        var _tagSet = {};
+        tasks.forEach(function(t) {
+          if (t.is_completed || t.parent_id) return;
+          getTagArr(t).forEach(function(tg) { if (!_tagSet[tg]) { _tagSet[tg] = true; _allUsedTags.push(tg); } });
+        });
+        _allUsedTags.sort();
+        var _tagPills = '<div style="display:flex;gap:6px;flex-wrap:wrap;padding:6px 0 10px;overflow-x:auto">';
+        _tagPills += '<button class="proj-pill' + (!activeTagFilter ? ' active' : '') + '" onclick="setTagFilter(null)" style="color:var(--p-tags)"><span class="proj-dot" style="background:var(--p-tags)"></span>All</button>';
+        _allUsedTags.forEach(function(tg) {
+          var _tc = _tagColorMap[tg] || 'var(--p-tags)';
+          _tagPills += '<button class="proj-pill' + (activeTagFilter === tg ? ' active' : '') + '" onclick="setTagFilter('' + tg.replace(/'/g, "\'") + '')" style="color:' + _tc + '"><span class="proj-dot" style="background:' + _tc + '"></span>' + esc(tg) + '</button>';
+        });
+        _tagPills += '</div>';
+        area.innerHTML = _tagPills + _rHtml;
+      } else if (currentTab === 'calendar') {
           var _dsk = window.matchMedia('(min-width: 768px)').matches;
           var _selLabel = calSelectedDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
           if (_dsk) {
@@ -307,8 +382,18 @@
         return '<div class="task-row clickable' + archCls + msSel + '" id="task-' + t.id + '" data-sort="' + i + '" style="' + _accent + 'animation-delay:' + Math.min(i * 0.03, 0.3) + 's" onclick="' + _rowClick + '" oncontextmenu="event.preventDefault();showCtxMenu(event,\'' + t.id + '\')" data-longpress="' + t.id + '">' + dragH + chkBtn + _priBar + '<div class="task-body"><div class="task-name">' + esc(t.title) + '</div>' + (chips ? '<div class="task-chips">' + chips + '</div>' : '') + '</div>' + _todayBtn + _trashBtn + '</div>';
       }
       var _allRows = [];
-      if (_overdue.length) { _allRows.push({ type: 'header', label: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg> Overdue (' + _overdue.length + ')', cls: 'overdue-header' }); _overdue.forEach(function(t,i){ _allRows.push({type:'task',t,i}); }); _allRows.push({ type: 'header', label: tab.label, cls: '' }); }
-      _reg.forEach(function(t,i){ _allRows.push({type:'task',t,i:i+_overdue.length}); });
+      if (_overdue.length) { _allRows.push({ type: 'header', label: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg> Overdue (' + _overdue.length + ')', cls: 'overdue-header' }); _overdue.forEach(function(t,i){ _allRows.push({type:'task',t,i}); }); _allRows.push({ type: 'header', label: tab ? tab.label : '', cls: '' }); }
+      if (currentTab === 'today') {
+        var _morning = _reg.filter(function(x) { return !x.is_evening_task; });
+        var _evening = _reg.filter(function(x) { return x.is_evening_task; });
+        _morning.forEach(function(t,i){ _allRows.push({type:'task',t,i:i+_overdue.length}); });
+        if (_evening.length > 0) {
+          _allRows.push({ type: 'header', label: '🌙 This Evening (' + _evening.length + ')', cls: 'evening-header' });
+          _evening.forEach(function(t,i){ _allRows.push({type:'task',t,i:_morning.length+_overdue.length+1+i}); });
+        }
+      } else {
+        _reg.forEach(function(t,i){ _allRows.push({type:'task',t,i:i+_overdue.length}); });
+      }
       var _limited = _allRows.slice(0, _renderLimit), _hasMore = _allRows.length > _renderLimit;
       var _rHtml = _limited.map(function(r){ return r.type === 'header' ? '<div class="section-header ' + r.cls + '">' + r.label + '</div>' : _mkRow(r.t, r.i); }).join('');
       if (_hasMore) _rHtml += '<div id="vscroll-sentinel" style="height:40px;display:flex;align-items:center;justify-content:center"><button onclick="_renderLimit+=50;render()" style="background:var(--surface2);color:var(--text2);border:1px solid var(--border);border-radius:8px;padding:6px 16px;font-size:13px;cursor:pointer">Load more (' + (_allRows.length - _renderLimit) + ' remaining)</button></div>';
@@ -325,7 +410,22 @@
         }
         setTimeout(bindCalTouch, 100);
       } else {
-        if (showArchived) {
+        var _showingLogbook = showArchived || currentTab === 'logbook';
+        if (_showingLogbook) {
+          // Calculate completion streak
+          var _streak = (function() {
+            var _completed = tasks.filter(function(t) { return t.is_completed && t.completed_at; });
+            if (!_completed.length) return 0;
+            var _days = {};
+            _completed.forEach(function(t) { var d = t.completed_at.substring(0, 10); _days[d] = true; });
+            var _s = 0, _d = new Date(); _d.setHours(0,0,0,0);
+            while (true) {
+              var _ds = _d.toISOString().substring(0, 10);
+              if (_days[_ds]) { _s++; _d.setDate(_d.getDate() - 1); } else break;
+            }
+            return _s;
+          })();
+          var _streakHtml = _streak > 0 ? '<div style="display:flex;align-items:center;gap:6px;padding:8px 12px;background:color-mix(in srgb,var(--green) 10%,transparent);border-radius:10px;margin:6px 12px;font-size:13px;font-weight:600;color:var(--green)"><span style="font-size:18px">🔥</span>' + _streak + '-day streak</div>' : '';
           var _archBar = '<div style="display:flex;align-items:center;gap:8px;padding:8px 12px 4px;flex-wrap:wrap">';
           if (_archiveSelected.size > 0) {
             _archBar += '<button onclick="restoreArchiveSelected()" style="background:var(--green-dim);color:var(--green);border:none;border-radius:8px;padding:5px 12px;font-size:12px;font-weight:600;cursor:pointer">Restore ' + _archiveSelected.size + '</button>';
@@ -337,7 +437,7 @@
             _archBar += '<button onclick="' + (_allSel ? '_archiveSelected.clear()' : 'v.forEach(function(t){_archiveSelected.add(t.id)})') + ';render()" style="margin-left:auto;background:none;color:var(--text3);border:1px solid var(--border);border-radius:8px;padding:5px 12px;font-size:12px;cursor:pointer">' + (_allSel ? 'Deselect all' : 'Select all') + '</button>';
           }
           _archBar += '</div>';
-          area.innerHTML = _archBar + _rHtml;
+          area.innerHTML = _streakHtml + _archBar + _rHtml;
         } else {
           var _sBarHtml = '<div class="sort-bar"><div style="position:relative"><button class="sort-btn" onclick="toggleSortDrop(event)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="6" y1="12" x2="18" y2="12"/><line x1="9" y1="18" x2="15" y2="18"/></svg>' + (_SORT_NAMES[inboxSort]||'Sort') + '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg></button><div id="sort-drop" class="sort-drop" style="display:none">' + _SORT_ITEMS.map(function(s){return'<button class="sort-drop-item'+(inboxSort===s[0]?' active':'')+'" onclick="setSortAndClose(\''+s[0]+'\')">'+s[1]+'</button>';}).join('') + '</div></div></div>';
           area.innerHTML = _sBarHtml + _rHtml;
@@ -347,6 +447,7 @@
 
 
     function setProjectFilter(id) { currentProjectFilter = id; render(); }
+    window.setTagFilter = function(tag) { activeTagFilter = tag; render(); };
 
     // â"€â"€â"€ Sync â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€
     async function fetchProjects() {
@@ -436,6 +537,7 @@
       if (el) { var cb = el.querySelector('.chk'); if (cb) { cb.classList.add('check-anim'); cb.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'; cb.style.borderColor = 'var(--green)'; cb.style.background = 'var(--green-dim)'; } setTimeout(function () { el.classList.add('completing'); }, 180); }
       // ORB-83: pill label must say "Done", not "Archived"
       var _snapshot = Object.assign({}, task);
+      if (typeof pushUndo === 'function') pushUndo({ type: 'complete', id: task.id });
       toast('Done', 3500, function () {
         clearTimeout(window._completeDelay);
         task.is_completed = false;
@@ -505,7 +607,23 @@
     }
 
     // â"€â"€â"€ Add Task Modal â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€
-    function switchTab(tab) { currentTab = tab; if (tab !== 'projects') currentProjectFilter = null; if (showArchived) { showArchived = false; document.getElementById('archive-label').textContent = 'View Archive'; } _renderLimit = 50; clearSearch(); render(); }
+    function switchTab(tab) {
+      if (tab === 'logbook') { switchToLogbook(); return; }
+      if (tab !== 'tags') { if (typeof activeTagFilter !== 'undefined') activeTagFilter = null; }
+      currentTab = tab;
+      if (tab !== 'projects') currentProjectFilter = null;
+      if (showArchived) { showArchived = false; var _al = document.getElementById('archive-label'); if (_al) _al.textContent = 'View Archive'; var _sal = document.getElementById('settings-archive-label'); if (_sal) _sal.textContent = 'View Archive'; }
+      _renderLimit = 50;
+      clearSearch();
+      render();
+    }
+    function switchToLogbook() {
+      showArchived = true;
+      _archiveSelected.clear();
+      var _al = document.getElementById('archive-label'); if (_al) _al.textContent = 'Back to Tasks';
+      _renderLimit = 50;
+      render();
+    }
     function updateTitleCount(inp) {
       var rem = 255 - inp.value.length;
       var el = document.getElementById('i-title-count');

@@ -4,7 +4,8 @@
       var tc = document.getElementById('i-title-count'); if (tc) tc.style.display = 'none';
       var nc = document.getElementById('i-notes-count'); if (nc) nc.style.display = 'none';
       document.getElementById('i-priority').value = 'None';
-      document.getElementById('i-due').value = '';
+      var _iEn = document.getElementById('i-energy'); if (_iEn) _iEn.value = 'None';
+      document.getElementById('i-due').value = ''; var _df = document.getElementById('i-defer'); if (_df) _df.value = '';
       document.getElementById('i-due-time').value = '';
       document.getElementById('i-repeat').value = 'None';
       document.getElementById('i-project').value = '';
@@ -35,15 +36,15 @@
       var isFlag = flagged; if (nlp && nlp.isFlagged) isFlag = true;
       var projId = document.getElementById('i-project').value || null; if (nlp && nlp.projectId) projId = nlp.projectId;
       var taskTags = addModalTags.slice(); if (nlp && nlp.tagNames) nlp.tagNames.forEach(function (tn) { if (!taskTags.includes(tn)) taskTags.push(tn); });
-      var deferISO = null; if (nlp && nlp.deferDate) deferISO = nlp.deferDate;
-      var energyLevel = (nlp && nlp.energy !== 'None') ? nlp.energy : null;
+      var _deferField = document.getElementById('i-defer'); var deferISO = (_deferField && _deferField.value) ? _deferField.value : (nlp && nlp.deferDate ? nlp.deferDate : null);
+      var _iEnergy = document.getElementById('i-energy'); var energyLevel = (_iEnergy && _iEnergy.value && _iEnergy.value !== 'None') ? _iEnergy.value : ((nlp && nlp.energy !== 'None') ? nlp.energy : null);
       var estMins = (nlp && nlp.estimatedMinutes) ? nlp.estimatedMinutes : null;
       var task = { id: uuid(), user_id: session.user.id, title: title, notes: document.getElementById('i-notes').value.trim(), due_date: dueISO, defer_date: deferISO, is_completed: false, is_flagged: isFlag, priority: pri, project_id: projId, tag_ids: JSON.stringify(taskTags.map(function (tn) { return { name: tn, color: getTagColor(tn) }; })), energy_level: energyLevel, estimated_minutes: estMins, created_at: now, completed_at: null, repeat_rule: document.getElementById('i-repeat').value || 'None', parent_id: null, sort_order: tasks.length, last_reviewed: null, next_review_date: null, review_frequency_num: null, review_frequency_unit: null, is_in_review: false, is_today_task: false, notify_before_minutes: parseInt(document.getElementById('i-notify-before').value) || 30, notified_at: null, updated_at: now };
       tasks.push(task); render(); haptic('medium');
       var addAnother = document.getElementById('tog-add-another')?.classList.contains('on');
       if (addAnother) {
         ['i-title','i-notes'].forEach(function(id){document.getElementById(id).value='';});
-        document.getElementById('i-priority').value='None'; document.getElementById('i-due').value=''; document.getElementById('i-due-time').value=''; document.getElementById('i-repeat').value='None'; document.getElementById('i-notify-before').value='30';
+        document.getElementById('i-priority').value='None'; var _iEn2=document.getElementById('i-energy'); if(_iEn2) _iEn2.value='None'; document.getElementById('i-due').value=''; document.getElementById('i-due-time').value=''; document.getElementById('i-repeat').value='None'; document.getElementById('i-notify-before').value='30';
         flagged=false; addModalTags=[]; document.getElementById('tog-flag').classList.remove('on'); buildTagsPicker('i-tags-picker',addModalTags);
         var strip=document.getElementById('i-nlp-strip'); if(strip){strip.style.display='none';strip.innerHTML='';}
         setTimeout(function(){document.getElementById('i-title').focus();},100);

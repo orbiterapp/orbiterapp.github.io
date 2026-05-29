@@ -13,14 +13,20 @@
       var ddpEm = document.getElementById('ddp-est-mins'); if (ddpEm) ddpEm.value = task.estimated_minutes || '';
       ddpFlag = task.is_flagged || false;
       ddpToday = task.is_today_task || false;
+      ddpEvening = task.is_evening_task || false;
       document.getElementById('ddp-tog-flag').classList.toggle('on', ddpFlag);
       document.getElementById('ddp-tog-today').classList.toggle('on', ddpToday);
+      var _ddpTogEv = document.getElementById('ddp-tog-evening'); if (_ddpTogEv) _ddpTogEv.classList.toggle('on', ddpEvening);
+      var _ddpEn = document.getElementById('ddp-energy'); if (_ddpEn) _ddpEn.value = task.energy_level || 'None';
       // populate project select
       var ps = document.getElementById('ddp-project');
       if (ps) { ps.innerHTML = '<option value="">No Project</option>' + projects.filter(function(p){return !p.is_completed;}).map(function(p){return '<option value="'+p.id+'">'+esc(p.name)+'</option>';}).join(''); ps.value = task.project_id || ''; }
       var ddpDefer = document.getElementById('ddp-defer'); if (ddpDefer) ddpDefer.value = task.defer_date ? task.defer_date.split('T')[0] : '';
       var ddpTagsPicker = document.getElementById('ddp-tags-picker');
       if (ddpTagsPicker) { detailModalTags = getTagArr(task); buildTagsPicker('ddp-tags-picker', detailModalTags); }
+      var ddpRfn = document.getElementById('ddp-review-freq-num'); if (ddpRfn) ddpRfn.value = task.review_frequency_num || '';
+      var ddpRfu = document.getElementById('ddp-review-freq-unit'); if (ddpRfu) ddpRfu.value = task.review_frequency_unit || 'week';
+      var ddpNr = document.getElementById('ddp-next-review'); if (ddpNr) ddpNr.value = task.next_review_date ? task.next_review_date.split('T')[0] : '';
       renderDdpSubtasks();
       document.getElementById('desktop-detail-panel').classList.add('open');
       document.getElementById('screen-app').classList.add('detail-open');
@@ -31,7 +37,8 @@
       currentTaskId = null;
     }
     function toggleDdpFlag() { ddpFlag = !ddpFlag; document.getElementById('ddp-tog-flag').classList.toggle('on', ddpFlag); }
-    function toggleDdpToday() { ddpToday = !ddpToday; document.getElementById('ddp-tog-today').classList.toggle('on', ddpToday); }
+    function toggleDdpToday() { ddpToday = !ddpToday; document.getElementById('ddp-tog-today').classList.toggle('on', ddpToday); if (!ddpToday) { ddpEvening = false; var _et = document.getElementById('ddp-tog-evening'); if (_et) _et.classList.remove('on'); } }
+    function toggleDdpEvening() { ddpEvening = !ddpEvening; var _et = document.getElementById('ddp-tog-evening'); if (_et) _et.classList.toggle('on', ddpEvening); if (ddpEvening) { ddpToday = true; document.getElementById('ddp-tog-today').classList.add('on'); } }
     function saveDdpDetails() {
       var task = tasks.find(function(t) { return t.id === currentTaskId; });
       if (!task) return;
@@ -52,11 +59,44 @@
       task.tag_ids = JSON.stringify(detailModalTags.map(function(tn){ return {name:tn,color:getTagColor(tn)}; }));
       task.is_flagged = ddpFlag;
       task.is_today_task = ddpToday;
+      task.is_evening_task = ddpEvening;
+      task.energy_level = (document.getElementById('ddp-energy') || {}).value || 'None';
       task.notify_before_minutes = parseInt((document.getElementById('ddp-notify-before') || {}).value) || 30;
       task.notified_at = null;
+      var rfnVal = parseInt((document.getElementById('ddp-review-freq-num') || {}).value) || null;
+      var rfuVal = (document.getElementById('ddp-review-freq-unit') || {}).value || null;
+      task.review_frequency_num = rfnVal;
+      task.review_frequency_unit = rfnVal ? rfuVal : null;
+      var nrVal = (document.getElementById('ddp-next-review') || {}).value || null;
+      task.next_review_date = nrVal || (function() {
+        if (!rfnVal || !rfuVal) return null;
+        var d = new Date(); d.setHours(0,0,0,0);
+        if (rfuVal === 'day') d.setDate(d.getDate() + rfnVal);
+        else if (rfuVal === 'week') d.setDate(d.getDate() + rfnVal * 7);
+        else d.setMonth(d.getMonth() + rfnVal);
+        return d.toISOString().split('T')[0];
+      })();
       task.updated_at = now;
       render();
-      patch(task.id, { title:task.title, notes:task.notes, priority:task.priority, due_date:task.due_date, defer_date:task.defer_date, repeat_rule:task.repeat_rule, project_id:task.project_id, tag_ids:task.tag_ids, is_flagged:task.is_flagged, is_today_task:task.is_today_task, notify_before_minutes:task.notify_before_minutes, estimated_minutes:task.estimated_minutes, notified_at:null, updated_at:now }).then(function(){ toast('Saved'); }).catch(function(){ toast('Sync failed'); });
+      patch(task.id, { title:task.title, notes:task.notes, priority:task.priority, due_date:task.due_date, defer_date:task.defer_date, repeat_rule:task.repeat_rule, project_id:task.project_id, tag_ids:task.tag_ids, is_flagged:task.is_flagged, is_today_task:task.is_today_task, is_evening_task:task.is_evening_task, energy_level:task.energy_level, notify_before_minutes:task.notify_before_minutes, estimated_minutes:task.estimated_minutes, notified_at:null, review_frequency_num:task.review_frequency_num, review_frequency_unit:task.review_frequency_unit, next_review_date:task.next_review_date, updated_at:now }).then(function(){ toast('Saved'); }).catch(function(){ toast('Sync failed'); });
+    }
+    function markDdpTaskReviewed() {
+      var task = tasks.find(function(t) { return t.id === currentTaskId; });
+      if (!task) return;
+      var now = new Date().toISOString();
+      task.last_reviewed = now;
+      var rfn = task.review_frequency_num, rfu = task.review_frequency_unit;
+      if (rfn && rfu) {
+        var d = new Date(); d.setHours(0,0,0,0);
+        if (rfu === 'day') d.setDate(d.getDate() + rfn);
+        else if (rfu === 'week') d.setDate(d.getDate() + rfn * 7);
+        else d.setMonth(d.getMonth() + rfn);
+        task.next_review_date = d.toISOString().split('T')[0];
+      }
+      task.updated_at = now;
+      render();
+      patch(task.id, { last_reviewed: now, next_review_date: task.next_review_date, updated_at: now }).then(function(){ toast('Marked reviewed'); }).catch(function(){ toast('Sync failed'); });
+      var ddpNr = document.getElementById('ddp-next-review'); if (ddpNr && task.next_review_date) ddpNr.value = task.next_review_date;
     }
     function deleteDdpTask() {
       var id = currentTaskId;

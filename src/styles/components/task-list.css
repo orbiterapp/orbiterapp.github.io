@@ -218,24 +218,25 @@
     /* Multi-select */
     .ms-toolbar {
       position: fixed;
-      bottom: calc(var(--safe-bottom) + 72px);
-      left: 50%;
-      transform: translateX(-50%) translateY(20px);
+      bottom: calc(var(--safe-bottom) + 88px);
+      left: 12px;
+      right: 12px;
       background: var(--card2);
       border: 1px solid var(--border2);
       border-radius: 20px;
-      padding: 8px 12px;
+      padding: 10px 12px;
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
       z-index: 400;
       box-shadow: var(--shadow-lg, 0 20px 60px rgba(0,0,0,.45));
       opacity: 0;
       pointer-events: none;
       transition: opacity .2s, transform .2s;
-      white-space: nowrap
+      flex-wrap: wrap;
+      transform: translateY(20px);
     }
-    .ms-toolbar.show { opacity: 1; transform: translateX(-50%) translateY(0); pointer-events: auto }
+    .ms-toolbar.show { opacity: 1; transform: translateY(0); pointer-events: auto }
     .ms-btn {
       background: none;
       border: 1px solid var(--border2);

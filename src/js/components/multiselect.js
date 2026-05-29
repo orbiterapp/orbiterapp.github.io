@@ -38,6 +38,7 @@
       var backups = toComplete.map(function (t) { return { id: t.id, is_completed: t.is_completed, completed_at: t.completed_at, updated_at: t.updated_at }; });
       var now = new Date().toISOString();
       toComplete.forEach(function (t) { t.is_completed = true; t.completed_at = now; t.updated_at = now; });
+      if (typeof pushUndo === 'function') pushUndo({ type: 'bulk_complete', ids: toComplete.map(function(t){ return t.id; }) });
       exitMsMode();
       render();
       var n = toComplete.length;
@@ -55,6 +56,7 @@
       var n = ids.length;
       var backups = tasks.filter(function (t) { return ids.includes(t.id); }).map(function (t) { return Object.assign({}, t); });
       tasks = tasks.filter(function (t) { return !ids.includes(t.id); });
+      if (typeof pushUndo === 'function') pushUndo({ type: 'delete', tasks: backups });
       exitMsMode();
       render();
       ids.forEach(function (id) { deleteTask(id).catch(function () {}); });
@@ -80,3 +82,61 @@
         }
       } catch (e) { }
     }
+
+    async function bulkMarkToday() {
+      var ids = Array.from(_msIds);
+      var toMark = tasks.filter(function (t) { return ids.includes(t.id); });
+      var now = new Date().toISOString();
+      toMark.forEach(function (t) { t.is_today_task = true; t.updated_at = now; });
+      exitMsMode();
+      render();
+      toast('Added ' + toMark.length + ' to Today');
+      toMark.forEach(function (t) { patch(t.id, { is_today_task: true, updated_at: now }).catch(function () {}); });
+    }
+
+    function bulkFlag() {
+      var ids = Array.from(_msIds);
+      var toFlag = tasks.filter(function (t) { return ids.includes(t.id); });
+      var allFlagged = toFlag.every(function (t) { return t.is_flagged; });
+      var flagVal = !allFlagged;
+      var now = new Date().toISOString();
+      toFlag.forEach(function (t) { t.is_flagged = flagVal; t.updated_at = now; });
+      exitMsMode();
+      render();
+      toast((flagVal ? 'Flagged ' : 'Unflagged ') + toFlag.length + ' task' + (toFlag.length !== 1 ? 's' : ''));
+      toFlag.forEach(function (t) { patch(t.id, { is_flagged: flagVal, updated_at: now }).catch(function () {}); });
+    }
+
+    function openBulkProjectModal() {
+      var bg = document.getElementById('bulk-project-modal-bg');
+      if (!bg) return;
+      var list = document.getElementById('bulk-project-list');
+      if (list) {
+        var html = '<button class="clone-opt-btn" onclick="applyBulkProject(null)" style="color:var(--text3)">No Project</button>';
+        projects.forEach(function (p) {
+          html += '<button class="clone-opt-btn" onclick="applyBulkProject('' + p.id + '')" style="color:' + p.color + '"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:' + p.color + ';margin-right:8px;vertical-align:middle"></span>' + esc(p.name) + '</button>';
+        });
+        if (!projects.length) html += '<div style="padding:12px;color:var(--text3);font-size:13px;text-align:center">No projects yet</div>';
+        list.innerHTML = html;
+      }
+      bg.style.display = 'flex';
+    }
+
+    function closeBulkProjectModal() {
+      var bg = document.getElementById('bulk-project-modal-bg');
+      if (bg) bg.style.display = 'none';
+    }
+
+    window.applyBulkProject = function (projectId) {
+      var ids = Array.from(_msIds);
+      var toMove = tasks.filter(function (t) { return ids.includes(t.id); });
+      var now = new Date().toISOString();
+      toMove.forEach(function (t) { t.project_id = projectId || null; t.updated_at = now; });
+      closeBulkProjectModal();
+      exitMsMode();
+      render();
+      var pName = projectId ? ((projects.find(function (p) { return p.id === projectId; }) || {}).name || 'project') : 'no project';
+      toast('Moved ' + toMove.length + ' to ' + pName);
+      toMove.forEach(function (t) { patch(t.id, { project_id: projectId || null, updated_at: now }).catch(function () {}); });
+    };
+

@@ -1,3 +1,29 @@
+
+    // Sync when tab regains focus after being hidden >30s (catches changes from other devices)
+    var _lastHiddenAt = 0;
+    document.addEventListener('visibilitychange', function () {
+      if (document.visibilityState === 'hidden') {
+        _lastHiddenAt = Date.now();
+      } else if (document.visibilityState === 'visible' && session) {
+        var hiddenMs = Date.now() - _lastHiddenAt;
+        if (hiddenMs > 30000) syncTasks();
+      }
+    });
+    // Periodic background sync every 5 min while app is visible
+    setInterval(function () {
+      if (session && document.visibilityState === 'visible' && !syncing) syncTasks();
+    }, 5 * 60 * 1000);
+
+
+    function openMoreSheet() {
+      var bg = document.getElementById('more-sheet-bg');
+      if (bg) { bg.style.display = 'flex'; haptic('light'); }
+    }
+    function closeMoreSheet() {
+      var bg = document.getElementById('more-sheet-bg');
+      if (bg) bg.style.display = 'none';
+    }
+
 ﻿    // â"€â"€â"€ Init â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€
     window.addEventListener('unhandledrejection', function (e) { console.error('Unhandled rejection:', e.reason); });
     // parseHash is kept here for the OAuth redirect case (before bootstrapSession)
@@ -105,10 +131,14 @@
       if (!nav) return;
       var tabs = [
         { id: 'inbox', label: 'Inbox', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>' },
+        { id: 'today', label: 'Today', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>' },
         { id: 'calendar', label: 'Calendar', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>' },
         { id: 'flagged', label: 'Flagged', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>' },
         { id: 'projects', label: 'Projects', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>' },
-        { id: 'completed', label: 'Completed', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>' }
+        { id: 'someday', label: 'Someday', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9z"/></svg>' },
+        { id: 'review', label: 'Review', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>' },
+        { id: 'tags', label: 'Tags', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>' },
+        { id: 'logbook', label: 'Logbook', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>' }
       ];
       var t = new Date(); t.setHours(0, 0, 0, 0);
       var _now0 = new Date(); _now0.setHours(0,0,0,0);
@@ -116,14 +146,14 @@
       var todayN = tasks.filter(function (x) { if (x.is_completed) return false; if (x.is_today_task) return true; if (!x.due_date) return false; var d = new Date(x.due_date); return d >= t && d < new Date(t.getTime() + 864e5); }).length;
       var flagN = tasks.filter(function (x) { return !x.is_completed && x.is_flagged; }).length;
       var completedN = tasks.filter(function (x) { return x.is_completed && !x.parent_id; }).length;
-      var badgeCounts = { inbox: inboxN, calendar: todayN, flagged: flagN, projects: 0, completed: completedN };
-      var tabColorMap = { inbox: 'var(--p-inbox)', calendar: 'var(--p-calendar)', flagged: 'var(--p-flagged)', projects: 'var(--p-projects)', completed: 'var(--p-done)', all: 'var(--p-done)' };
+      var todayOnlyN = tasks.filter(function(x) { if (x.is_completed || x.parent_id) return false; if (x.is_today_task) return true; if (!x.due_date) return false; var d = new Date(x.due_date); return d >= t && d < new Date(t.getTime() + 864e5); }).length; var somedayN = tasks.filter(function(x) { if (x.is_completed || x.parent_id || !x.defer_date) return false; var sd = new Date(x.defer_date); sd.setHours(0,0,0,0); return sd > t; }).length; var reviewN = tasks.filter(function(x) { if (x.is_completed || x.parent_id || !x.next_review_date) return false; var rd = new Date(x.next_review_date); rd.setHours(0,0,0,0); return rd <= t; }).length; var badgeCounts = { inbox: inboxN, today: todayOnlyN, calendar: todayOnlyN, flagged: flagN, projects: 0, someday: somedayN, review: reviewN, logbook: completedN };
+      var tabColorMap = { inbox: 'var(--p-inbox)', today: 'var(--p-today)', calendar: 'var(--p-calendar)', flagged: 'var(--p-flagged)', projects: 'var(--p-projects)', someday: 'var(--amber)', review: 'var(--p-review)', logbook: 'var(--p-done)', tags: 'var(--p-tags)', all: 'var(--p-done)' };
       var h = '';
       tabs.forEach(function (tab) {
-        var isActive = tab.id === 'completed' ? showArchived : (currentTab === tab.id && !showArchived);
+        var isActive = tab.id === 'logbook' ? showArchived : (currentTab === tab.id && !showArchived);
         var badge = badgeCounts[tab.id];
         var tabColor = tabColorMap[tab.id] || 'var(--accent)';
-        var onclick = tab.id === 'completed' ? 'switchToCompleted()' : 'switchTab(\'' + tab.id + '\')';
+        var onclick = tab.id === 'logbook' ? 'switchToLogbook()' : 'switchTab(\'' + tab.id + '\')';
         h += '<button class="ds-tab' + (isActive ? ' active' : '') + '" onclick="' + onclick + '" style="--tab-color:' + tabColor + (isActive ? ';color:' + tabColor : '') + '"><span class="ds-icon">' + tab.icon + '</span>' + tab.label + (badge > 0 ? '<span class="ds-badge">' + (badge > 99 ? '99+' : badge) + '</span>' : '') + '</button>';
       });
       // Utility section
@@ -189,7 +219,7 @@
     (function () {
       var pill = null, toolbar = null, _placed = false;
       var SPRING = 'left .42s cubic-bezier(.34,1.56,.64,1),width .42s cubic-bezier(.34,1.56,.64,1),top .38s cubic-bezier(.34,1.56,.64,1),height .38s cubic-bezier(.34,1.56,.64,1)';
-      var NON_FAB = ['inbox', 'calendar', 'flagged', 'projects'];
+      var NON_FAB = ['inbox', 'today', 'flagged'];
 
       function ensure() {
         if (pill) return true;
