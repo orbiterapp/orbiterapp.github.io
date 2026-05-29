@@ -114,7 +114,7 @@
       if (list) {
         var html = '<button class="clone-opt-btn" onclick="applyBulkProject(null)" style="color:var(--text3)">No Project</button>';
         projects.forEach(function (p) {
-          html += '<button class="clone-opt-btn" onclick="applyBulkProject('' + p.id + '')" style="color:' + p.color + '"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:' + p.color + ';margin-right:8px;vertical-align:middle"></span>' + esc(p.name) + '</button>';
+          html += '<button class="clone-opt-btn" onclick="applyBulkProject(\'' + p.id + '\')" style="color:' + p.color + '"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:' + p.color + ';margin-right:8px;vertical-align:middle"></span>' + esc(p.name) + '</button>';
         });
         if (!projects.length) html += '<div style="padding:12px;color:var(--text3);font-size:13px;text-align:center">No projects yet</div>';
         list.innerHTML = html;

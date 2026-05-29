@@ -306,7 +306,7 @@
         _tagPills += '<button class="proj-pill' + (!activeTagFilter ? ' active' : '') + '" onclick="setTagFilter(null)" style="color:var(--p-tags)"><span class="proj-dot" style="background:var(--p-tags)"></span>All</button>';
         _allUsedTags.forEach(function(tg) {
           var _tc = _tagColorMap[tg] || 'var(--p-tags)';
-          _tagPills += '<button class="proj-pill' + (activeTagFilter === tg ? ' active' : '') + '" onclick="setTagFilter('' + tg.replace(/'/g, "\'") + '')" style="color:' + _tc + '"><span class="proj-dot" style="background:' + _tc + '"></span>' + esc(tg) + '</button>';
+          _tagPills += '<button class="proj-pill' + (activeTagFilter === tg ? ' active' : '') + '" data-tag="' + esc(tg) + '" onclick="setTagFilter(this.getAttribute(\'data-tag\'))" style="color:' + _tc + '"><span class="proj-dot" style="background:' + _tc + '"></span>' + esc(tg) + '</button>';
         });
         _tagPills += '</div>';
         area.innerHTML = _tagPills + _rHtml;
