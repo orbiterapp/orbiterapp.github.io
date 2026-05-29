@@ -357,7 +357,7 @@
         if (subtasks.length > 0) chips += '<span class="chip chip-note"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="margin-right:2px"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>' + doneSubs + '/' + subtasks.length + '</span>';
         if (proj && currentTab !== 'projects') chips += '<span class="chip chip-project"><span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:' + proj.color + ';margin-right:3px"></span>' + esc(proj.name) + '</span>';
         tags.forEach(function (tag) { var color = _tagColorMap[tag] || 'var(--text2)'; chips += '<span class="chip chip-tag" style="background:' + color + '22;color:' + color + '">' + esc(tag) + '</span>'; });
-        if (t.energy_level) { var _eColor = {Low:'var(--green)',Medium:'var(--amber)',High:'var(--red)'}[t.energy_level]||'var(--text2)'; chips += '<span class="chip" style="color:'+_eColor+'">⚡'+t.energy_level+'</span>'; }
+        if (t.energy_level && t.energy_level !== 'None') { var _eColor = {Low:'var(--green)',Medium:'var(--amber)',High:'var(--red)'}[t.energy_level]||'var(--text2)'; chips += '<span class="chip" style="color:'+_eColor+'">⚡'+t.energy_level+'</span>'; }
         if (t.estimated_minutes) chips += '<span class="chip chip-note">'+t.estimated_minutes+'m</span>';
         if (t.notes) chips += '<span class="chip chip-note">Note</span>';
         var archCls = showArchived ? ' archived-row' : '';
@@ -455,7 +455,7 @@
         var r = await api('projects?order=name.asc');
         var data = await r.json();
         if (Array.isArray(data)) {
-          projects = data.map(function (p) { return { id: p.id, name: p.name, color: p.color || '#8b5cf6', is_completed: !!p.is_completed, completed_at: p.completed_at || null }; });
+          projects = data.map(function (p) { return { id: p.id, name: p.name, color: p.color || '#8b5cf6', is_completed: !!p.is_completed, completed_at: p.completed_at || null, is_sequential: !!p.is_sequential, is_archived: !!p.is_archived, folder: p.folder || '', sort_order: p.sort_order || 0, notes: p.notes || '' }; });
           // ORB-30: persist to localStorage so quick.html can read project list
           localStorage.setItem('pwa_projects', JSON.stringify(projects));
         }
@@ -471,7 +471,18 @@
       }
       area.innerHTML = html;
     }
-    async function syncTasks() { if (syncing) return; syncing = true; var _sb = document.getElementById('sync-btn'); if (_sb) _sb.classList.add('spinning'); var _us = document.getElementById('um-sync'); if (_us) _us.style.opacity = '.4'; showSkeleton(); try { tasks = await fetchAll(); try { localStorage.setItem('pwa_tasks', JSON.stringify(tasks)); } catch(e) {} await fetchProjects(); populateProjectSelects(); render(); } catch (e) { if (e.message !== 'Unauthorized') toast('Sync failed'); } finally { syncing = false; if (_sb) _sb.classList.remove('spinning'); if (_us) _us.style.opacity = ''; } }
+    var _supabaseTags = {};
+    async function fetchTags() {
+      try {
+        var r = await api('tags?order=name.asc');
+        var data = await r.json();
+        if (Array.isArray(data)) {
+          _supabaseTags = {};
+          data.forEach(function(t) { _supabaseTags[t.id] = { name: t.name, color: t.color || 'var(--text2)' }; });
+        }
+      } catch (e) {}
+    }
+    async function syncTasks() { if (syncing) return; syncing = true; var _sb = document.getElementById('sync-btn'); if (_sb) _sb.classList.add('spinning'); var _us = document.getElementById('um-sync'); if (_us) _us.style.opacity = '.4'; showSkeleton(); try { tasks = await fetchAll(); try { localStorage.setItem('pwa_tasks', JSON.stringify(tasks)); } catch(e) {} await fetchProjects(); await fetchTags(); populateProjectSelects(); render(); } catch (e) { if (e.message !== 'Unauthorized') toast('Sync failed'); } finally { syncing = false; if (_sb) _sb.classList.remove('spinning'); if (_us) _us.style.opacity = ''; } }
 
     // â"€â"€â"€ ORB-37: Supabase Realtime subscription â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€
     var _realtimeChannel = null, _rtClient = null, _rtRenderTimer = null, _rtReconnectTimer = null;
