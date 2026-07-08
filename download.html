@@ -82,7 +82,7 @@
       font-size:13px;font-weight:600;color:rgba(48,212,148,.9);
     }
     .os-banner svg{width:15px;height:15px}
-    .cards{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:48px}
+    .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:20px;margin-bottom:48px}
     .dl-card{
       background:rgba(14,14,22,0.85);border:1px solid var(--border);border-radius:22px;
       padding:36px;display:flex;flex-direction:column;position:relative;overflow:hidden;
@@ -197,7 +197,7 @@
   <div class="page-header rv">
     <div class="page-eyebrow"><div class="badge-dot"></div>Free during beta</div>
     <h1 class="page-title"><span>Download Orbiter</span></h1>
-    <p class="page-sub">The fastest task manager for macOS and Windows. Free, forever during beta.</p>
+    <p class="page-sub">The fastest task manager for macOS, Windows, and iPhone. Free, forever during beta.</p>
     <div class="os-banner" id="osBanner">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
       <span id="osBannerText"></span>
@@ -243,6 +243,26 @@
         Download for Windows
       </a>
       <p class="card-note">Run the installer and follow the setup wizard</p>
+    </div>
+
+    <!-- iPhone -->
+    <div class="dl-card ios" id="iosCard">
+      <div class="card-os-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="var(--purple-light)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2" width="10" height="20" rx="2.5"/><line x1="11" y1="18.5" x2="13" y2="18.5"/></svg>
+      </div>
+      <h2 class="card-title">iPhone</h2>
+      <p class="card-version">Beta &middot; .ipa &middot; sideload</p>
+      <p class="card-desc">The native iPhone app with the full Paper design, quick capture, reminders, and instant sync with your Mac.</p>
+      <div class="card-specs">
+        <div class="spec-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>iOS 26 or later</div>
+        <div class="spec-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Install via AltStore or Sideloadly</div>
+        <div class="spec-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Signs with your own Apple ID</div>
+      </div>
+      <a class="dl-btn" href="https://raw.githubusercontent.com/orbiterapp/orbiterapp.github.io/main/Orbiter.ipa" download>
+        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M8 11l4 4 4-4"/><path d="M5 21h14"/></svg>
+        Download .ipa
+      </a>
+      <p class="card-note">Not on the App Store yet &mdash; sideload with <a href="https://altstore.io" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline">AltStore</a> (free): install AltServer on your computer, open the .ipa in AltStore on your phone. Free Apple IDs re-sign every 7 days automatically.</p>
     </div>
   </div>
 
@@ -314,7 +334,12 @@ document.querySelectorAll('.rv').forEach(el=>io.observe(el));
   const isWin = /Win/.test(navigator.platform||'');
   const banner = document.getElementById('osBanner');
   const bannerText = document.getElementById('osBannerText');
-  if(isMac){
+  const isiPhone = /iPhone|iPad|iPod/.test(navigator.userAgent);
+  if(isiPhone){
+    banner.style.display='inline-flex';
+    bannerText.textContent='We detected iPhone \u2014 grab the .ipa below and sideload with AltStore';
+    document.getElementById('iosCard').style.borderColor='rgba(124,80,232,0.5)';
+  } else if(isMac){
     banner.style.display='inline-flex';
     bannerText.textContent='We detected macOS — your download is ready below';
     document.getElementById('macCard').style.borderColor='rgba(124,80,232,0.5)';
